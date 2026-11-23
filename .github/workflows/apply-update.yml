@@ -1,0 +1,22 @@
+name: Apply update
+on:
+  push:
+    branches: [main]
+    paths: [nexora-update.zip]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply update files
+        run: |
+          unzip -o nexora-update.zip -d .
+          rm -f nexora-update.zip
+          git config user.name "nexora-update"
+          git config user.email "update@nexora.local"
+          git add -A
+          git commit -m "Add last-5 data version history" || echo "nothing to commit"
+          git push
