@@ -269,9 +269,16 @@ function buildOne() {
     return { ua: mobileBrowserUa(b, p, os, v).replace("(iPhone;", "(iPad;").replace("CPU iPhone OS", "CPU OS"), tag: b.toUpperCase() + " · IPAD" };
   }
   const list = platformDevices();
-  const d = list[state.deviceIdx % list.length] || list[0];
-  if (!d) return null;
-  const os = document.getElementById("os").value || d.osVersions[d.osVersions.length - 1];
+  if (!list.length) return null;
+  // Random mode (deviceIdx -1): pick a random device from the current pool
+  // (already filtered by platform + country) and a random OS for it.
+  const randomMode = state.deviceIdx === -1;
+  const d = randomMode
+    ? list[Math.floor(Math.random() * list.length)]
+    : (list[state.deviceIdx % list.length] || list[0]);
+  const os = randomMode
+    ? d.osVersions[Math.floor(Math.random() * d.osVersions.length)]
+    : (document.getElementById("os").value || d.osVersions[d.osVersions.length - 1]);
   if (state.app) {
     const info = appInfo(state.app);
     const label = (APPS.find(a => a[0] === state.app) || ["", state.app])[1];
@@ -294,27 +301,40 @@ function generate() {
   const combos = [];
   if (isDesktop() || state.platform === "ipad") {
     combos.push(0);
+  } else if (state.deviceIdx >= 0 && list[state.deviceIdx]) {
+    // A specific phone is chosen: vary only its OS versions.
+    list[state.deviceIdx].osVersions.forEach(() => combos.push(state.deviceIdx));
   } else {
     list.forEach((d, di) => d.osVersions.forEach(() => combos.push(di)));
   }
   let ptr = 0;
   const osSel = document.getElementById("os");
   const osBackup = osSel.value;
-  while (results.length < qty && ptr < combos.length * 2) {
-    const di = combos[ptr % combos.length];
-    state.deviceIdx = di;
-    const d = list[di];
-    if (d) {
-      const osIdx = Math.floor(ptr / Math.max(1, list.length)) % d.osVersions.length;
-      osSel.value = d.osVersions[d.osVersions.length - 1 - osIdx];
+  if (state.deviceIdx === -1 && !isDesktop() && state.platform !== "ipad") {
+    // Bulk random: every UA rolls a fresh random device (+OS) from the pool.
+    let attempts = 0;
+    while (results.length < qty && attempts < qty * 40 + 120) {
+      const one = buildOne();
+      if (one && !seen.has(one.ua)) { seen.add(one.ua); results.push(one); }
+      attempts++;
     }
-    const one = buildOne();
-    if (one && !seen.has(one.ua)) { seen.add(one.ua); results.push(one); }
-    ptr++;
-    if (ptr > qty * 4 + 40) break;
+  } else {
+    while (results.length < qty && ptr < combos.length * 2) {
+      const di = combos[ptr % combos.length];
+      state.deviceIdx = di;
+      const d = list[di];
+      if (d) {
+        const osIdx = Math.floor(ptr / Math.max(1, list.length)) % d.osVersions.length;
+        osSel.value = d.osVersions[d.osVersions.length - 1 - osIdx];
+      }
+      const one = buildOne();
+      if (one && !seen.has(one.ua)) { seen.add(one.ua); results.push(one); }
+      ptr++;
+      if (ptr > qty * 4 + 40) break;
+    }
+    state.deviceIdx = startIdx;
+    osSel.value = osBackup;
   }
-  state.deviceIdx = startIdx;
-  osSel.value = osBackup;
   const out = document.getElementById("output");
   if (!isDesktop() && state.platform !== "ipad" && !list.length) {
     document.getElementById("resCount").textContent = "Results (0)";
@@ -380,17 +400,24 @@ function renderControls() {
 function syncDeviceSelect() {
   const sel = document.getElementById("device");
   const list = platformDevices();
-  sel.innerHTML = list.map((d, i) =>
-    '<option value="' + i + '">' + d.brand + " " + d.model + (d.isIos ? " (iOS)" : "") + "</option>").join("");
-  state.deviceIdx = 0;
-  sel.value = "0";
+  sel.innerHTML = '<option value="-1">Random device (from selected country)</option>' +
+    list.map((d, i) =>
+      '<option value="' + i + '">' + d.brand + " " + d.model + (d.isIos ? " (iOS)" : "") + "</option>").join("");
+  state.deviceIdx = -1;
+  sel.value = "-1";
   syncOs();
 }
 
 function syncOs() {
+  const osSel = document.getElementById("os");
+  if (state.deviceIdx === -1) {
+    osSel.innerHTML = "<option>Random</option>";
+    osSel.disabled = true;
+    return;
+  }
+  osSel.disabled = false;
   const list = platformDevices();
   const d = list[state.deviceIdx] || list[0];
-  const osSel = document.getElementById("os");
   if (!d) { osSel.innerHTML = ""; return; }
   osSel.innerHTML = d.osVersions.map(v => "<option>" + v + "</option>").join("");
   osSel.value = d.osVersions[d.osVersions.length - 1];
