@@ -14,6 +14,7 @@ jobs:
       - name: Extract archive into repo
         run: |
           unzip -o nexora-repo-upload.zip -d .
+          git checkout -- .github/workflows/build.yml .github/workflows/refresh.yml
           rm -f nexora-repo-upload.zip
           git config user.name "nexora-bootstrap"
           git config user.email "bootstrap@nexora.local"
