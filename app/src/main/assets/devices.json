@@ -1156,6 +1156,847 @@
         "HK",
         "TW"
       ]
+    },
+    {
+      "id": "galaxy-s24-fe",
+      "brand": "Samsung",
+      "model": "Galaxy S24 FE",
+      "uaModel": "SM-S721B",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2340,
+        "dpr": 3.0
+      },
+      "gpu": "Xclipse 940",
+      "soc": "Exynos 2400e",
+      "cores": 10,
+      "ramGb": [
+        8
+      ],
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ]
+    },
+    {
+      "id": "galaxy-z-flip-6",
+      "brand": "Samsung",
+      "model": "Galaxy Z Flip 6",
+      "uaModel": "SM-F741B",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2640,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 750",
+      "soc": "Snapdragon 8 Gen 3",
+      "cores": 8,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ]
+    },
+    {
+      "id": "galaxy-a25",
+      "brand": "Samsung",
+      "model": "Galaxy A25",
+      "uaModel": "SM-A256B",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2340,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G68",
+      "soc": "Exynos 1280",
+      "cores": 8,
+      "ramGb": [
+        6,
+        8
+      ],
+      "storageGb": [
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ]
+    },
+    {
+      "id": "pixel-9a",
+      "brand": "Google",
+      "model": "Pixel 9a",
+      "uaModel": "Pixel 9a",
+      "osVersions": [
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2424,
+        "dpr": 2.625
+      },
+      "gpu": "Mali-G715 MC7",
+      "soc": "Google Tensor G4",
+      "cores": 8,
+      "ramGb": [
+        8
+      ],
+      "storageGb": [
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ]
+    },
+    {
+      "id": "pixel-8-pro",
+      "brand": "Google",
+      "model": "Pixel 8 Pro",
+      "uaModel": "Pixel 8 Pro",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1344,
+        "h": 2992,
+        "dpr": 3.0
+      },
+      "gpu": "Immortalis-G715s MC10",
+      "soc": "Google Tensor G3",
+      "cores": 9,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ]
+    },
+    {
+      "id": "redmi-note-13-pro",
+      "brand": "Xiaomi",
+      "model": "Redmi Note 13 Pro",
+      "uaModel": "2312DRA50G",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1220,
+        "h": 2712,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G77 MC9",
+      "soc": "Helio G99 Ultra",
+      "cores": 8,
+      "ramGb": [
+        8,
+        12
+      ],
+      "storageGb": [
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "EG",
+        "NG",
+        "KE",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "IT",
+        "DE",
+        "FR",
+        "PL",
+        "TR",
+        "SA",
+        "AE",
+        "RU",
+        "UA",
+        "CN"
+      ]
+    },
+    {
+      "id": "poco-m6-pro",
+      "brand": "Xiaomi",
+      "model": "POCO M6 Pro",
+      "uaModel": "2312FPCA6G",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2400,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G77 MC9",
+      "soc": "Helio G99 Ultra",
+      "cores": 8,
+      "ramGb": [
+        8,
+        12
+      ],
+      "storageGb": [
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "DE",
+        "FR",
+        "IT",
+        "PL",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "CN"
+      ]
+    },
+    {
+      "id": "xiaomi-14t",
+      "brand": "Xiaomi",
+      "model": "Xiaomi 14T",
+      "uaModel": "2407FPN8EG",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1220,
+        "h": 2712,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G615 MC6",
+      "soc": "Dimensity 8300 Ultra",
+      "cores": 8,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "PL",
+        "GR",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "RU",
+        "CN"
+      ]
+    },
+    {
+      "id": "oneplus-nord-4",
+      "brand": "OnePlus",
+      "model": "OnePlus Nord 4",
+      "uaModel": "CPH2663",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1240,
+        "h": 2772,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 732",
+      "soc": "Snapdragon 7+ Gen 3",
+      "cores": 8,
+      "ramGb": [
+        8,
+        12
+      ],
+      "storageGb": [
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "US",
+        "CA",
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AE",
+        "SA",
+        "MY",
+        "SG",
+        "TH",
+        "VN",
+        "PH",
+        "ID"
+      ]
+    },
+    {
+      "id": "moto-g84",
+      "brand": "Motorola",
+      "model": "Moto G84",
+      "uaModel": "moto g84 5G",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2400,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 619",
+      "soc": "Snapdragon 695",
+      "cores": 8,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "PL",
+        "BR",
+        "MX",
+        "AR",
+        "AU",
+        "US",
+        "CA"
+      ]
+    },
+    {
+      "id": "vivo-v40",
+      "brand": "vivo",
+      "model": "V40",
+      "uaModel": "V2348",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1260,
+        "h": 2800,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 720",
+      "soc": "Snapdragon 7 Gen 3",
+      "cores": 8,
+      "ramGb": [
+        8,
+        12
+      ],
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "EG",
+        "AE",
+        "SA",
+        "ZA",
+        "KE",
+        "NG",
+        "MX",
+        "BR",
+        "ES",
+        "IT",
+        "DE"
+      ]
+    },
+    {
+      "id": "oppo-reno-12",
+      "brand": "Oppo",
+      "model": "Reno 12",
+      "uaModel": "CPH2625",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2412,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G610 MC6",
+      "soc": "Dimensity 8250",
+      "cores": 8,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "SG",
+        "AE",
+        "SA",
+        "EG",
+        "ZA",
+        "KE",
+        "NG",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "AU",
+        "MX",
+        "BR"
+      ]
+    },
+    {
+      "id": "realme-12-pro-plus",
+      "brand": "Realme",
+      "model": "12 Pro+",
+      "uaModel": "RMX3840",
+      "osVersions": [
+        "14",
+        "15"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2412,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 710",
+      "soc": "Snapdragon 7s Gen 2",
+      "cores": 8,
+      "ramGb": [
+        8,
+        12
+      ],
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "builds": {},
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "EG",
+        "AE",
+        "SA",
+        "NG",
+        "KE",
+        "ES",
+        "IT",
+        "PL",
+        "MX",
+        "BR",
+        "RU"
+      ]
+    },
+    {
+      "id": "honor-x9b",
+      "brand": "Honor",
+      "model": "X9b",
+      "uaModel": "ALI-NX1",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1220,
+        "h": 2652,
+        "dpr": 3.0
+      },
+      "gpu": "Adreno (TM) 710",
+      "soc": "Snapdragon 6 Gen 1",
+      "cores": 8,
+      "ramGb": [
+        12
+      ],
+      "storageGb": [
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "IQ",
+        "MY",
+        "ID",
+        "TH",
+        "VN",
+        "PH",
+        "SG",
+        "SA",
+        "AE",
+        "EG",
+        "ZA",
+        "MX",
+        "BR"
+      ]
+    },
+    {
+      "id": "tecno-spark-20-pro",
+      "brand": "Tecno",
+      "model": "Spark 20 Pro",
+      "uaModel": "TECNO KJ6",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2460,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G77 MC9",
+      "soc": "Helio G99",
+      "cores": 8,
+      "ramGb": [
+        8
+      ],
+      "storageGb": [
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "PK",
+        "IN",
+        "NG",
+        "KE",
+        "ZA",
+        "EG",
+        "ID",
+        "PH",
+        "MY",
+        "IQ",
+        "MM",
+        "LK"
+      ]
+    },
+    {
+      "id": "infinix-hot-40-pro",
+      "brand": "Infinix",
+      "model": "Hot 40 Pro",
+      "uaModel": "Infinix X6837",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "display": {
+        "w": 1080,
+        "h": 2460,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G77 MC9",
+      "soc": "Helio G99",
+      "cores": 8,
+      "ramGb": [
+        8
+      ],
+      "storageGb": [
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "BD",
+        "PK",
+        "IN",
+        "NG",
+        "KE",
+        "ZA",
+        "EG",
+        "ID",
+        "PH",
+        "MY",
+        "MM",
+        "IQ"
+      ]
     }
   ],
   "ios_emulation": [
@@ -1562,6 +2403,159 @@
         256
       ],
       "uaModel": "iPhone14,6",
+      "builds": {},
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ]
+    },
+    {
+      "id": "iphone-12",
+      "brand": "Apple",
+      "model": "iPhone 12",
+      "uaModel": "iPhone13,2",
+      "osVersions": [
+        "16",
+        "17",
+        "18"
+      ],
+      "display": {
+        "w": 1170,
+        "h": 2532,
+        "dpr": 3.0
+      },
+      "gpu": "Apple GPU",
+      "soc": "Apple A14 Bionic",
+      "cores": 6,
+      "ramGb": [
+        4
+      ],
+      "storageGb": [
+        64,
+        128,
+        256
+      ],
+      "builds": {},
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ]
+    },
+    {
+      "id": "iphone-11",
+      "brand": "Apple",
+      "model": "iPhone 11",
+      "uaModel": "iPhone12,1",
+      "osVersions": [
+        "15",
+        "16",
+        "17",
+        "18"
+      ],
+      "display": {
+        "w": 828,
+        "h": 1792,
+        "dpr": 2.0
+      },
+      "gpu": "Apple GPU",
+      "soc": "Apple A13 Bionic",
+      "cores": 6,
+      "ramGb": [
+        4
+      ],
+      "storageGb": [
+        64,
+        128,
+        256
+      ],
       "builds": {},
       "markets": [
         "US",
