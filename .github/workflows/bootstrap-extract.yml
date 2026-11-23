@@ -1,0 +1,22 @@
+name: Bootstrap extract
+on:
+  push:
+    branches: [main]
+    paths: [nexora-repo-upload.zip]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract archive into repo
+        run: |
+          unzip -o nexora-repo-upload.zip -d .
+          rm -f nexora-repo-upload.zip
+          git config user.name "nexora-bootstrap"
+          git config user.email "bootstrap@nexora.local"
+          git add -A
+          git commit -m "Extract NEXORA 0.4.0-alpha2 source" || echo "nothing to commit"
+          git push
