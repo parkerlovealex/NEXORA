@@ -1,236 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>NEXORA - User-Agent Generator</title>
-<style>
-  /* Palette follows the reference tool: soft light theme, deep dark theme,
-     switched automatically by the device (prefers-color-scheme). */
-  :root {
-    --bg: #eff3f8; --panel: #ffffff; --raised: #f2f6fb; --text: #223041;
-    --muted: #607286; --line: #c9d6e6; --accent: #2f87d7; --accent-ink: #ffffff;
-    --accent-soft: #e2eefb; --good: #2d9b5d; --good-soft: #e2f4e9;
-    --shadow: 0 12px 34px rgba(33,55,88,.14);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #05070d; --panel: #0c0f19; --raised: #131826; --text: #e5edf6;
-      --muted: #95a2b5; --line: #243043; --accent: #7eb9ff; --accent-ink: #0a1220;
-      --accent-soft: #16283f; --good: #79bd93; --good-soft: #12291c;
-      --shadow: 0 14px 44px rgba(0,0,0,.42);
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px; line-height: 1.5;
-  }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 22px 14px 44px; }
-  header { padding: 6px 2px 2px; }
-  header h1 { margin: 0; font-size: 24px; letter-spacing: 0.12em; font-weight: 800; }
-  header h1 span { color: var(--accent); }
-  header p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; letter-spacing: 0.16em; }
-  .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
-    box-shadow: var(--shadow); padding: 18px; margin-top: 16px;
-  }
-  .section-label { font-size: 12px; letter-spacing: 0.14em; color: var(--muted); margin: 22px 0 10px; font-weight: 700; }
-  .section-label:first-child { margin-top: 0; }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .toggle-row strong { color: var(--good); font-size: 16px; }
-  .toggle-row p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
-  .switch { position: relative; width: 56px; height: 30px; flex: none; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .track {
-    position: absolute; inset: 0; border-radius: 999px; background: var(--raised);
-    border: 1px solid var(--line); transition: 0.2s; cursor: pointer;
-  }
-  .track:before {
-    content: ""; position: absolute; width: 22px; height: 22px; border-radius: 50%;
-    left: 3px; top: 3px; background: var(--muted); transition: 0.2s;
-  }
-  .switch input:checked + .track { background: var(--good-soft); border-color: var(--good); }
-  .switch input:checked + .track:before { transform: translateX(26px); background: var(--good); }
-  .platforms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .platform-card {
-    background: var(--raised); border: 2px solid var(--line); border-radius: 14px;
-    min-height: 96px; padding: 16px 8px 12px; text-align: center; cursor: pointer; color: var(--text);
-    font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
-  }
-  .platform-card svg { display: block; margin: 0 auto 10px; width: 30px; height: 30px; }
-  .platform-on { border-color: var(--accent); background: var(--accent-soft); }
-  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip {
-    background: var(--raised); border: 1.5px solid var(--line); color: var(--text);
-    border-radius: 12px; min-height: 44px; padding: 10px 18px; font-size: 14.5px; font-weight: 600; cursor: pointer;
-  }
-  .chip-on { border-color: var(--accent); background: var(--accent-soft); }
-  .chip-off { opacity: 0.35; cursor: not-allowed; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
-  label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.08em; font-weight: 700; }
-  select, input[type="text"], input[type="search"] {
-    width: 100%; height: 46px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--raised); color: var(--text); padding: 0 12px; font-size: 14.5px;
-  }
-  details.advanced { margin-top: 22px; }
-  details.advanced summary {
-    cursor: pointer; font-size: 12px; letter-spacing: 0.14em; color: var(--muted); font-weight: 700;
-  }
-  details.advanced .grid2 { margin-top: 12px; }
-  .countries { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 240px; overflow-y: auto; }
-  @media (max-width: 640px) { .countries { grid-template-columns: 1fr; } }
-  .country {
-    background: var(--raised); border: 1.5px solid var(--line); color: var(--text);
-    border-radius: 10px; min-height: 44px; padding: 10px 12px; font-size: 13.5px; text-align: left; cursor: pointer;
-  }
-  .country span { color: var(--muted); font-size: 12px; }
-  .country-on { border-color: var(--accent); background: var(--accent-soft); }
-  .qty-row { display: flex; align-items: center; justify-content: space-between; }
-  .qty-val { color: var(--accent); font-weight: 700; font-size: 17px; }
-  input[type="range"] { width: 100%; accent-color: var(--accent); height: 32px; }
-  .get-btn {
-    width: 100%; height: 54px; border: none; border-radius: 14px; margin-top: 14px;
-    background: var(--accent); color: var(--accent-ink);
-    font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: 0.02em;
-  }
-  .res-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .res-head h2 { margin: 0; font-size: 15.5px; font-family: ui-monospace, Menlo, monospace; flex: 1; }
-  .ghost {
-    background: var(--raised); color: var(--text); border: 1px solid var(--line);
-    border-radius: 10px; min-height: 40px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
-  }
-  .ua {
-    display: flex; gap: 10px; background: var(--raised); border: 1px solid var(--line);
-    border-radius: 10px; padding: 12px; margin-top: 10px;
-    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.5;
-  }
-  .ua-num { color: var(--muted); flex: none; }
-  .ua-body { word-break: break-all; }
-  .ua-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag {
-    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent);
-    border-radius: 999px; padding: 2px 10px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
-  }
-  .tag-loc { background: var(--good-soft); color: var(--good); border-color: var(--good); }
-  .hist { cursor: pointer; font-family: inherit; font-size: 14px; }
-  .muted { color: var(--muted); font-size: 13px; }
-  .meta { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 18px; line-height: 1.6; }
-  h2 { font-size: 16px; margin: 0 0 4px; }
-  button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 2px;
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101316">
+  <meta name="description" content="NEXORA is a public device compatibility data platform with AI-assisted research, validation and data management.">
+  <title>NEXORA Next — Device Intelligence Platform</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>NEX<span>ORA</span></h1>
-    <p>USER-AGENT GENERATOR</p>
-  </header>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">N</div>
+      <div class="brand-copy"><strong>NEXORA</strong><small>NEXT / DEVICE INTELLIGENCE</small></div>
+    </div>
+    <div class="workspace-switcher">
+      <span class="workspace-icon">NX</span>
+      <span><strong>Public workspace</strong><small>Compatibility data</small></span>
+      <span class="chevron">⌄</span>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>Overview</button>
+      <button class="nav-item" data-view="generator"><span class="nav-icon">▦</span>Bulk Studio</button>
+      <button class="nav-item" data-view="devices"><span class="nav-icon">▯</span>Device Library</button>
+      <button class="nav-item" data-view="applications"><span class="nav-icon">▣</span>Applications</button>
+      <button class="nav-item" data-view="compatibility"><span class="nav-icon">⌘</span>Compatibility</button>
+      <div class="nav-label admin-nav-label admin-only hidden">CONTROL CENTER</div>
+      <button class="nav-item admin-only hidden" data-view="automation"><span class="nav-icon">↻</span>Automation Center</button>
+      <button class="nav-item admin-only hidden" data-view="review"><span class="nav-icon">☷</span>Review Queue <span class="nav-count hidden" id="reviewCount">0</span></button>
+      <button class="nav-item admin-only hidden" data-view="assistant"><span class="nav-icon">✳</span>AI Assistant <span class="nav-pill">AI</span></button>
+      <button class="nav-item admin-only hidden" data-view="audit"><span class="nav-icon">◷</span>Change History</button>
+      <button class="nav-item admin-only hidden" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="api-health"><span class="health-dot" id="healthDot"></span><span><strong id="healthText">Checking API</strong><small id="healthSub">Connecting to data service</small></span></div>
+      <button class="sidebar-help" data-view="about"><span>ⓘ</span>Platform information <kbd>INFO</kbd></button>
+      <div class="sidebar-foot">NEXORA NEXT <span>v1.0.0</span></div>
+    </div>
+  </aside>
 
-  <div class="card">
-    <div class="toggle-row">
-      <div>
-        <strong>Live Database Mode</strong>
-        <p>On: pull the newest data straight from the NEXORA repo. Off: use the copy bundled with this page.</p>
+  <main class="main-column">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumbs"><span>Workspace</span><b>/</b><strong id="breadcrumbCurrent">Overview</strong></div>
       </div>
-      <label class="switch">
-        <input type="checkbox" id="liveToggle" checked>
-        <span class="track"></span>
-      </label>
-    </div>
-  </div>
+      <div class="topbar-actions">
+        <div class="data-status"><span class="status-dot" id="topStatusDot"></span><span id="topStatusText">DATA READY</span></div>
+        <button class="icon-button" id="themeToggle" aria-label="Toggle appearance" title="Toggle appearance">◐</button>
+        <div class="admin-chip" id="adminChip"><span class="avatar" id="adminAvatar">G</span><span id="adminLabel">Guest access</span><button id="authButton">Sign in</button></div>
+      </div>
+    </header>
 
-  <div class="card">
-    <div class="section-label">DEVICE / OS</div>
-    <div class="platforms">
-      <button class="platform-card" data-platform="all">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><rect x="7" y="9" width="4" height="9" rx="1"/></svg>
-        ALL
-      </button>
-      <button class="platform-card" data-platform="iphone">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg>
-        IPHONE
-      </button>
-      <button class="platform-card" data-platform="ipad">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4.5" y="2.5" width="15" height="19" rx="2.5"/><line x1="10.5" y1="18" x2="13.5" y2="18"/></svg>
-        IPAD
-      </button>
-      <button class="platform-card" data-platform="android">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="10.5" y1="5" x2="13.5" y2="5"/></svg>
-        ANDROID
-      </button>
-      <button class="platform-card" data-platform="windows">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg>
-        WINDOWS
-      </button>
-      <button class="platform-card" data-platform="macos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg>
-        MACOS
-      </button>
-    </div>
-
-    <div id="deviceRow">
-      <div class="grid2" style="margin-top:16px">
-        <div>
-          <label for="device">DEVICE MODEL</label>
-          <select id="device"></select>
+    <div class="content">
+      <section class="view active" id="view-overview">
+        <div class="page-intro intro-row">
+          <div><div class="eyebrow">NEXORA / OVERVIEW</div><h1>Device intelligence, in one place.</h1><p>Explore verified device records, build compatibility datasets and review the latest data health.</p></div>
+          <div class="intro-actions"><button class="button button-secondary" data-go="devices">Browse devices</button><button class="button button-primary" data-go="generator">Open Bulk Studio ↗</button></div>
         </div>
-        <div>
-          <label for="os">OS VERSION</label>
-          <select id="os"></select>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-top"><span>DEVICE RECORDS</span><span class="stat-icon">▯</span></div><div class="stat-value" id="statDevices">—</div><div class="stat-foot"><span class="mini-dot good"></span><span id="statDeviceFoot">Android and iOS catalog</span></div></div>
+          <div class="stat-card"><div class="stat-top"><span>ANDROID DEVICES</span><span class="stat-icon">◉</span></div><div class="stat-value" id="statAndroid">—</div><div class="stat-foot">Device catalog</div></div>
+          <div class="stat-card"><div class="stat-top"><span>IOS DEVICES</span><span class="stat-icon">▣</span></div><div class="stat-value" id="statIos">—</div><div class="stat-foot">Emulation reference records</div></div>
+          <div class="stat-card"><div class="stat-top"><span>APP VERSION COVERAGE</span><span class="stat-icon">◷</span></div><div class="stat-value" id="statCoverage">—</div><div class="stat-foot"><span class="mini-dot warn"></span><span id="statCoverageFoot">Version metadata availability</span></div></div>
         </div>
-      </div>
+        <div class="overview-grid">
+          <div class="panel welcome-panel">
+            <div class="panel-heading"><div><div class="eyebrow">YOUR DATA WORKSPACE</div><h2>One catalog. Multiple workflows.</h2></div><div class="panel-mark">N</div></div>
+            <p>NEXORA brings device specifications, operating-system support, application version metadata and compatibility test fixtures into one managed catalog. Public visitors can explore and generate datasets; authorized editors can maintain the source data.</p>
+            <div class="welcome-actions"><button class="button button-primary" data-go="generator">Create a dataset ↗</button><button class="text-button" data-go="devices">Explore device library <span>→</span></button></div>
+            <div class="feature-strip"><div><span>01 / CATALOG</span><strong>Structured device records</strong><small>Shared source of truth</small></div><div><span>02 / GENERATE</span><strong>Compatibility test data</strong><small>Reusable exports</small></div><div><span>03 / AUTOMATE</span><strong>Source monitoring</strong><small>Human-reviewed changes</small></div></div>
+          </div>
+          <div class="panel activity-panel">
+            <div class="panel-heading"><div><div class="eyebrow">DATABASE STATUS</div><h2>Current data release</h2></div><span class="tag" id="dataVersionTag">Loading</span></div>
+            <div class="activity-summary"><div class="activity-version" id="activityVersion">—</div><div><strong id="activityDate">Loading metadata</strong><small id="activitySource">Bundled data snapshot</small></div></div>
+            <div class="activity-line"><span class="activity-bullet"></span><div><strong id="activityHealth">Checking data integrity</strong><small id="activityHealthDetail">Waiting for data service</small></div></div>
+            <div class="activity-note"><span class="info-icon">i</span><span>Only records with traceable evidence should be treated as verified. Empty version fields are intentionally shown as unverified, not guessed.</span></div>
+          </div>
+        </div>
+        <div class="panel quick-panel"><div class="panel-heading"><div><div class="eyebrow">QUICK ACCESS</div><h2>What would you like to do?</h2></div></div><div class="quick-grid">
+          <button class="quick-card" data-go="generator"><span class="quick-icon">▦</span><strong>Build a bulk dataset</strong><small>Filter device records and export JSON or CSV.</small><span class="quick-arrow">↗</span></button>
+          <button class="quick-card" data-go="devices"><span class="quick-icon">▯</span><strong>Manage device records</strong><small>Search specifications and model identifiers.</small><span class="quick-arrow">↗</span></button>
+          <button class="quick-card" data-go="applications"><span class="quick-icon">▣</span><strong>Check app versions</strong><small>See which application versions have evidence.</small><span class="quick-arrow">↗</span></button>
+          <button class="quick-card admin-only hidden" data-go="automation"><span class="quick-icon">↻</span><strong>Run source monitoring</strong><small>Check trusted sources for new information.</small><span class="quick-arrow">↗</span></button>
+        </div></div>
+        <footer class="page-footer"><span>© NEXORA NEXT</span><span>Public compatibility data · Admin changes are audited</span><a href="./generator-legacy.html">Legacy UA generator ↗</a></footer>
+      </section>
+
+      <section class="view" id="view-generator">
+        <div class="page-intro"><div class="eyebrow">WORKSPACE / BULK STUDIO</div><h1>Build a compatibility dataset.</h1><p>Generate structured test fixtures from records in the current NEXORA catalog. No synthetic device specifications are invented.</p></div>
+        <div class="generator-layout">
+          <div class="panel generator-form">
+            <div class="panel-heading"><div><div class="eyebrow">DATASET CONFIGURATION</div><h2>Choose your records</h2></div><span class="step-badge">01 / 02</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="genPlatform">PLATFORM</label><select class="form-control" id="genPlatform"><option value="all">All platforms</option><option value="android">Android</option><option value="ios_emulation">iOS</option></select></div>
+              <div class="field"><label for="genBrand">MANUFACTURER</label><select class="form-control" id="genBrand"><option value="all">All manufacturers</option></select></div>
+              <div class="field field-full"><label for="genSearch">MODEL FILTER</label><input class="form-control" id="genSearch" placeholder="Search model, model code or ID"></div>
+              <div class="field"><label for="genOs">OS VERSION</label><select class="form-control" id="genOs"><option value="all">All supported versions</option></select></div>
+              <div class="field"><label for="genFormat">EXPORT FORMAT</label><select class="form-control" id="genFormat"><option value="json">JSON</option><option value="csv">CSV</option><option value="txt">TXT</option></select></div>
+              <div class="field field-full"><div class="label-row"><label for="genQuantity">MAXIMUM RECORDS</label><strong id="genQuantityValue">50</strong></div><input type="range" id="genQuantity" min="1" max="500" value="50"><div class="range-hints"><span>1 record</span><span>500 records</span></div></div>
+            </div>
+            <div class="generator-info"><span class="info-icon">i</span><span>Output is intended for QA, browser compatibility and software testing. Each row retains its catalog ID, source status and supported OS information.</span></div>
+            <button class="button button-primary button-wide" id="generateButton">Generate preview ↗</button>
+            <a class="text-button" href="./generator-legacy.html">Open the preserved legacy User-Agent generator →</a>
+          </div>
+          <div class="panel generator-output">
+            <div class="panel-heading"><div><div class="eyebrow">LIVE OUTPUT</div><h2>Dataset preview</h2></div><span class="output-count" id="outputCount">0 RECORDS</span></div>
+            <div id="generatorPreview" class="output-empty"><div class="empty-art">▦</div><strong>Your preview will appear here</strong><span>Choose your filters, then generate a dataset preview.</span></div>
+            <div class="export-actions hidden" id="exportActions"><button class="button button-secondary" id="copyDataset">Copy JSON</button><button class="button button-primary" id="downloadDataset">Download dataset</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-devices">
+        <div class="page-intro intro-row"><div><div class="eyebrow">WORKSPACE / DEVICE LIBRARY</div><h1>Device records</h1><p>Browse the shared catalog. Full editing is available to authorized administrators.</p></div><div class="intro-actions"><button class="button button-secondary" id="exportDevices">Export catalog</button><button class="button button-primary admin-only hidden" id="addDevice">+ Add device</button></div></div>
+        <div class="panel table-panel">
+          <div class="toolbar"><div class="search-wrap"><span>⌕</span><input id="deviceSearch" type="search" placeholder="Search model, brand or identifier"></div><select class="select-control" id="devicePlatform"><option value="all">All platforms</option><option value="android">Android</option><option value="ios_emulation">iOS</option></select><select class="select-control" id="deviceBrand"><option value="all">All manufacturers</option></select><div class="toolbar-spacer"></div><span class="tag neutral" id="deviceCount">0 records</span></div>
+          <div class="table-scroll"><table><thead><tr><th>DEVICE</th><th>PLATFORM</th><th>MODEL IDENTIFIER</th><th>OS SUPPORT</th><th>DISPLAY</th><th>DATA STATUS</th><th class="admin-column">ACTIONS</th></tr></thead><tbody id="deviceTable"><tr><td colspan="7" class="empty-cell">Loading device catalog…</td></tr></tbody></table></div>
+          <div class="table-footer"><span id="deviceTableFoot">Catalog records</span><span>Schema v2 · Read-only for public visitors</span></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-applications">
+        <div class="page-intro"><div class="eyebrow">WORKSPACE / APPLICATION LIBRARY</div><h1>Application versions</h1><p>Track known version metadata and distinguish verified values from missing information. NEXORA never fills unknown versions with guesses.</p></div>
+        <div class="application-toolbar"><div class="filter-pills" id="appFilters"><button class="filter-pill active" data-app-filter="all">All applications</button><button class="filter-pill" data-app-filter="known">Version known</button><button class="filter-pill" data-app-filter="missing">Needs verification</button></div><button class="button button-secondary admin-only hidden" id="editAppVersions">Edit version metadata</button></div>
+        <div class="application-grid" id="applicationGrid"></div>
+      </section>
+
+      <section class="view" id="view-compatibility">
+        <div class="page-intro"><div class="eyebrow">WORKSPACE / COMPATIBILITY</div><h1>Compatibility coverage</h1><p>Review supported operating-system versions and the completeness of the device records currently in the catalog.</p></div>
+        <div class="stats-grid"><div class="stat-card"><div class="stat-top"><span>ANDROID OS VERSIONS</span><span class="stat-icon">◉</span></div><div class="stat-value" id="compatAndroid">—</div><div class="stat-foot">Distinct catalog values</div></div><div class="stat-card"><div class="stat-top"><span>IOS VERSIONS</span><span class="stat-icon">▣</span></div><div class="stat-value" id="compatIos">—</div><div class="stat-foot">Distinct catalog values</div></div><div class="stat-card"><div class="stat-top"><span>RECORDS WITH BUILD IDS</span><span class="stat-icon">⌘</span></div><div class="stat-value" id="compatBuilds">—</div><div class="stat-foot">Explicit firmware build data</div></div><div class="stat-card"><div class="stat-top"><span>MISSING BUILD IDS</span><span class="stat-icon">!</span></div><div class="stat-value" id="compatMissing">—</div><div class="stat-foot">Requires source verification</div></div></div>
+        <div class="panel table-panel"><div class="panel-heading" style="padding:18px"><div><div class="eyebrow">OS COVERAGE</div><h2>Device and OS support matrix</h2></div><span class="tag neutral">From current catalog</span></div><div class="table-scroll"><table><thead><tr><th>DEVICE</th><th>PLATFORM</th><th>SUPPORTED OS VERSIONS</th><th>BUILD IDS</th><th>RAM OPTIONS</th><th>STORAGE OPTIONS</th></tr></thead><tbody id="compatTable"></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-automation">
+        <div class="page-intro intro-row"><div><div class="eyebrow">CONTROL CENTER / AUTOMATION</div><h1>Automation center</h1><p>Monitor official information sources. Trusted structured releases can update automatically; uncertain device discoveries become review proposals.</p></div><div class="intro-actions"><button class="button button-primary" id="runRefresh">Run source check ↻</button></div></div>
+        <div class="notice notice-warning"><span>!</span><div><strong>Publishing policy</strong><p>Only the trusted Chrome Version History connector can auto-publish a validated version update in this release. Device discoveries and uncertain app metadata are sent to the review queue.</p></div></div>
+        <div class="panel table-panel"><div class="toolbar"><strong>Official source connectors</strong><div class="toolbar-spacer"></div><span class="tag neutral" id="sourceCount">0 sources</span></div><div class="table-scroll"><table><thead><tr><th>SOURCE</th><th>CATEGORY</th><th>TRUST</th><th>STATUS</th><th>LAST CHECKED</th><th>DETAIL</th><th>ACTION</th></tr></thead><tbody id="sourceTable"></tbody></table></div></div>
+        <div class="panel table-panel update-note-panel"><div class="toolbar"><strong>Recent automation runs</strong><div class="toolbar-spacer"></div><button class="button button-secondary button-small" id="reloadRuns">Refresh list</button></div><div class="table-scroll"><table><thead><tr><th>RUN</th><th>SOURCE</th><th>STATUS</th><th>STARTED</th><th>SUMMARY</th></tr></thead><tbody id="runsTable"></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-review">
+        <div class="page-intro"><div class="eyebrow">CONTROL CENTER / REVIEW QUEUE</div><h1>Review proposed changes</h1><p>AI-generated and uncertain changes stay unpublished until an administrator approves them.</p></div>
+        <div class="review-summary"><div class="review-summary-card"><strong id="pendingTotal">0</strong><span>Pending proposals</span></div><div class="review-summary-card"><strong id="approvedTotal">0</strong><span>Approved changes</span></div><div class="review-summary-card"><strong id="rejectedTotal">0</strong><span>Rejected proposals</span></div></div>
+        <div class="review-list" id="reviewList"><div class="panel output-empty"><strong>Review queue is loading</strong></div></div>
+      </section>
+
+      <section class="view" id="view-assistant">
+        <div class="page-intro"><div class="eyebrow">CONTROL CENTER / NEXORA AI</div><h1>AI data assistant</h1><p>Ask the assistant to explain records, identify gaps and prepare proposed changes. AI suggestions cannot publish or modify the catalog directly.</p></div>
+        <div class="assistant-layout"><div class="panel assistant-panel"><div class="assistant-head"><div class="assistant-avatar">✳</div><div><strong>NEXORA Intelligence</strong><small><span class="status-dot"></span> Ready when AI provider is configured</small></div><span class="assistant-model" id="aiModelLabel">CONFIGURABLE MODEL</span></div><div class="assistant-messages" id="assistantMessages"><div class="assistant-message"><div class="message-avatar">NX</div><div><strong>NEXORA AI</strong><p>I can help analyze the current catalog, identify missing fields and draft safe data changes. I will not publish changes on your behalf.</p></div></div></div><form class="assistant-compose" id="assistantForm"><textarea id="assistantPrompt" placeholder="Ask about device records, missing specifications or update proposals…" required></textarea><button class="button button-primary" type="submit">Send ↗</button></form></div><div class="panel prompt-panel"><div class="eyebrow">SUGGESTED PROMPTS</div><button class="prompt-suggestion" data-prompt="Find device records with missing firmware build IDs and explain what evidence is needed.">Find missing build IDs <span>↗</span></button><button class="prompt-suggestion" data-prompt="Summarize the current application version coverage and identify unknown versions.">Review app coverage <span>↗</span></button><button class="prompt-suggestion" data-prompt="Explain the validation rules for adding a new device record.">Explain data validation <span>↗</span></button><button class="prompt-suggestion" data-prompt="Suggest a safe weekly data quality audit plan for NEXORA.">Plan data quality audit <span>↗</span></button><div class="activity-note" style="margin-top:14px"><span class="info-icon">i</span><span>AI requires a server-side API key. Configure it in the backend environment, never in this website.</span></div></div></div>
+      </section>
+
+      <section class="view" id="view-audit">
+        <div class="page-intro"><div class="eyebrow">CONTROL CENTER / CHANGE HISTORY</div><h1>Change history</h1><p>Every administrative edit, proposal decision and trusted automatic update is recorded.</p></div>
+        <div class="panel table-panel"><div class="toolbar"><strong>Audit log</strong><div class="toolbar-spacer"></div><button class="button button-secondary button-small" id="reloadAudit">Refresh history</button></div><div class="table-scroll"><table><thead><tr><th>TIME</th><th>ACTOR</th><th>ACTION</th><th>TARGET</th><th>DETAILS</th></tr></thead><tbody id="auditTable"></tbody></table></div></div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="page-intro"><div class="eyebrow">CONTROL CENTER / SETTINGS</div><h1>Platform settings</h1><p>Deployment and integration configuration is managed through server environment variables.</p></div>
+        <div class="panel"><div class="eyebrow">SERVER CONFIGURATION</div><h2 style="margin-top:7px">Environment variables</h2><div class="policy-grid"><div><span class="policy-number">01 / AUTH</span><strong>NEXORA_ADMIN_PASSWORD</strong><p>Admin sign-in password. Set a long unique value in the backend host.</p></div><div><span class="policy-number">02 / SECURITY</span><strong>NEXORA_SECRET_KEY</strong><p>At least 32 random characters used to sign admin sessions.</p></div><div><span class="policy-number">03 / AI</span><strong>AI_API_KEY + AI_MODEL</strong><p>Optional OpenAI-compatible provider configuration. Keys stay server-side.</p></div><div><span class="policy-number">04 / DATABASE</span><strong>DATABASE_URL</strong><p>Use managed PostgreSQL in production. SQLite is for local development only.</p></div><div><span class="policy-number">05 / CORS</span><strong>CORS_ORIGINS</strong><p>Comma-separated frontend origins. Avoid wildcard origins for production.</p></div><div><span class="policy-number">06 / FRONTEND</span><strong>NEXORA_CONFIG.apiBase</strong><p>Set the public API origin when frontend and backend are deployed separately.</p></div></div></div>
+        <div class="panel update-note-panel"><div class="eyebrow">DEPLOYMENT SAFETY</div><h2 style="margin-top:7px">Before going public</h2><p class="muted">Configure admin credentials, a secret key, PostgreSQL, restricted CORS origins, HTTPS and backups. Public generation endpoints should also be protected by hosting-level rate limits before high-traffic launch.</p></div>
+      </section>
+
+      <section class="view" id="view-about">
+        <div class="page-intro"><div class="eyebrow">NEXORA / PLATFORM INFORMATION</div><h1>Built for reliable data operations.</h1><p>NEXORA Next separates public data access from private data administration.</p></div>
+        <div class="panel"><div class="policy-grid"><div><span class="policy-number">01 / PUBLIC</span><strong>Explore and generate</strong><p>Visitors can browse device data and generate QA compatibility fixtures.</p></div><div><span class="policy-number">02 / ADMIN</span><strong>Human-controlled editing</strong><p>Only authenticated administrators can change shared data or approve proposals.</p></div><div><span class="policy-number">03 / AI</span><strong>Assisted, not unchecked</strong><p>AI can research and prepare proposals. It cannot directly publish untrusted information.</p></div></div></div>
+        <div class="panel update-note-panel"><div class="eyebrow">LEGACY FEATURE</div><h2 style="margin-top:7px">Original User-Agent generator</h2><p class="muted">The original generator has been preserved in a separate page so the redesign does not discard the existing workflow.</p><a class="button button-secondary" href="./generator-legacy.html">Open legacy generator ↗</a></div>
+      </section>
     </div>
-
-    <div class="section-label">BROWSER</div>
-    <div class="chips" id="browserChips"></div>
-
-    <div class="section-label">IN-APP WEBVIEWS</div>
-    <div class="chips" id="appChips"></div>
-
-    <details class="advanced">
-      <summary>VERSIONS (ADVANCED)</summary>
-      <div class="grid2">
-        <div><label for="chrome">CHROME</label><input type="text" id="chrome"></div>
-        <div><label for="firefoxVer">FIREFOX</label><input type="text" id="firefoxVer"></div>
-        <div><label for="edgeVer">EDGE</label><input type="text" id="edgeVer"></div>
-        <div><label for="operaVer">OPERA</label><input type="text" id="operaVer"></div>
-        <div><label for="appVersion">APP VERSION</label><input type="text" id="appVersion"></div>
-      </div>
-    </details>
-
-    <div class="section-label">COUNTRY / LANGUAGE LOCALE <span id="countryTotal" style="float:right"></span></div>
-    <input type="search" id="countrySearch" placeholder="Search countries...">
-    <div class="countries" id="countryGrid" style="margin-top:10px"></div>
-
-    <div class="section-label qty-row"><span>QUANTITY (MAX 500)</span><span class="qty-val" id="qtyVal">10</span></div>
-    <input type="range" id="qty" min="1" max="500" value="10">
-
-    <button class="get-btn" id="getBtn">Get User Agents</button>
-  </div>
-
-  <div class="card">
-    <div class="res-head">
-      <h2 id="resCount">Results (0)</h2>
-      <button class="ghost" id="copyAll">COPY ALL</button>
-      <button class="ghost" id="download">DOWNLOAD</button>
-    </div>
-    <div id="output"></div>
-  </div>
-
-  <div class="card">
-    <h2>Last 5 updates</h2>
-    <p class="muted" style="margin:4px 0 6px">Every data version is kept. Tap one to build with that version's Chrome.</p>
-    <div id="history"><p class="muted">Loading history...</p></div>
-  </div>
-
-  <p class="meta" id="metaLine">Loading device data...</p>
+  </main>
 </div>
+
+<div class="modal-backdrop hidden" id="loginModal"><div class="modal modal-small"><div class="modal-head"><div><div class="eyebrow">PRIVATE CONTROL CENTER</div><h2>Administrator sign in</h2></div><button class="icon-button" data-close="loginModal" aria-label="Close">×</button></div><p class="modal-copy">Sign in to edit records, review AI proposals and run source monitoring.</p><form id="loginForm"><div class="field"><label for="adminPassword">ADMIN PASSWORD</label><input class="form-control" type="password" id="adminPassword" autocomplete="current-password" required></div><div class="form-error hidden" id="loginError"></div><div class="modal-actions"><button class="button button-secondary" type="button" data-close="loginModal">Cancel</button><button class="button button-primary" type="submit">Sign in</button></div></form></div></div>
+
+<div class="modal-backdrop hidden" id="deviceModal"><div class="modal modal-large"><div class="modal-head"><div><div class="eyebrow">DEVICE LIBRARY / RECORD EDITOR</div><h2 id="deviceModalTitle">Add device record</h2></div><button class="icon-button" data-close="deviceModal" aria-label="Close">×</button></div><p class="modal-copy">All required specifications must be supported by a source. Unknown values should remain unsubmitted rather than guessed.</p><form id="deviceForm"><input type="hidden" id="editOriginalId"><div class="form-grid">
+  <div class="field"><label for="editPlatform">PLATFORM</label><select class="form-control" id="editPlatform"><option value="android">Android</option><option value="ios_emulation">iOS</option></select></div>
+  <div class="field"><label for="editId">RECORD ID</label><input class="form-control" id="editId" required placeholder="galaxy-s24-fe"></div>
+  <div class="field"><label for="editBrand">BRAND</label><input class="form-control" id="editBrand" required></div>
+  <div class="field"><label for="editModel">MODEL NAME</label><input class="form-control" id="editModel" required></div>
+  <div class="field"><label for="editUaModel">MODEL IDENTIFIER</label><input class="form-control" id="editUaModel" required></div>
+  <div class="field"><label for="editSoc">CHIPSET / SOC</label><input class="form-control" id="editSoc" required></div>
+  <div class="field"><label for="editGpu">GPU</label><input class="form-control" id="editGpu" required></div>
+  <div class="field"><label for="editCores">CPU CORES</label><input class="form-control" id="editCores" type="number" min="1" required></div>
+  <div class="field"><label for="editWidth">DISPLAY WIDTH</label><input class="form-control" id="editWidth" type="number" min="1" required></div>
+  <div class="field"><label for="editHeight">DISPLAY HEIGHT</label><input class="form-control" id="editHeight" type="number" min="1" required></div>
+  <div class="field"><label for="editDpr">DISPLAY DPR</label><input class="form-control" id="editDpr" type="number" min="0.1" step="0.1" required></div>
+  <div class="field"><label for="editRam">RAM GB (COMMA SEPARATED)</label><input class="form-control" id="editRam" required placeholder="8, 12"></div>
+  <div class="field"><label for="editStorage">STORAGE GB (COMMA SEPARATED)</label><input class="form-control" id="editStorage" required placeholder="128, 256"></div>
+  <div class="field"><label for="editOs">SUPPORTED OS VERSIONS</label><input class="form-control" id="editOs" required placeholder="14, 15"></div>
+  <div class="field field-full"><label for="editBuilds">BUILD IDS (JSON OBJECT, OPTIONAL)</label><textarea class="form-control" id="editBuilds" placeholder='{"15":"UP1A.231005.007"}'></textarea></div>
+  <div class="field field-full"><label for="editMarkets">MARKET CODES (COMMA SEPARATED, OPTIONAL)</label><input class="form-control" id="editMarkets" placeholder="US, GB, BD, IN"></div>
+  <div class="field field-full"><label for="editSourceUrl">OFFICIAL SOURCE URL (REQUIRED FOR NEW RECORDS)</label><input class="form-control" id="editSourceUrl" type="url" placeholder="https://www.manufacturer.com/..." ></div>
+</div><div class="form-error hidden" id="deviceError"></div><div class="modal-actions"><button class="button button-secondary" type="button" data-close="deviceModal">Cancel</button><button class="button button-primary" type="submit">Save device</button></div></form></div></div>
+
+<div class="modal-backdrop hidden" id="appVersionModal"><div class="modal modal-small"><div class="modal-head"><div><div class="eyebrow">APPLICATION LIBRARY</div><h2>Edit version metadata</h2></div><button class="icon-button" data-close="appVersionModal">×</button></div><p class="modal-copy">Enter a version only when you have a source that confirms it.</p><form id="appVersionForm"><div class="field"><label for="editAppId">APPLICATION</label><select class="form-control" id="editAppId"></select></div><div class="field"><label for="editAppVersion">VERSION</label><input class="form-control" id="editAppVersion" required placeholder="e.g. 520.0.0.0.50"></div><div class="field"><label for="editAppToken">OPTIONAL USER-AGENT TOKEN</label><input class="form-control" id="editAppToken"></div><div class="field"><label for="editAppSourceUrl">OFFICIAL RELEASE SOURCE URL</label><input class="form-control" id="editAppSourceUrl" type="url" required placeholder="https://play.google.com/store/apps/details?id=..."></div><div class="form-error hidden" id="appVersionError"></div><div class="modal-actions"><button class="button button-secondary" type="button" data-close="appVersionModal">Cancel</button><button class="button button-primary" type="submit">Save metadata</button></div></form></div></div>
+
+<div class="toast-region" id="toastRegion" aria-live="polite"></div>
+<script src="./config.js"></script>
 <script src="./app.js"></script>
 </body>
 </html>

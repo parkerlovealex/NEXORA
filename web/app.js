@@ -1,544 +1,428 @@
 "use strict";
-/* NEXORA UA Generator v2 - chip/card UX, multiple platform + browser support.
-   Mobile templates mirror the Android app (AppUa.kt / UaBuilder.kt).
-   Desktop templates are the standard frozen formats each browser ships.
-   Data: devices.json fetched live from the NEXORA GitHub repo (bundled fallback). */
 
-const DATA_URL =
-  "https://raw.githubusercontent.com/parkerlovealex/NEXORA/main/app/src/main/assets/devices.json";
-const HISTORY_URL =
-  "https://raw.githubusercontent.com/parkerlovealex/NEXORA/main/data/history/index.json";
-const FALLBACK_CHROME = "126.0.6478.122";
-/* Seeded from the vendors' current stable releases (Nov 2026); editable in the UI. */
-const DEFAULT_VERSIONS = { firefox: "160.0", edge: "158.0.4370.33", opera: "140.0.6074.18", safari: "27.2" };
-
-const APPS = [
-  ["facebook", "Facebook"], ["fblite", "FB Lite"], ["instagram", "Instagram"],
-  ["tiktok", "TikTok"], ["x", "X (Twitter)"], ["threads", "Threads"],
-  ["linkedin", "LinkedIn"], ["pinterest", "Pinterest"], ["reddit", "Reddit"],
-  ["snapchat", "Snapchat"], ["weibo", "Weibo"], ["telegram", "Telegram"],
-  ["messenger", "Messenger"], ["wechat", "WeChat"], ["line", "LINE"],
-  ["kik", "Kik"], ["discord", "Discord"], ["viber", "Viber"],
-  ["webview", "WebView"]
-];
-
-const COUNTRIES = [
-  ["", "All Countries", ""], ["US", "United States", "en_US"], ["GB", "United Kingdom", "en_GB"],
-  ["BD", "Bangladesh", "bn_BD"], ["IN", "India", "en_IN"], ["PK", "Pakistan", "ur_PK"],
-  ["CA", "Canada", "en_CA"], ["AU", "Australia", "en_AU"], ["DE", "Germany", "de_DE"],
-  ["FR", "France", "fr_FR"], ["ES", "Spain", "es_ES"], ["IT", "Italy", "it_IT"],
-  ["PT", "Portugal", "pt_PT"], ["BR", "Brazil", "pt_BR"], ["MX", "Mexico", "es_MX"],
-  ["AR", "Argentina", "es_AR"], ["RU", "Russia", "ru_RU"], ["UA", "Ukraine", "uk_UA"],
-  ["TR", "Turkey", "tr_TR"], ["SA", "Saudi Arabia", "ar_SA"], ["AE", "UAE", "ar_AE"],
-  ["EG", "Egypt", "ar_EG"], ["NG", "Nigeria", "en_NG"], ["ZA", "South Africa", "en_ZA"],
-  ["KE", "Kenya", "en_KE"], ["ID", "Indonesia", "id_ID"], ["MY", "Malaysia", "ms_MY"],
-  ["SG", "Singapore", "en_SG"], ["PH", "Philippines", "en_PH"], ["VN", "Vietnam", "vi_VN"],
-  ["TH", "Thailand", "th_TH"], ["JP", "Japan", "ja_JP"], ["KR", "South Korea", "ko_KR"],
-  ["CN", "China", "zh_CN"], ["TW", "Taiwan", "zh_TW"], ["HK", "Hong Kong", "zh_HK"],
-  ["NL", "Netherlands", "nl_NL"], ["SE", "Sweden", "sv_SE"], ["NO", "Norway", "nb_NO"],
-  ["DK", "Denmark", "da_DK"], ["FI", "Finland", "fi_FI"], ["PL", "Poland", "pl_PL"],
-  ["GR", "Greece", "el_GR"], ["IR", "Iran", "fa_IR"], ["IQ", "Iraq", "ar_IQ"],
-  ["LK", "Sri Lanka", "si_LK"], ["NP", "Nepal", "ne_NP"], ["MM", "Myanmar", "my_MM"]
-];
-
-let DB = null;
-
-/* ---------------- mobile templates (mirror the app) ---------------- */
-
-function sdkFor(os) {
-  return { "15": 35, "14": 34, "13": 33, "12": 31, "11": 30, "10": 29 }[String(os).split(".")[0]] || 34;
-}
-
-function safariUa(p, os) {
-  return "Mozilla/5.0 (iPhone; CPU iPhone OS " + String(os).replace(/\./g, "_") +
-    " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) " +
-    "Version/17.5 Mobile/15E148 Safari/604.1";
-}
-
-function browserUa(p, os, chrome) {
-  if (p.isIos) return safariUa(p, os);
-  return "Mozilla/5.0 (Linux; Android " + os + "; " + p.uaModel + ") " +
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + (chrome || FALLBACK_CHROME) +
-    " Mobile Safari/537.36";
-}
-
-function webViewBase(p, os, chrome) {
-  const build = (p.builds || {})[os];
-  const buildPart = build ? " Build/" + build : "";
-  return "Mozilla/5.0 (Linux; Android " + os + "; " + p.uaModel + buildPart + "; wv) " +
-    "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/" +
-    (chrome || FALLBACK_CHROME) + " Mobile Safari/537.36";
-}
-
-function appUa(appId, p, os, chrome, appVersion, appToken, locale) {
-  const loc = locale || "en_US";
-  if (p.isIos) {
-    const base = safariUa(p, os);
-    if (appId === "facebook" || appId === "fblite") {
-      return base + (appVersion
-        ? " [FBAN/FBIOS;FBAV/" + appVersion + ";FBDV/" + p.uaModel + ";FBMD/iPhone;]"
-        : " [FBAN/FBIOS;FBDV/" + p.uaModel + ";FBMD/iPhone;]");
-    }
-    if (appId === "instagram" && appVersion) {
-      const scale = (p.dpr % 1 === 0) ? p.dpr.toFixed(2) : String(p.dpr);
-      return base + " Instagram " + appVersion + " (" + p.uaModel + "; iOS " +
-        String(os).replace(/\./g, "_") + "; " + loc + "; scale=" + scale + "; " +
-        p.w + "x" + p.h + "; IABMV/1)";
-    }
-    return base;
-  }
-  const base = webViewBase(p, os, chrome);
-  if (appId === "facebook" || appId === "fblite") {
-    return base + (appVersion
-      ? " [FB_IAB/FB4A;FBAV/" + appVersion + ";IABMV/1;]"
-      : " [FB_IAB/FB4A;IABMV/1;]");
-  }
-  if (appId === "messenger") {
-    return base + (appVersion
-      ? " [FB_IAB/MESSENGER;FBAV/" + appVersion + ";IABMV/1;]"
-      : " [FB_IAB/MESSENGER;IABMV/1;]");
-  }
-  if (appId === "instagram") {
-    if (!appVersion) return base;
-    const dpi = Math.round(p.dpr * 160);
-    return "Instagram " + appVersion + " Android (" + sdkFor(os) + "/" + os + "; " +
-      dpi + "dpi; " + p.w + "x" + p.h + "; " + String(p.brand).toLowerCase() + "; " +
-      p.uaModel + "; " + loc + ")";
-  }
-  if (appId === "webview") return base;
-  return appToken ? base + " " + appToken : base;
-}
-
-/* ---------------- extra mobile browsers ---------------- */
-
-function mobileBrowserUa(browser, p, os, v) {
-  if (p.isIos) {
-    const ios = String(os).replace(/\./g, "_");
-    const head = "Mozilla/5.0 (iPhone; CPU iPhone OS " + ios + " like Mac OS X) " +
-      "AppleWebKit/605.1.15 (KHTML, like Gecko) ";
-    if (browser === "chrome") return head + "CriOS/" + v.chrome + " Mobile/15E148 Safari/604.1";
-    if (browser === "firefox") return head + "FxiOS/" + v.firefox + " Mobile/15E148 Safari/605.1.15";
-    if (browser === "edge") return head + "EdgiOS/" + v.edge + " Mobile/15E148 Safari/605.1.15";
-    return safariUa(p, os);
-  }
-  if (browser === "firefox") {
-    return "Mozilla/5.0 (Android " + os + "; Mobile; rv:" + v.firefox + ") Gecko/" +
-      v.firefox + " Firefox/" + v.firefox;
-  }
-  const base = browserUa(p, os, v.chrome);
-  if (browser === "edge") return base + " EdgA/" + v.edge;
-  if (browser === "opera") return base + " OPR/" + v.opera;
-  return base;
-}
-
-/* ---------------- desktop + iPad templates ---------------- */
-
-function desktopUa(platform, browser, v) {
-  const win = platform === "windows";
-  const osPart = win ? "Windows NT 10.0; Win64; x64" : "Macintosh; Intel Mac OS X 10_15_7";
-  if (browser === "firefox") {
-    const ffOs = win ? "Windows NT 10.0; Win64; x64" : "Macintosh; Intel Mac OS X 10.15";
-    return "Mozilla/5.0 (" + ffOs + "; rv:" + v.firefox + ") Gecko/20100101 Firefox/" + v.firefox;
-  }
-  if (browser === "safari") {
-    return "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 " +
-      "(KHTML, like Gecko) Version/" + v.safari + " Safari/605.1.15";
-  }
-  let ua = "Mozilla/5.0 (" + osPart + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" +
-    v.chrome + " Safari/537.36";
-  if (browser === "edge") ua += " Edg/" + v.edge;
-  if (browser === "opera") ua += " OPR/" + v.opera;
-  return ua;
-}
-
-function ipadUa(os, v) {
-  return "Mozilla/5.0 (iPad; CPU OS " + String(os).replace(/\./g, "_") +
-    " like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 " +
-    "Mobile/15E148 Safari/604.1";
-}
-
-/* ---------------- data ---------------- */
-
-function flatten(data) {
-  const rows = [];
-  (data.android || []).forEach(d => rows.push(Object.assign({}, d, {
-    isIos: false, w: d.display.w, h: d.display.h, dpr: d.display.dpr
-  })));
-  (data.ios_emulation || []).forEach(d => rows.push(Object.assign({}, d, {
-    isIos: true, w: d.display.w, h: d.display.h, dpr: d.display.dpr
-  })));
-  return rows;
-}
-
-function appInfo(id) {
-  const raw = (DB.meta && DB.meta.apps && DB.meta.apps[id]) || null;
-  if (!raw) return { version: "", token: "" };
-  if (typeof raw === "string") return { version: raw, token: "" };
-  return { version: raw.version || "", token: raw.token || "" };
-}
-
-async function fetchData(live) {
-  if (live) {
-    try {
-      const r = await fetch(DATA_URL, { cache: "no-store" });
-      if (r.ok) return { data: await r.json(), live: true };
-    } catch (e) { /* fall back */ }
-  }
-  const r = await fetch("./devices.json", { cache: "no-store" });
-  return { data: await r.json(), live: false };
-}
-
-if (typeof module !== "undefined") {
-  module.exports = { appUa, browserUa, webViewBase, mobileBrowserUa, desktopUa, ipadUa, flatten, COUNTRIES, APPS };
-}
-
-/* ---------------- UI ---------------- */
-
+/* NEXORA Next public workspace + private admin control plane. */
+const API_BASE = String(window.NEXORA_CONFIG?.apiBase || "").replace(/\/$/, "");
+const APP_NAMES = {
+  facebook: "Facebook", fblite: "Facebook Lite", instagram: "Instagram", tiktok: "TikTok",
+  x: "X", threads: "Threads", linkedin: "LinkedIn", pinterest: "Pinterest", reddit: "Reddit",
+  snapchat: "Snapchat", weibo: "Weibo", telegram: "Telegram", messenger: "Messenger",
+  wechat: "WeChat", line: "LINE", kik: "Kik", discord: "Discord", viber: "Viber"
+};
 const state = {
-  platform: "all",        // all | android | iphone | ipad | windows | macos
-  browser: "all",         // all | chrome | firefox | safari | edge | opera
-  app: "",                // "" = none, else APPS id
-  country: "",            // COUNTRIES code
-  deviceIdx: -1,
-  deviceKey: "",
-  live: true
+  data: null, devices: [], apiOnline: false, apiError: "", token: sessionStorage.getItem("nexora_admin_token") || "",
+  isAdmin: false, dataset: [], appFilter: "all", theme: localStorage.getItem("nexora_theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
 };
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dateText = (value) => value ? new Date(value).toLocaleString() : "Not checked";
+const numberText = (value) => Number(value || 0).toLocaleString();
 
-const BROWSERS = [["all", "All"], ["chrome", "Chrome"], ["firefox", "Firefox"],
-  ["safari", "Safari"], ["edge", "Edge"], ["opera", "Opera"]];
-const PLATFORM_BROWSERS = {
-  android: ["all", "chrome", "firefox", "edge", "opera"],
-  iphone: ["all", "safari", "chrome", "firefox", "edge"],
-  ipad: ["all", "safari", "chrome", "firefox", "edge"],
-  windows: ["all", "chrome", "firefox", "edge", "opera"],
-  macos: ["all", "safari", "chrome", "firefox", "edge", "opera"]
-};
-
-function devices() { return flatten(DB); }
-function isApplePlatform() { return state.platform === "iphone" || state.platform === "ipad" || state.platform === "macos"; }
-function isDesktop() { return state.platform === "windows" || state.platform === "macos"; }
-
-function platformDevices() {
-  const all = devices();
-  let list = all;
-  if (state.platform === "android") list = all.filter(d => !d.isIos);
-  else if (state.platform === "iphone") list = all.filter(d => d.isIos);
-  // Country-wise official phones: when a country is picked, only devices
-  // officially sold in that country stay in the pool - under EVERY platform
-  // choice, including "All devices".
-  if (state.country) {
-    list = list.filter(d => Array.isArray(d.markets) && d.markets.includes(state.country));
+async function api(path, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (state.token) headers.Authorization = `Bearer ${state.token}`;
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let body = {};
+  const text = await response.text();
+  try { body = text ? JSON.parse(text) : {}; } catch { body = { detail: text || response.statusText }; }
+  if (!response.ok) {
+    if (response.status === 401 && state.token) clearAdmin();
+    const detail = body.detail;
+    throw new Error(typeof detail === "string" ? detail : detail?.message || JSON.stringify(detail) || `Request failed (${response.status})`);
   }
-  return list;
+  return body;
 }
 
-function versions() {
-  return {
-    chrome: document.getElementById("chrome").value.trim() || FALLBACK_CHROME,
-    firefox: document.getElementById("firefoxVer").value.trim() || DEFAULT_VERSIONS.firefox,
-    edge: document.getElementById("edgeVer").value.trim() || DEFAULT_VERSIONS.edge,
-    opera: document.getElementById("operaVer").value.trim() || DEFAULT_VERSIONS.opera,
-    safari: DEFAULT_VERSIONS.safari
-  };
-}
-
-function locale() {
-  const c = COUNTRIES.find(x => x[0] === state.country);
-  return (c && c[2]) || "en_US";
-}
-
-function defaultBrowserFor(platform) {
-  if (platform === "iphone" || platform === "ipad" || platform === "macos") return "safari";
-  return "chrome";
-}
-
-function buildOne() {
-  const v = versions();
-  const appVersion = document.getElementById("appVersion").value.trim();
-  if (isDesktop()) {
-    const b = state.browser === "all" ? defaultBrowserFor(state.platform) : state.browser;
-    return { ua: desktopUa(state.platform, b, v), tag: b.toUpperCase() + " · " + state.platform.toUpperCase() };
-  }
-  if (state.platform === "ipad") {
-    const ios = platformDevices().filter(d => d.isIos);
-    const os = ios.length ? ios[0].osVersions[ios[0].osVersions.length - 1] : "18";
-    if (state.app) return { ua: ipadUa(os, v), tag: "APP · IPAD" };
-    const b = state.browser === "all" ? "safari" : state.browser;
-    if (b === "safari") return { ua: ipadUa(os, v), tag: "SAFARI · IPAD" };
-    // Other iPad browsers reuse the iPhone CriOS/FxiOS/EdgiOS shapes with iPad head.
-    const p = ios[0];
-    return { ua: mobileBrowserUa(b, p, os, v).replace("(iPhone;", "(iPad;").replace("CPU iPhone OS", "CPU OS"), tag: b.toUpperCase() + " · IPAD" };
-  }
-  const list = platformDevices();
-  if (!list.length) return null;
-  // Random mode (deviceIdx -1): pick a random device from the current pool
-  // (already filtered by platform + country) and a random OS for it.
-  const randomMode = state.deviceIdx === -1;
-  const d = randomMode
-    ? list[Math.floor(Math.random() * list.length)]
-    : (list[state.deviceIdx % list.length] || list[0]);
-  const os = randomMode
-    ? d.osVersions[Math.floor(Math.random() * d.osVersions.length)]
-    : (document.getElementById("os").value || d.osVersions[d.osVersions.length - 1]);
-  if (state.app) {
-    const info = appInfo(state.app);
-    const label = (APPS.find(a => a[0] === state.app) || ["", state.app])[1];
-    return { ua: appUa(state.app, d, os, v.chrome, appVersion || info.version, info.token, locale()), tag: label.toUpperCase() + " · " + (d.isIos ? "IOS" : "ANDROID") };
-  }
-  const b = state.browser === "all" ? defaultBrowserFor(d.isIos ? "iphone" : "android") : state.browser;
-  const ua = (b === "chrome" && !d.isIos) || (b === "safari" && d.isIos)
-    ? browserUa(d, os, v.chrome)
-    : mobileBrowserUa(b, d, os, v);
-  return { ua, tag: b.toUpperCase() + " · " + (d.isIos ? "IOS" : "ANDROID") };
-}
-
-function generate() {
-  const qty = Number(document.getElementById("qty").value) || 10;
-  const list = platformDevices();
-  const results = [];
-  const seen = new Set();
-  const startIdx = state.deviceIdx;
-  // Walk devices x OS versions for variety until qty unique strings or combos run out.
-  const combos = [];
-  if (isDesktop() || state.platform === "ipad") {
-    combos.push(0);
-  } else if (state.deviceIdx >= 0 && list[state.deviceIdx]) {
-    // A specific phone is chosen: vary only its OS versions.
-    list[state.deviceIdx].osVersions.forEach(() => combos.push(state.deviceIdx));
-  } else {
-    list.forEach((d, di) => d.osVersions.forEach(() => combos.push(di)));
-  }
-  let ptr = 0;
-  const osSel = document.getElementById("os");
-  const osBackup = osSel.value;
-  if (state.deviceIdx === -1 && !isDesktop() && state.platform !== "ipad") {
-    // Bulk random: every UA rolls a fresh random device (+OS) from the pool.
-    let attempts = 0;
-    while (results.length < qty && attempts < qty * 40 + 120) {
-      const one = buildOne();
-      if (one && !seen.has(one.ua)) { seen.add(one.ua); results.push(one); }
-      attempts++;
-    }
-  } else {
-    while (results.length < qty && ptr < combos.length * 2) {
-      const di = combos[ptr % combos.length];
-      state.deviceIdx = di;
-      const d = list[di];
-      if (d) {
-        const singleDevice = combos.every(x => x === combos[0]);
-        const osIdx = singleDevice
-          ? ptr % d.osVersions.length
-          : Math.floor(ptr / Math.max(1, list.length)) % d.osVersions.length;
-        osSel.value = d.osVersions[d.osVersions.length - 1 - osIdx];
-      }
-      const one = buildOne();
-      if (one && !seen.has(one.ua)) { seen.add(one.ua); results.push(one); }
-      ptr++;
-      if (ptr > qty * 4 + 40) break;
-    }
-    state.deviceIdx = startIdx;
-    osSel.value = osBackup;
-  }
-  const out = document.getElementById("output");
-  if (!isDesktop() && state.platform !== "ipad" && !list.length) {
-    document.getElementById("resCount").textContent = "Results (0)";
-    out.innerHTML = '<p class="muted">No phones in the database are officially sold in ' +
-      'the selected country yet. Pick "All Countries" or another country.</p>';
-    window._lastResults = [];
-    return;
-  }
-  document.getElementById("resCount").textContent = "Results (" + results.length + ")";
-  out.innerHTML = results.map((r, i) =>
-    '<div class="ua"><div class="ua-num">' + (i + 1) + '.</div><div class="ua-body">' +
-    '<div class="ua-text">' + r.ua.replace(/</g, "&lt;") + '</div>' +
-    '<div class="ua-tags"><span class="tag">' + r.tag + "</span>" +
-    (state.country ? '<span class="tag tag-loc">' + state.country + " OFFICIAL · " + locale() + "</span>" : "") +
-    "</div></div></div>").join("");
-  window._lastResults = results.map(r => r.ua);
-}
-
-function chipRow(elId, items, current, onPick, disabledIds) {
-  const el = document.getElementById(elId);
-  el.innerHTML = "";
-  items.forEach(([id, label]) => {
-    const b = document.createElement("button");
-    b.className = "chip" + (current === id ? " chip-on" : "") +
-      (disabledIds && disabledIds.includes(id) ? " chip-off" : "");
-    b.textContent = label;
-    b.addEventListener("click", () => { if (!(disabledIds && disabledIds.includes(id))) onPick(id); });
-    el.appendChild(b);
-  });
-}
-
-function renderControls() {
-  // Browsers (disabled per platform)
-  const allowed = state.platform === "all"
-    ? ["all", "chrome", "firefox", "safari", "edge", "opera"]
-    : (PLATFORM_BROWSERS[state.platform] || BROWSERS.map(b => b[0]));
-  const disabled = BROWSERS.map(b => b[0]).filter(id => !allowed.includes(id));
-  chipRow("browserChips", BROWSERS, state.browser, id => { state.browser = id; state.app = ""; renderControls(); generate(); }, disabled);
-  // Apps (mobile only)
-  const appItems = [["", "Browser"], ...APPS];
-  chipRow("appChips", appItems, state.app, id => { state.app = id; syncAppVersion(); renderControls(); generate(); },
-    (isDesktop()) ? appItems.map(a => a[0]).filter(x => x !== "") : []);
-  // Countries
-  const q = (document.getElementById("countrySearch").value || "").toLowerCase();
-  const list = COUNTRIES.filter(c => !q || c[1].toLowerCase().includes(q));
-  document.getElementById("countryTotal").textContent = "Total: " + COUNTRIES.length;
-  const grid = document.getElementById("countryGrid");
-  grid.innerHTML = "";
-  list.slice(0, 60).forEach(([code, name, loc]) => {
-    const b = document.createElement("button");
-    b.className = "country" + (state.country === code ? " country-on" : "");
-    b.innerHTML = "<strong>" + (code || "ALL") + "</strong> " + name + (loc ? ' <span>' + loc + "</span>" : "");
-    b.addEventListener("click", () => { state.country = code; syncDeviceSelect(); renderControls(); generate(); });
-    grid.appendChild(b);
-  });
-  // Device row visibility
-  const showDevice = !isDesktop() && state.platform !== "ipad";
-  document.getElementById("deviceRow").style.display = showDevice ? "" : "none";
-  document.querySelectorAll(".platform-card").forEach(c =>
-    c.classList.toggle("platform-on", c.dataset.platform === state.platform));
-}
-
-function syncDeviceSelect() {
-  const sel = document.getElementById("device");
-  const list = platformDevices();
-  sel.innerHTML = '<option value="-1">Random device (from selected country)</option>' +
-    list.map((d, i) =>
-      '<option value="' + i + '">' + d.brand + " " + d.model + (d.isIos ? " (iOS)" : "") + "</option>").join("");
-  // Keep the previously picked phone if it still exists in the new pool
-  // (e.g. after a country change); otherwise fall back to Random.
-  const keep = state.deviceKey ? list.findIndex(d => d.id === state.deviceKey) : -1;
-  if (keep >= 0) {
-    state.deviceIdx = keep;
-    sel.value = String(keep);
-  } else {
-    state.deviceIdx = -1;
-    state.deviceKey = "";
-    sel.value = "-1";
-  }
-  syncOs();
-}
-
-function syncOs() {
-  const osSel = document.getElementById("os");
-  if (state.deviceIdx === -1) {
-    osSel.innerHTML = "<option>Random</option>";
-    osSel.disabled = true;
-    return;
-  }
-  osSel.disabled = false;
-  const list = platformDevices();
-  const d = list[state.deviceIdx] || list[0];
-  if (!d) { osSel.innerHTML = ""; return; }
-  osSel.innerHTML = d.osVersions.map(v => "<option>" + v + "</option>").join("");
-  osSel.value = d.osVersions[d.osVersions.length - 1];
-}
-
-function syncAppVersion() {
-  const info = appInfo(state.app);
-  const input = document.getElementById("appVersion");
-  input.value = info.version || "";
-  input.placeholder = info.version ? "" : "App version (optional)";
-}
-
-async function boot() {
-  const toggle = document.getElementById("liveToggle");
-  state.live = toggle.checked;
-  const { data, live } = await fetchData(state.live);
-  DB = data;
-  const v = (DB.meta && DB.meta.versions) || {};
-  document.getElementById("chrome").value = v.chrome || FALLBACK_CHROME;
-  document.getElementById("metaLine").textContent =
-    "Data version " + ((DB.meta && DB.meta.dataVersion) || "?") +
-    " · Updated " + ((DB.meta && DB.meta.updatedAt) || "?") +
-    " · " + devices().length + " devices · " +
-    (live ? "Live database" : "Bundled copy") +
-    " · Same devices.json the NEXORA app uses";
-  syncDeviceSelect();
-  syncAppVersion();
-  renderControls();
-  generate();
-}
-
-async function loadHistory() {
-  let entries = null;
+async function loadData() {
   try {
-    const r = await fetch(HISTORY_URL, { cache: "no-store" });
-    if (r.ok) entries = await r.json();
-  } catch (e) { /* fallback below */ }
-  if (!entries) {
-    try {
-      const r = await fetch("./history.json", { cache: "no-store" });
-      if (r.ok) entries = await r.json();
-    } catch (e) { /* none */ }
+    state.data = await api("/api/v1/data");
+    state.apiOnline = true; state.apiError = "";
+  } catch (error) {
+    state.apiOnline = false; state.apiError = error.message;
+    const response = await fetch("./devices.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("Could not load the local catalog or connect to the NEXORA API.");
+    state.data = await response.json();
   }
-  const box = document.getElementById("history");
-  if (!entries || !entries.length) {
-    box.innerHTML = '<p class="muted">No archived versions yet - history starts with the next refresh.</p>';
-    return;
+  state.devices = [
+    ...(state.data.android || []).map(record => ({ platform: "android", record, sourceStatus: record.sourceStatus || "bundled" })),
+    ...(state.data.ios_emulation || []).map(record => ({ platform: "ios_emulation", record, sourceStatus: record.sourceStatus || "bundled" }))
+  ];
+  renderAll();
+  updateHealth();
+}
+
+function allRecords() { return state.devices.map(item => ({ ...item.record, platform: item.platform, sourceStatus: item.sourceStatus })); }
+function meta() { return state.data?.meta || {}; }
+function versions() { return meta().versions || {}; }
+function apps() { return meta().apps || {}; }
+
+function updateHealth() {
+  const dot = $("healthDot"), topDot = $("topStatusDot");
+  if (state.apiOnline) {
+    dot?.classList.add("good"); topDot?.classList.add("good");
+    $("healthText").textContent = "API connected"; $("healthSub").textContent = "Live central database";
+    $("topStatusText").textContent = "LIVE DATA";
+  } else {
+    dot?.classList.remove("good"); topDot?.classList.remove("good");
+    $("healthText").textContent = "Offline fallback"; $("healthSub").textContent = "Using bundled read-only data";
+    $("topStatusText").textContent = "BUNDLED DATA";
   }
-  box.innerHTML = entries.map(e =>
-    '<div class="ua hist" data-chrome="' + e.chrome + '"><div class="ua-body">' +
-    "<strong>Data " + e.dataVersion + "</strong> · " + e.updatedAt + " · Chrome " + e.chrome +
-    "</div></div>").join("");
-  box.querySelectorAll(".hist").forEach(el => {
-    el.addEventListener("click", () => {
-      const c = document.getElementById("chrome");
-      c.value = el.dataset.chrome;
-      generate();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+  $("activityHealth").textContent = state.apiOnline ? "Central data service connected" : "Local catalog loaded";
+  $("activityHealthDetail").textContent = state.apiOnline ? "API is responding normally" : "Admin editing and source automation require the API";
+}
+
+function renderAll() {
+  renderOverview(); renderDeviceFilters(); renderDevices(); renderApplications(); renderCompatibility(); renderGeneratorFilters();
+  $("dataVersionTag").textContent = meta().dataVersion || "Unversioned";
+  $("activityVersion").textContent = meta().dataVersion || "—";
+  $("activityDate").textContent = meta().updatedAt ? `Updated ${meta().updatedAt}` : "No update date";
+  $("activitySource").textContent = meta().source || "NEXORA catalog";
+  if (state.isAdmin) refreshAdminViews();
+}
+
+function renderOverview() {
+  const list = allRecords();
+  const appList = Object.entries(apps());
+  const known = appList.filter(([, value]) => Boolean(value)).length;
+  $("statDevices").textContent = numberText(list.length);
+  $("statAndroid").textContent = numberText(list.filter(x => x.platform === "android").length);
+  $("statIos").textContent = numberText(list.filter(x => x.platform === "ios_emulation").length);
+  $("statCoverage").textContent = `${known}/${appList.length}`;
+  $("statDeviceFoot").textContent = `${list.length} records in current catalog`;
+  $("statCoverageFoot").textContent = `${appList.length - known} version fields need verification`;
+}
+
+function renderDeviceFilters() {
+  const brands = [...new Set(allRecords().map(d => d.brand).filter(Boolean))].sort();
+  const options = '<option value="all">All manufacturers</option>' + brands.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  const deviceBrand = $("deviceBrand"), genBrand = $("genBrand");
+  if (deviceBrand) { const old = deviceBrand.value; deviceBrand.innerHTML = options; if (brands.includes(old)) deviceBrand.value = old; }
+  if (genBrand) { const old = genBrand.value; genBrand.innerHTML = options; if (brands.includes(old)) genBrand.value = old; }
+}
+
+function filteredDevices() {
+  const query = ($("deviceSearch")?.value || "").trim().toLowerCase();
+  const platform = $("devicePlatform")?.value || "all";
+  const brand = $("deviceBrand")?.value || "all";
+  return state.devices.filter(item => {
+    const d = item.record;
+    if (platform !== "all" && item.platform !== platform) return false;
+    if (brand !== "all" && d.brand !== brand) return false;
+    if (query && ![d.id, d.brand, d.model, d.uaModel, d.soc].join(" ").toLowerCase().includes(query)) return false;
+    return true;
   });
 }
 
-if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".platform-card").forEach(card => {
-      card.addEventListener("click", () => {
-        state.platform = card.dataset.platform;
-        if (state.platform !== "all" && state.app && isDesktop()) state.app = "";
-        syncDeviceSelect();
-        renderControls();
-        generate();
-      });
-    });
-    document.getElementById("device").addEventListener("change", e => {
-      state.deviceIdx = Number(e.target.value);
-      const d = platformDevices()[state.deviceIdx];
-      state.deviceKey = d ? d.id : "";
-      syncOs();
-      generate();
-    });
-    document.getElementById("os").addEventListener("change", generate);
-    ["chrome", "firefoxVer", "edgeVer", "operaVer", "appVersion"].forEach(id =>
-      document.getElementById(id).addEventListener("input", generate));
-    const qty = document.getElementById("qty");
-    qty.addEventListener("input", () => {
-      document.getElementById("qtyVal").textContent = qty.value;
-      generate();
-    });
-    document.getElementById("countrySearch").addEventListener("input", renderControls);
-    document.getElementById("getBtn").addEventListener("click", generate);
-    document.getElementById("copyAll").addEventListener("click", () => {
-      if (window._lastResults && window._lastResults.length)
-        navigator.clipboard.writeText(window._lastResults.join("\n"));
-    });
-    document.getElementById("download").addEventListener("click", () => {
-      if (!window._lastResults || !window._lastResults.length) return;
-      const blob = new Blob([window._lastResults.join("\n")], { type: "text/plain" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "nexora-user-agents.txt";
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-    document.getElementById("liveToggle").addEventListener("change", boot);
-    document.getElementById("firefoxVer").value = DEFAULT_VERSIONS.firefox;
-    document.getElementById("edgeVer").value = DEFAULT_VERSIONS.edge;
-    document.getElementById("operaVer").value = DEFAULT_VERSIONS.opera;
-    boot();
-    loadHistory();
-  });
+function renderDevices() {
+  const rows = filteredDevices();
+  $("deviceCount").textContent = `${rows.length} records`;
+  $("deviceTableFoot").textContent = `Showing ${rows.length} of ${state.devices.length} catalog records`;
+  const tbody = $("deviceTable");
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No matching device records.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(item => {
+    const d = item.record, display = d.display || {};
+    const status = item.sourceStatus === "admin_verified" ? '<span class="tag">ADMIN VERIFIED</span>' : item.sourceStatus === "ai_verified" ? '<span class="tag">AI REVIEWED</span>' : '<span class="tag neutral">LEGACY RECORD</span>';
+    const action = state.isAdmin ? `<td class="admin-column"><button class="action-link" data-edit-device="${esc(d.id)}">Edit</button> <button class="action-link" data-delete-device="${esc(d.id)}">Delete</button></td>` : "";
+    return `<tr><td><div class="device-cell"><span class="device-glyph">▯</span><span><strong>${esc(d.brand)} ${esc(d.model)}</strong><small>${esc(d.id)}</small></span></div></td><td><span class="tag neutral">${item.platform === "android" ? "ANDROID" : "IOS"}</span></td><td>${esc(d.uaModel || "—")}</td><td>${esc((d.osVersions || []).join(", "))}</td><td>${numberText(display.w)} × ${numberText(display.h)} · ${esc(display.dpr || "—")}x</td><td>${status}</td>${action}</tr>`;
+  }).join("");
+  tbody.querySelectorAll("[data-edit-device]").forEach(button => button.addEventListener("click", () => openDeviceEditor(button.dataset.editDevice)));
+  tbody.querySelectorAll("[data-delete-device]").forEach(button => button.addEventListener("click", () => deleteDevice(button.dataset.deleteDevice)));
 }
+
+function renderApplications() {
+  const entries = Object.entries(apps());
+  const filtered = entries.filter(([id, value]) => state.appFilter === "all" || (state.appFilter === "known" ? Boolean(value) : !value));
+  $("applicationGrid").innerHTML = filtered.map(([id, raw]) => {
+    const version = typeof raw === "string" ? raw : raw?.version || "";
+    const known = Boolean(version);
+    const label = APP_NAMES[id] || id;
+    const token = typeof raw === "object" && raw ? raw.token : "";
+    const sourceUrl = typeof raw === "object" && raw ? raw.sourceUrl || "" : "";
+    return `<article class="application-card"><div class="app-card-top"><div class="app-logo">${esc(label.slice(0, 2).toUpperCase())}</div><div><strong>${esc(label)}</strong><small>${esc(id)}</small></div></div><div class="app-card-release"><span>Version metadata</span><strong>${known ? esc(version) : "Not verified"}</strong></div><div class="app-card-link">${known ? "Version value stored" : "No verified version stored"}${token ? ` · token: ${esc(token)}` : ""}${sourceUrl ? `<br><a href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">Open official source ↗</a>` : ""}</div>${state.isAdmin ? `<div style="margin-top:auto;padding-top:12px"><button class="action-link" data-edit-app="${esc(id)}">Edit metadata</button></div>` : ""}</article>`;
+  }).join("") || '<div class="panel output-empty"><strong>No applications match this filter.</strong></div>';
+  $("applicationGrid").querySelectorAll("[data-edit-app]").forEach(button => button.addEventListener("click", () => openAppEditor(button.dataset.editApp)));
+}
+
+function renderCompatibility() {
+  const rows = allRecords();
+  const android = new Set(rows.filter(x => x.platform === "android").flatMap(x => x.osVersions || []));
+  const ios = new Set(rows.filter(x => x.platform === "ios_emulation").flatMap(x => x.osVersions || []));
+  const withBuild = rows.filter(x => Object.keys(x.builds || {}).length).length;
+  $("compatAndroid").textContent = android.size; $("compatIos").textContent = ios.size;
+  $("compatBuilds").textContent = withBuild; $("compatMissing").textContent = rows.length - withBuild;
+  $("compatTable").innerHTML = rows.map(d => `<tr><td><div class="device-cell"><span class="device-glyph">▯</span><span><strong>${esc(d.brand)} ${esc(d.model)}</strong><small>${esc(d.id)}</small></span></div></td><td>${esc(d.platform === "android" ? "Android" : "iOS")}</td><td>${esc((d.osVersions || []).join(", "))}</td><td>${Object.keys(d.builds || {}).length ? esc(Object.keys(d.builds).join(", ")) : '<span class="tag warn">Not supplied</span>'}</td><td>${esc((d.ramGb || []).join(", "))} GB</td><td>${esc((d.storageGb || []).join(", "))} GB</td></tr>`).join("");
+}
+
+function renderGeneratorFilters() {
+  const records = allRecords();
+  const allOs = [...new Set(records.flatMap(d => d.osVersions || []))].sort((a, b) => Number(a) - Number(b));
+  const select = $("genOs"), previous = select.value;
+  select.innerHTML = '<option value="all">All supported versions</option>' + allOs.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  if (allOs.includes(previous)) select.value = previous;
+}
+
+function makeDataset() {
+  const platform = $("genPlatform").value, brand = $("genBrand").value, search = $("genSearch").value.trim().toLowerCase();
+  const os = $("genOs").value, quantity = Number($("genQuantity").value) || 50;
+  const records = allRecords().filter(d => {
+    if (platform !== "all" && d.platform !== platform) return false;
+    if (brand !== "all" && d.brand !== brand) return false;
+    if (search && ![d.id, d.brand, d.model, d.uaModel, d.soc].join(" ").toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const combinations = [];
+  records.forEach(d => (d.osVersions || []).forEach(version => {
+    if (os === "all" || os === version) combinations.push({ d, version });
+  }));
+  return combinations.slice(0, quantity).map(({ d, version }, index) => ({
+    fixtureId: `nexora-${String(index + 1).padStart(4, "0")}`,
+    deviceId: d.id, brand: d.brand, model: d.model, modelIdentifier: d.uaModel,
+    platform: d.platform === "android" ? "Android" : "iOS",
+    osVersion: version, chipset: d.soc, gpu: d.gpu, cpuCores: d.cores,
+    display: d.display, ramOptionsGb: d.ramGb, storageOptionsGb: d.storageGb,
+    firmwareBuildId: (d.builds || {})[version] || null,
+    marketCodes: d.markets || [], sourceStatus: d.sourceStatus || "bundled",
+    catalogDataVersion: meta().dataVersion || null
+  }));
+}
+
+function renderDatasetPreview() {
+  const rows = state.dataset;
+  $("outputCount").textContent = `${rows.length} RECORDS`;
+  const preview = $("generatorPreview");
+  if (!rows.length) {
+    preview.className = "output-empty";
+    preview.innerHTML = '<div class="empty-art">!</div><strong>No matching combinations</strong><span>Try a broader platform, manufacturer or OS filter.</span>';
+    $("exportActions").classList.add("hidden"); return;
+  }
+  preview.className = "output-preview";
+  preview.innerHTML = `<div class="preview-meta">Previewing ${Math.min(15, rows.length)} of ${rows.length} fixtures · ${esc(meta().dataVersion || "local data")}</div><div class="table-scroll"><table><thead><tr><th>FIXTURE</th><th>DEVICE</th><th>OS</th><th>DISPLAY</th><th>BUILD</th></tr></thead><tbody>${rows.slice(0, 15).map(r => `<tr><td>${esc(r.fixtureId)}</td><td>${esc(r.brand)} ${esc(r.model)}</td><td>${esc(r.osVersion)}</td><td>${r.display.w} × ${r.display.h}</td><td>${r.firmwareBuildId ? esc(r.firmwareBuildId) : '<span class="tag warn">Not supplied</span>'}</td></tr>`).join("")}</tbody></table></div>`;
+  $("exportActions").classList.remove("hidden");
+}
+
+function downloadText(filename, text, mime) {
+  const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob); const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+}
+function csvValue(value) { const text = typeof value === "object" ? JSON.stringify(value) : String(value ?? ""); return `"${text.replace(/"/g, '""')}"`; }
+function exportDataset() {
+  if (!state.dataset.length) return;
+  const format = $("genFormat").value;
+  if (format === "json") downloadText("nexora-compatibility-dataset.json", JSON.stringify({ meta: { dataVersion: meta().dataVersion, generatedAt: new Date().toISOString(), count: state.dataset.length }, records: state.dataset }, null, 2), "application/json");
+  else if (format === "csv") {
+    const keys = Object.keys(state.dataset[0]);
+    const csv = [keys.map(csvValue).join(","), ...state.dataset.map(row => keys.map(key => csvValue(row[key])).join(","))].join("\n");
+    downloadText("nexora-compatibility-dataset.csv", csv, "text/csv;charset=utf-8");
+  } else downloadText("nexora-compatibility-dataset.ndjson", state.dataset.map(row => JSON.stringify(row)).join("\n"), "application/x-ndjson");
+}
+
+function showToast(message, type = "") {
+  const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = message;
+  $("toastRegion").appendChild(toast); setTimeout(() => toast.remove(), 3800);
+}
+function go(view) {
+  document.querySelectorAll(".view").forEach(el => el.classList.toggle("active", el.id === `view-${view}`));
+  document.querySelectorAll(".nav-item[data-view]").forEach(el => el.classList.toggle("active", el.dataset.view === view));
+  const active = document.querySelector(`.nav-item[data-view="${view}"]`);
+  $("breadcrumbCurrent").textContent = active ? active.textContent.trim().replace(/\s+\d+$/, "") : view[0].toUpperCase() + view.slice(1);
+  $("sidebar").classList.remove("open");
+  if (view === "automation" && state.isAdmin) loadAutomation();
+  if (view === "review" && state.isAdmin) loadReview();
+  if (view === "audit" && state.isAdmin) loadAudit();
+}
+
+function setAdmin(token) {
+  state.token = token; state.isAdmin = true; sessionStorage.setItem("nexora_admin_token", token);
+  document.body.classList.add("is-admin");
+  document.querySelectorAll(".admin-only").forEach(el => el.classList.remove("hidden"));
+  $("adminLabel").textContent = "Administrator"; $("adminAvatar").textContent = "A"; $("authButton").textContent = "Sign out";
+  renderDevices(); renderApplications(); renderOverview(); refreshAdminViews();
+}
+function clearAdmin() {
+  state.token = ""; state.isAdmin = false; sessionStorage.removeItem("nexora_admin_token");
+  document.body.classList.remove("is-admin"); document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
+  $("adminLabel").textContent = "Guest access"; $("adminAvatar").textContent = "G"; $("authButton").textContent = "Sign in";
+  if (["automation", "review", "assistant", "audit", "settings"].includes(currentView())) go("overview");
+  renderDevices(); renderApplications(); renderOverview();
+}
+function currentView() { return document.querySelector(".view.active")?.id.replace("view-", "") || "overview"; }
+async function verifyAdmin() {
+  if (!state.token) return;
+  try { await api("/api/v1/admin/overview"); setAdmin(state.token); }
+  catch { clearAdmin(); }
+}
+
+function openModal(id) { $(id).classList.remove("hidden"); }
+function closeModal(id) { $(id).classList.add("hidden"); }
+function findDevice(id) { return state.devices.find(item => item.record.id === id); }
+function openDeviceEditor(id = "") {
+  if (!state.isAdmin) return;
+  const item = id ? findDevice(id) : null, d = item?.record || {};
+  $("deviceModalTitle").textContent = id ? "Edit device record" : "Add device record";
+  $("editOriginalId").value = id;
+  $("editPlatform").value = item?.platform || "android";
+  $("editId").value = d.id || ""; $("editBrand").value = d.brand || ""; $("editModel").value = d.model || "";
+  $("editUaModel").value = d.uaModel || ""; $("editSoc").value = d.soc || ""; $("editGpu").value = d.gpu || "";
+  $("editCores").value = d.cores || ""; $("editWidth").value = d.display?.w || ""; $("editHeight").value = d.display?.h || ""; $("editDpr").value = d.display?.dpr || "";
+  $("editRam").value = (d.ramGb || []).join(", "); $("editStorage").value = (d.storageGb || []).join(", "); $("editOs").value = (d.osVersions || []).join(", ");
+  $("editBuilds").value = JSON.stringify(d.builds || {}, null, 2); $("editMarkets").value = (d.markets || []).join(", "); $("editSourceUrl").value = d.sourceUrl || d.source_url || ""; $("deviceError").classList.add("hidden"); openModal("deviceModal");
+}
+function parseNumbers(value, allowFloat = false) {
+  return value.split(",").map(x => allowFloat ? Number(x.trim()) : parseInt(x.trim(), 10)).filter(x => Number.isFinite(x) && x > 0);
+}
+async function saveDevice(event) {
+  event.preventDefault();
+  const originalId = $("editOriginalId").value;
+  let builds;
+  try { builds = JSON.parse($("editBuilds").value || "{}"); } catch { $("deviceError").textContent = "Build IDs must be valid JSON."; $("deviceError").classList.remove("hidden"); return; }
+  const record = {
+    id: $("editId").value.trim(), brand: $("editBrand").value.trim(), model: $("editModel").value.trim(),
+    uaModel: $("editUaModel").value.trim(), soc: $("editSoc").value.trim(), gpu: $("editGpu").value.trim(), cores: Number($("editCores").value),
+    display: { w: Number($("editWidth").value), h: Number($("editHeight").value), dpr: Number($("editDpr").value) },
+    ramGb: parseNumbers($("editRam").value), storageGb: parseNumbers($("editStorage").value),
+    osVersions: $("editOs").value.split(",").map(x => x.trim()).filter(Boolean), builds,
+    markets: $("editMarkets").value.split(",").map(x => x.trim().toUpperCase()).filter(Boolean),
+    source_url: $("editSourceUrl").value.trim()
+  };
+  const errors = [];
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(record.id)) errors.push("Record ID must use lowercase kebab-case.");
+  ["brand", "model", "uaModel", "soc", "gpu"].forEach(k => { if (!record[k]) errors.push(`${k} is required.`); });
+  if (!record.cores || record.cores < 1) errors.push("CPU cores must be positive.");
+  if (!record.display.w || !record.display.h || !record.display.dpr) errors.push("Display width, height and DPR must be positive.");
+  if (!record.ramGb.length || !record.storageGb.length || !record.osVersions.length) errors.push("RAM, storage and OS versions are required.");
+  if (!originalId && !record.source_url) errors.push("An official source URL is required for new records.");
+  if (record.source_url && !/^https:\/\//i.test(record.source_url)) errors.push("Source URL must use HTTPS.");
+  if (Object.keys(builds).some(k => !record.osVersions.includes(k))) errors.push("Every build ID key must be a supported OS version.");
+  if (errors.length) { $("deviceError").textContent = errors.join(" "); $("deviceError").classList.remove("hidden"); return; }
+  try {
+    const body = JSON.stringify({ platform: $("editPlatform").value, record });
+    if (originalId) await api(`/api/v1/admin/devices/${encodeURIComponent(originalId)}`, { method: "PUT", body });
+    else await api("/api/v1/admin/devices", { method: "POST", body });
+    closeModal("deviceModal"); showToast(originalId ? "Device updated." : "Device added."); await loadData();
+  } catch (error) { $("deviceError").textContent = error.message; $("deviceError").classList.remove("hidden"); }
+}
+async function deleteDevice(id) {
+  if (!state.isAdmin || !confirm(`Delete ${id} from the shared catalog? This action will be recorded.`)) return;
+  try { await api(`/api/v1/admin/devices/${encodeURIComponent(id)}`, { method: "DELETE" }); showToast("Device deleted."); await loadData(); }
+  catch (error) { showToast(error.message, "error"); }
+}
+
+function openAppEditor(id = "") {
+  if (!state.isAdmin) return;
+  const select = $("editAppId"); select.innerHTML = Object.keys(apps()).map(key => `<option value="${esc(key)}">${esc(APP_NAMES[key] || key)}</option>`).join("");
+  if (id) select.value = id;
+  const value = apps()[select.value]; $("editAppVersion").value = typeof value === "string" ? value : value?.version || "";
+  $("editAppToken").value = typeof value === "object" && value ? value.token || "" : "";
+  $("editAppSourceUrl").value = typeof value === "object" && value ? value.sourceUrl || "" : "";
+  $("appVersionError").classList.add("hidden"); openModal("appVersionModal");
+}
+async function saveAppVersion(event) {
+  event.preventDefault();
+  try {
+    await api("/api/v1/admin/app-versions", { method: "POST", body: JSON.stringify({ app_id: $("editAppId").value, version: $("editAppVersion").value.trim(), token: $("editAppToken").value.trim(), source_url: $("editAppSourceUrl").value.trim() }) });
+    closeModal("appVersionModal"); showToast("Application version metadata saved."); await loadData();
+  } catch (error) { $("appVersionError").textContent = error.message; $("appVersionError").classList.remove("hidden"); }
+}
+
+async function refreshAdminViews() {
+  if (!state.isAdmin) return;
+  try {
+    const overview = await api("/api/v1/admin/overview");
+    $("reviewCount").textContent = overview.pendingProposals;
+    $("reviewCount").classList.toggle("hidden", !overview.pendingProposals);
+  } catch { /* token may have expired */ }
+}
+async function loadAutomation() {
+  try {
+    const [sources, runs] = await Promise.all([api("/api/v1/admin/sources"), api("/api/v1/admin/runs")]);
+    $("sourceCount").textContent = `${sources.length} sources`;
+    $("sourceTable").innerHTML = sources.map(s => `<tr><td><strong>${esc(s.name)}</strong><br><small class="muted-cell">${esc(s.url)}</small></td><td>${esc(s.category.replaceAll("_", " "))}</td><td>${s.trusted ? '<span class="tag">OFFICIAL</span>' : '<span class="tag neutral">UNVERIFIED</span>'}</td><td><span class="tag ${s.status === "healthy" ? "" : s.status === "error" ? "bad" : "warn"}">${esc(s.status.toUpperCase())}</span></td><td>${esc(dateText(s.lastChecked))}</td><td>${esc(s.details?.latestVersion || s.details?.error || s.details?.note || (s.details?.aiExtraction === "not_configured" ? "AI key not configured" : s.details?.lastObservation || "—"))}</td><td><button class="action-link" data-toggle-source="${esc(s.id)}" data-enabled="${s.enabled ? "true" : "false"}">${s.enabled ? "Pause" : "Enable"}</button></td></tr>`).join("") || '<tr><td colspan="7" class="empty-cell">No sources configured.</td></tr>';
+    $("sourceTable").querySelectorAll("[data-toggle-source]").forEach(button => button.addEventListener("click", () => toggleSource(button.dataset.toggleSource, button.dataset.enabled !== "true")));
+    renderRuns(runs);
+  } catch (error) { $("sourceTable").innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(error.message)}</td></tr>`; }
+}
+function renderRuns(runs) {
+  $("runsTable").innerHTML = runs.map(r => `<tr><td>#${r.id}</td><td>${esc(r.source)}</td><td><span class="tag ${r.status === "completed" ? "" : r.status === "failed" ? "bad" : "warn"}">${esc(r.status.toUpperCase())}</span></td><td>${esc(dateText(r.startedAt))}</td><td>${esc(r.summary)}</td></tr>`).join("") || '<tr><td colspan="5" class="empty-cell">No automation runs yet.</td></tr>';
+}
+async function toggleSource(id, enabled) {
+  try { await api(`/api/v1/admin/sources/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ enabled }) }); showToast(enabled ? "Source connector enabled." : "Source connector paused."); await loadAutomation(); }
+  catch (error) { showToast(error.message, "error"); }
+}
+
+async function runRefresh() {
+  try { const result = await api("/api/v1/admin/refresh", { method: "POST" }); showToast(result.message || "Source check queued."); await loadAutomation(); }
+  catch (error) { showToast(error.message, "error"); }
+}
+async function reloadRuns() { try { renderRuns(await api("/api/v1/admin/runs")); } catch (error) { showToast(error.message, "error"); } }
+
+async function loadReview() {
+  try {
+    const [pending, approved, rejected] = await Promise.all(["pending", "approved", "rejected"].map(s => api(`/api/v1/admin/proposals?status=${s}`)));
+    $("pendingTotal").textContent = pending.length; $("approvedTotal").textContent = approved.length; $("rejectedTotal").textContent = rejected.length;
+    $("reviewCount").textContent = pending.length; $("reviewCount").classList.toggle("hidden", !pending.length);
+    $("reviewList").innerHTML = pending.map(p => `<article class="proposal-card"><div class="proposal-top"><div><h3>${esc(p.title)}</h3><p>Proposal #${p.id} · ${esc(p.kind)} · ${esc(dateText(p.createdAt))}</p></div><span class="tag warn">PENDING</span></div><div class="proposal-meta"><span class="tag neutral">Confidence ${Math.round(p.confidence * 100)}%</span><span class="tag neutral">${p.evidence.length} evidence item(s)</span></div><pre class="proposal-payload">${esc(JSON.stringify(p.payload, null, 2))}</pre><details class="proposal-evidence"><summary>View source evidence</summary><pre class="proposal-payload">${esc(JSON.stringify(p.evidence, null, 2))}</pre></details><div class="proposal-actions"><button class="button button-secondary button-small" data-reject-proposal="${p.id}">Reject</button><button class="button button-primary button-small" data-approve-proposal="${p.id}">Approve and publish</button></div></article>`).join("") || '<div class="panel output-empty"><div class="empty-art">✓</div><strong>No pending changes</strong><span>New source findings and AI proposals will appear here.</span></div>';
+    $("reviewList").querySelectorAll("[data-approve-proposal]").forEach(b => b.addEventListener("click", () => decideProposal(b.dataset.approveProposal, "approve")));
+    $("reviewList").querySelectorAll("[data-reject-proposal]").forEach(b => b.addEventListener("click", () => decideProposal(b.dataset.rejectProposal, "reject")));
+  } catch (error) { $("reviewList").innerHTML = `<div class="panel output-empty">${esc(error.message)}</div>`; }
+}
+async function decideProposal(id, decision) {
+  const message = decision === "approve" ? "Approve this change and publish it to the public catalog?" : "Reject this proposal?";
+  if (!confirm(message)) return;
+  try { await api(`/api/v1/admin/proposals/${id}/decision?decision=${decision}`, { method: "POST" }); showToast(`Proposal ${decision}d.`); await loadReview(); await loadData(); }
+  catch (error) { showToast(error.message, "error"); }
+}
+async function loadAudit() {
+  try {
+    const rows = await api("/api/v1/admin/audit");
+    $("auditTable").innerHTML = rows.map(r => `<tr><td>${esc(dateText(r.createdAt))}</td><td>${esc(r.actor)}</td><td>${esc(r.action)}</td><td>${esc(r.target)}</td><td>${esc(JSON.stringify(r.details))}</td></tr>`).join("") || '<tr><td colspan="5" class="empty-cell">No administrative changes recorded yet.</td></tr>';
+  } catch (error) { $("auditTable").innerHTML = `<tr><td colspan="5" class="empty-cell">${esc(error.message)}</td></tr>`; }
+}
+
+function appendAssistantMessage(text, who = "ai") {
+  const row = document.createElement("div"); row.className = `assistant-message ${who === "user" ? "assistant-message-user" : ""}`;
+  const avatar = document.createElement("div"); avatar.className = "message-avatar"; avatar.textContent = who === "user" ? "YOU" : "NX";
+  const body = document.createElement("div"); const strong = document.createElement("strong"); strong.textContent = who === "user" ? "YOU" : "NEXORA AI";
+  const p = document.createElement("p"); p.textContent = text; body.append(strong, p); row.append(avatar, body); $("assistantMessages").appendChild(row); $("assistantMessages").scrollTop = $("assistantMessages").scrollHeight;
+}
+async function askAssistant(event) {
+  event.preventDefault(); const prompt = $("assistantPrompt").value.trim(); if (!prompt) return;
+  appendAssistantMessage(prompt, "user"); $("assistantPrompt").value = "";
+  try { const result = await api("/api/v1/admin/ai/assist", { method: "POST", body: JSON.stringify({ prompt }) }); appendAssistantMessage(result.answer); $("aiModelLabel").textContent = result.model.toUpperCase(); }
+  catch (error) { appendAssistantMessage(`I could not process that request: ${error.message}. Configure AI_API_KEY on the backend and try again.`); }
+}
+
+function bindEvents() {
+  document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => go(button.dataset.view)));
+  document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => go(button.dataset.go)));
+  document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
+  $("mobileMenu").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+  $("authButton").addEventListener("click", () => state.isAdmin ? (clearAdmin(), showToast("Signed out.")) : openModal("loginModal"));
+  $("loginForm").addEventListener("submit", async event => {
+    event.preventDefault(); $("loginError").classList.add("hidden");
+    try { const result = await api("/api/v1/admin/login", { method: "POST", body: JSON.stringify({ password: $("adminPassword").value }) }); setAdmin(result.accessToken); closeModal("loginModal"); $("adminPassword").value = ""; showToast("Administrator session started."); }
+    catch (error) { $("loginError").textContent = error.message; $("loginError").classList.remove("hidden"); }
+  });
+  $("deviceSearch").addEventListener("input", renderDevices); $("devicePlatform").addEventListener("change", renderDevices); $("deviceBrand").addEventListener("change", renderDevices);
+  $("addDevice").addEventListener("click", () => openDeviceEditor()); $("deviceForm").addEventListener("submit", saveDevice);
+  $("exportDevices").addEventListener("click", () => downloadText("nexora-device-catalog.json", JSON.stringify(state.data, null, 2), "application/json"));
+  $("appFilters").querySelectorAll("[data-app-filter]").forEach(button => button.addEventListener("click", () => { state.appFilter = button.dataset.appFilter; $("appFilters").querySelectorAll(".filter-pill").forEach(b => b.classList.toggle("active", b === button)); renderApplications(); }));
+  $("editAppVersions").addEventListener("click", () => openAppEditor()); $("appVersionForm").addEventListener("submit", saveAppVersion);
+  $("genPlatform").addEventListener("change", () => {}); $("genBrand").addEventListener("change", () => {}); $("genSearch").addEventListener("input", () => {}); $("genOs").addEventListener("change", () => {});
+  $("genQuantity").addEventListener("input", () => $("genQuantityValue").textContent = $("genQuantity").value);
+  $("generateButton").addEventListener("click", () => { state.dataset = makeDataset(); renderDatasetPreview(); if (!state.dataset.length) showToast("No valid device and OS combinations matched your filters.", "error"); });
+  $("downloadDataset").addEventListener("click", exportDataset);
+  $("copyDataset").addEventListener("click", async () => { try { await navigator.clipboard.writeText(JSON.stringify(state.dataset, null, 2)); showToast("Dataset JSON copied."); } catch { showToast("Clipboard access is unavailable in this browser.", "error"); } });
+  $("runRefresh").addEventListener("click", runRefresh); $("reloadRuns").addEventListener("click", reloadRuns); $("reloadAudit").addEventListener("click", loadAudit);
+  $("assistantForm").addEventListener("submit", askAssistant);
+  document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => { $("assistantPrompt").value = button.dataset.prompt; $("assistantPrompt").focus(); }));
+  $("themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; document.body.classList.toggle("light", state.theme === "light"); localStorage.setItem("nexora_theme", state.theme); });
+}
+
+async function init() {
+  document.body.classList.toggle("light", state.theme === "light");
+  bindEvents();
+  await loadData();
+  await verifyAdmin();
+}
+
+document.addEventListener("DOMContentLoaded", init);

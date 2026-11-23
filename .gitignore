@@ -6,3 +6,9 @@ app/build/
 *.apk
 *.zip
 .DS_Store
+.env
+.venv/
+__pycache__/
+*.py[cod]
+nexora-dev.db
+.pytest_cache/
