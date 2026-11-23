@@ -199,7 +199,8 @@ const state = {
   browser: "all",         // all | chrome | firefox | safari | edge | opera
   app: "",                // "" = none, else APPS id
   country: "",            // COUNTRIES code
-  deviceIdx: 0,
+  deviceIdx: -1,
+  deviceKey: "",
   live: true
 };
 
@@ -324,7 +325,10 @@ function generate() {
       state.deviceIdx = di;
       const d = list[di];
       if (d) {
-        const osIdx = Math.floor(ptr / Math.max(1, list.length)) % d.osVersions.length;
+        const singleDevice = combos.every(x => x === combos[0]);
+        const osIdx = singleDevice
+          ? ptr % d.osVersions.length
+          : Math.floor(ptr / Math.max(1, list.length)) % d.osVersions.length;
         osSel.value = d.osVersions[d.osVersions.length - 1 - osIdx];
       }
       const one = buildOne();
@@ -403,8 +407,17 @@ function syncDeviceSelect() {
   sel.innerHTML = '<option value="-1">Random device (from selected country)</option>' +
     list.map((d, i) =>
       '<option value="' + i + '">' + d.brand + " " + d.model + (d.isIos ? " (iOS)" : "") + "</option>").join("");
-  state.deviceIdx = -1;
-  sel.value = "-1";
+  // Keep the previously picked phone if it still exists in the new pool
+  // (e.g. after a country change); otherwise fall back to Random.
+  const keep = state.deviceKey ? list.findIndex(d => d.id === state.deviceKey) : -1;
+  if (keep >= 0) {
+    state.deviceIdx = keep;
+    sel.value = String(keep);
+  } else {
+    state.deviceIdx = -1;
+    state.deviceKey = "";
+    sel.value = "-1";
+  }
   syncOs();
 }
 
@@ -493,6 +506,8 @@ if (typeof document !== "undefined") {
     });
     document.getElementById("device").addEventListener("change", e => {
       state.deviceIdx = Number(e.target.value);
+      const d = platformDevices()[state.deviceIdx];
+      state.deviceKey = d ? d.id : "";
       syncOs();
       generate();
     });
