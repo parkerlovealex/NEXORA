@@ -1,13 +1,16 @@
 name: Weekly device data refresh
 
+
 on:
   schedule:
-    - cron: "0 3 * * 1" # Mondays 03:00 UTC
+    - cron: "0 3 * * 1"→ Runs at 03:00, only on Monday # Mondays 03:00 UTC
   workflow_dispatch:
+
 
 permissions:
   contents: write
   pull-requests: write
+
 
 jobs:
   refresh:
@@ -16,18 +19,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
 
       - name: Refresh device data
         env:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
         run: python3 tools/refresh_devices.py
 
+
       - name: Validate device data
         run: python3 tools/validate_devices.py app/src/main/assets/devices.json
+
 
       - name: Open pull request if data changed
         uses: peter-evans/create-pull-request@v6
@@ -40,3 +47,6 @@ jobs:
           add-paths: |
             app/src/main/assets/devices.json
             web/devices.json
+            web/history.json
+            data/history/
+
