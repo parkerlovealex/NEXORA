@@ -1,0 +1,745 @@
+{
+ "meta": {
+  "schemaVersion": 2,
+  "dataVersion": "2026.11.23.2",
+  "updatedAt": "2026-11-23",
+  "versions": {
+   "chrome": "159.0.8154.18",
+   "facebook": null,
+   "instagram": null
+  },
+  "source": "Bundled baseline migrated to schema v2. Weekly refresh updates versions and device rows.",
+  "apps": {
+   "facebook": null,
+   "instagram": null,
+   "tiktok": null,
+   "x": null,
+   "threads": null,
+   "linkedin": null,
+   "pinterest": null,
+   "reddit": null,
+   "snapchat": null,
+   "weibo": null,
+   "telegram": null,
+   "messenger": null,
+   "wechat": null,
+   "line": null,
+   "kik": null,
+   "discord": null,
+   "viber": null
+  }
+ },
+ "android": [
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Adreno (TM) 750",
+   "id": "galaxy-s24",
+   "model": "Galaxy S24",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8,
+    12
+   ],
+   "soc": "Snapdragon 8 Gen 3 / Exynos 2400",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "SM-S921B",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.5,
+    "h": 3120,
+    "w": 1440
+   },
+   "gpu": "Adreno (TM) 750",
+   "id": "galaxy-s24-ultra",
+   "model": "Galaxy S24 Ultra",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    12
+   ],
+   "soc": "Snapdragon 8 Gen 3",
+   "storageGb": [
+    256,
+    512,
+    1024
+   ],
+   "uaModel": "SM-S928B",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Adreno (TM) 740",
+   "id": "galaxy-s23",
+   "model": "Galaxy S23",
+   "osVersions": [
+    "13",
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Snapdragon 8 Gen 2",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "SM-S911B",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Mali-G68",
+   "id": "galaxy-a55",
+   "model": "Galaxy A55",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8,
+    12
+   ],
+   "soc": "Exynos 1480",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "SM-A556B",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Mali-G68",
+   "id": "galaxy-a35",
+   "model": "Galaxy A35",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    6,
+    8
+   ],
+   "soc": "Exynos 1380",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "SM-A356B",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 8,
+   "display": {
+    "dpr": 2.625,
+    "h": 2424,
+    "w": 1080
+   },
+   "gpu": "Mali-G715",
+   "id": "pixel-9",
+   "model": "Pixel 9",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    12
+   ],
+   "soc": "Google Tensor G4",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "Pixel 9",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 8,
+   "display": {
+    "dpr": 3.5,
+    "h": 2856,
+    "w": 1280
+   },
+   "gpu": "Mali-G715",
+   "id": "pixel-9-pro",
+   "model": "Pixel 9 Pro",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    16
+   ],
+   "soc": "Google Tensor G4",
+   "storageGb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "uaModel": "Pixel 9 Pro",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 9,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G715",
+   "id": "pixel-8",
+   "model": "Pixel 8",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Google Tensor G3",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "Pixel 8",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 9,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G715",
+   "id": "pixel-8a",
+   "model": "Pixel 8a",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Google Tensor G3",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "Pixel 8a",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G710",
+   "id": "pixel-7",
+   "model": "Pixel 7",
+   "osVersions": [
+    "13",
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Google Tensor G2",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "Pixel 7",
+   "builds": {}
+  },
+  {
+   "brand": "OnePlus",
+   "cores": 8,
+   "display": {
+    "dpr": 3.5,
+    "h": 3168,
+    "w": 1440
+   },
+   "gpu": "Adreno (TM) 750",
+   "id": "oneplus-12",
+   "model": "OnePlus 12",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    12,
+    16
+   ],
+   "soc": "Snapdragon 8 Gen 3",
+   "storageGb": [
+    256,
+    512
+   ],
+   "uaModel": "CPH2581",
+   "builds": {}
+  },
+  {
+   "brand": "OnePlus",
+   "cores": 8,
+   "display": {
+    "dpr": 3.5,
+    "h": 2780,
+    "w": 1264
+   },
+   "gpu": "Adreno (TM) 740",
+   "id": "oneplus-12r",
+   "model": "OnePlus 12R",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8,
+    16
+   ],
+   "soc": "Snapdragon 8 Gen 2",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "CPH2609",
+   "builds": {}
+  },
+  {
+   "brand": "Xiaomi",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2670,
+    "w": 1200
+   },
+   "gpu": "Adreno (TM) 750",
+   "id": "xiaomi-14",
+   "model": "Xiaomi 14",
+   "osVersions": [
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8,
+    12,
+    16
+   ],
+   "soc": "Snapdragon 8 Gen 3",
+   "storageGb": [
+    256,
+    512,
+    1024
+   ],
+   "uaModel": "23127PN0CG",
+   "builds": {}
+  },
+  {
+   "brand": "Xiaomi",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G57",
+   "id": "redmi-note-13",
+   "model": "Redmi Note 13",
+   "osVersions": [
+    "13",
+    "14"
+   ],
+   "ramGb": [
+    6,
+    8,
+    12
+   ],
+   "soc": "Dimensity 6080",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "23129RA7EO",
+   "builds": {}
+  },
+  {
+   "brand": "Xiaomi",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2712,
+    "w": 1220
+   },
+   "gpu": "Adreno (TM) 710",
+   "id": "poco-x6",
+   "model": "POCO X6",
+   "osVersions": [
+    "13",
+    "14"
+   ],
+   "ramGb": [
+    8,
+    12
+   ],
+   "soc": "Snapdragon 7s Gen 2",
+   "storageGb": [
+    256,
+    512
+   ],
+   "uaModel": "23122PCD1G",
+   "builds": {}
+  },
+  {
+   "brand": "Nothing",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2412,
+    "w": 1080
+   },
+   "gpu": "Adreno (TM) 730",
+   "id": "nothing-phone-2",
+   "model": "Phone (2)",
+   "osVersions": [
+    "13",
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    8,
+    12
+   ],
+   "soc": "Snapdragon 8+ Gen 1",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "A065",
+   "builds": {}
+  },
+  {
+   "brand": "Motorola",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G77",
+   "id": "motorola-edge-40",
+   "model": "Moto Edge 40",
+   "osVersions": [
+    "13",
+    "14"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Dimensity 8020",
+   "storageGb": [
+    256
+   ],
+   "uaModel": "moto edge 40",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Adreno (TM) 730",
+   "id": "galaxy-s22",
+   "model": "Galaxy S22",
+   "osVersions": [
+    "12",
+    "13",
+    "14"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Exynos 2200 / Snapdragon 8 Gen 1",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "SM-S901B",
+   "builds": {}
+  },
+  {
+   "brand": "Google",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2400,
+    "w": 1080
+   },
+   "gpu": "Mali-G78",
+   "id": "pixel-6a",
+   "model": "Pixel 6a",
+   "osVersions": [
+    "12",
+    "13",
+    "14",
+    "15"
+   ],
+   "ramGb": [
+    6
+   ],
+   "soc": "Google Tensor",
+   "storageGb": [
+    128
+   ],
+   "uaModel": "Pixel 6a",
+   "builds": {}
+  },
+  {
+   "brand": "Samsung",
+   "cores": 8,
+   "display": {
+    "dpr": 3.0,
+    "h": 2340,
+    "w": 1080
+   },
+   "gpu": "Mali-G57",
+   "id": "galaxy-a15",
+   "model": "Galaxy A15",
+   "osVersions": [
+    "14"
+   ],
+   "ramGb": [
+    4,
+    6,
+    8
+   ],
+   "soc": "Helio G99",
+   "storageGb": [
+    128,
+    256
+   ],
+   "uaModel": "SM-A155F",
+   "builds": {}
+  }
+ ],
+ "ios_emulation": [
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 3.0,
+    "h": 2868,
+    "w": 1320
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-16-pro-max",
+   "model": "iPhone 16 Pro Max",
+   "osVersions": [
+    "18"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Apple A18 Pro",
+   "storageGb": [
+    256,
+    512,
+    1024
+   ],
+   "uaModel": "iPhone17,2",
+   "builds": {}
+  },
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 3.0,
+    "h": 2556,
+    "w": 1179
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-16",
+   "model": "iPhone 16",
+   "osVersions": [
+    "18"
+   ],
+   "ramGb": [
+    8
+   ],
+   "soc": "Apple A18",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "iPhone17,3",
+   "builds": {}
+  },
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 3.0,
+    "h": 2556,
+    "w": 1179
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-15",
+   "model": "iPhone 15",
+   "osVersions": [
+    "17",
+    "18"
+   ],
+   "ramGb": [
+    6
+   ],
+   "soc": "Apple A16",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "iPhone15,4",
+   "builds": {}
+  },
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 3.0,
+    "h": 2532,
+    "w": 1170
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-14",
+   "model": "iPhone 14",
+   "osVersions": [
+    "16",
+    "17",
+    "18"
+   ],
+   "ramGb": [
+    6
+   ],
+   "soc": "Apple A15",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "iPhone14,7",
+   "builds": {}
+  },
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 3.0,
+    "h": 2532,
+    "w": 1170
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-13",
+   "model": "iPhone 13",
+   "osVersions": [
+    "15",
+    "16",
+    "17",
+    "18"
+   ],
+   "ramGb": [
+    4
+   ],
+   "soc": "Apple A15",
+   "storageGb": [
+    128,
+    256,
+    512
+   ],
+   "uaModel": "iPhone14,5",
+   "builds": {}
+  },
+  {
+   "brand": "Apple",
+   "cores": 6,
+   "display": {
+    "dpr": 2.0,
+    "h": 1334,
+    "w": 750
+   },
+   "gpu": "Apple GPU",
+   "id": "iphone-se-2022",
+   "model": "iPhone SE (2022)",
+   "osVersions": [
+    "15",
+    "16",
+    "17",
+    "18"
+   ],
+   "ramGb": [
+    4
+   ],
+   "soc": "Apple A15",
+   "storageGb": [
+    64,
+    128,
+    256
+   ],
+   "uaModel": "iPhone14,6",
+   "builds": {}
+  }
+ ]
+}
