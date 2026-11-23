@@ -219,9 +219,16 @@ function isDesktop() { return state.platform === "windows" || state.platform ===
 
 function platformDevices() {
   const all = devices();
-  if (state.platform === "android") return all.filter(d => !d.isIos);
-  if (state.platform === "iphone") return all.filter(d => d.isIos);
-  return all;
+  let list = all;
+  if (state.platform === "android") list = all.filter(d => !d.isIos);
+  else if (state.platform === "iphone") list = all.filter(d => d.isIos);
+  // Country-wise official phones: when a country is picked, only devices
+  // officially sold in that country stay in the pool - under EVERY platform
+  // choice, including "All devices".
+  if (state.country) {
+    list = list.filter(d => Array.isArray(d.markets) && d.markets.includes(state.country));
+  }
+  return list;
 }
 
 function versions() {
@@ -252,7 +259,7 @@ function buildOne() {
     return { ua: desktopUa(state.platform, b, v), tag: b.toUpperCase() + " · " + state.platform.toUpperCase() };
   }
   if (state.platform === "ipad") {
-    const ios = devices().filter(d => d.isIos);
+    const ios = platformDevices().filter(d => d.isIos);
     const os = ios.length ? ios[0].osVersions[ios[0].osVersions.length - 1] : "18";
     if (state.app) return { ua: ipadUa(os, v), tag: "APP · IPAD" };
     const b = state.browser === "all" ? "safari" : state.browser;
@@ -309,12 +316,19 @@ function generate() {
   state.deviceIdx = startIdx;
   osSel.value = osBackup;
   const out = document.getElementById("output");
+  if (!isDesktop() && state.platform !== "ipad" && !list.length) {
+    document.getElementById("resCount").textContent = "Results (0)";
+    out.innerHTML = '<p class="muted">No phones in the database are officially sold in ' +
+      'the selected country yet. Pick "All Countries" or another country.</p>';
+    window._lastResults = [];
+    return;
+  }
   document.getElementById("resCount").textContent = "Results (" + results.length + ")";
   out.innerHTML = results.map((r, i) =>
     '<div class="ua"><div class="ua-num">' + (i + 1) + '.</div><div class="ua-body">' +
     '<div class="ua-text">' + r.ua.replace(/</g, "&lt;") + '</div>' +
     '<div class="ua-tags"><span class="tag">' + r.tag + "</span>" +
-    (state.country ? '<span class="tag tag-loc">' + locale() + "</span>" : "") +
+    (state.country ? '<span class="tag tag-loc">' + state.country + " OFFICIAL · " + locale() + "</span>" : "") +
     "</div></div></div>").join("");
   window._lastResults = results.map(r => r.ua);
 }
@@ -353,7 +367,7 @@ function renderControls() {
     const b = document.createElement("button");
     b.className = "country" + (state.country === code ? " country-on" : "");
     b.innerHTML = "<strong>" + (code || "ALL") + "</strong> " + name + (loc ? ' <span>' + loc + "</span>" : "");
-    b.addEventListener("click", () => { state.country = code; renderControls(); generate(); });
+    b.addEventListener("click", () => { state.country = code; syncDeviceSelect(); renderControls(); generate(); });
     grid.appendChild(b);
   });
   // Device row visibility
