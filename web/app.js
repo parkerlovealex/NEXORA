@@ -193,7 +193,45 @@ function init() {
   generate();
 }
 
+const HISTORY_URL =
+  "https://raw.githubusercontent.com/parkerlovealex/NEXORA/main/data/history/index.json";
+
+async function loadHistory() {
+  let entries = null;
+  try {
+    const r = await fetch(HISTORY_URL, { cache: "no-store" });
+    if (r.ok) entries = await r.json();
+  } catch (e) { /* fall through to bundled copy */ }
+  if (!entries) {
+    try {
+      const r = await fetch("./history.json", { cache: "no-store" });
+      if (r.ok) entries = await r.json();
+    } catch (e) { /* no history available */ }
+  }
+  const box = document.getElementById("history");
+  if (!box) return;
+  if (!entries || !entries.length) {
+    box.innerHTML = '<p style="color:var(--muted);font-size:13px">No archived versions yet - history starts with the next refresh.</p>';
+    return;
+  }
+  box.innerHTML = entries.map(e =>
+    '<div class="ua" data-chrome="' + e.chrome + '" style="cursor:pointer">' +
+    "<strong>Data " + e.dataVersion + "</strong> · " + e.updatedAt +
+    " · Chrome " + e.chrome + "</div>").join("");
+  box.querySelectorAll(".ua").forEach(el => {
+    el.addEventListener("click", () => {
+      const c = document.getElementById("chrome");
+      if (c && el.dataset.chrome) {
+        c.value = el.dataset.chrome;
+        c.dispatchEvent(new Event("input"));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+  });
+}
+
 if (typeof document !== "undefined") {
+  loadHistory();
   loadData().then(({ data, live }) => {
     DB = data;
     init();

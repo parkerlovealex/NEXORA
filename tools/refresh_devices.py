@@ -22,6 +22,9 @@ from datetime import date
 
 DEVICES = "app/src/main/assets/devices.json"
 SUMMARY = "refresh-summary.md"
+HISTORY_DIR = "data/history"
+HISTORY_INDEX = "data/history/index.json"
+HISTORY_KEEP = 5
 CHROME_API = (
     "https://versionhistory.googleapis.com/v1/chrome/platforms/android/"
     "channels/stable/versions?pageSize=1"
@@ -40,6 +43,53 @@ def fetch_json(url):
 
 def ver_key(v):
     return tuple(int(x) for x in v.split("."))
+
+
+def archive_history(data):
+    """Keep the last HISTORY_KEEP data versions as full snapshots.
+
+    Writes data/history/devices-<dataVersion>.json for the current version
+    if it is not archived yet, maintains data/history/index.json (newest
+    first: dataVersion, updatedAt, chrome), prunes older snapshots, and
+    mirrors the index to web/history.json for the website's fallback.
+    Returns a list of human-readable change notes (empty = nothing new).
+    """
+    meta = data.get("meta", {})
+    dv = str(meta.get("dataVersion", ""))
+    if not dv:
+        return []
+    notes = []
+    index = []
+    if os.path.exists(HISTORY_INDEX):
+        try:
+            with open(HISTORY_INDEX, encoding="utf-8") as f:
+                index = json.load(f)
+        except Exception:  # noqa: BLE001
+            index = []
+    if not any(e.get("dataVersion") == dv for e in index):
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        snap = os.path.join(HISTORY_DIR, f"devices-{dv}.json")
+        with open(snap, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=1, ensure_ascii=False)
+        index.insert(0, {
+            "dataVersion": dv,
+            "updatedAt": meta.get("updatedAt", ""),
+            "chrome": (meta.get("versions") or {}).get("chrome", ""),
+        })
+        notes.append(f"Archived data version {dv} (keeps last {HISTORY_KEEP})")
+    while len(index) > HISTORY_KEEP:
+        old = index.pop()
+        old_snap = os.path.join(HISTORY_DIR, f"devices-{old.get('dataVersion')}.json")
+        if os.path.exists(old_snap):
+            os.remove(old_snap)
+        notes.append(f"Pruned archived version {old.get('dataVersion')}")
+    if notes:
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        with open(HISTORY_INDEX, "w", encoding="utf-8") as f:
+            json.dump(index, f, indent=1, ensure_ascii=False)
+        with open("web/history.json", "w", encoding="utf-8") as f:
+            json.dump(index, f, indent=1, ensure_ascii=False)
+    return notes
 
 
 def ai_normalize(raw_text):
@@ -134,13 +184,20 @@ def main():
     else:
         print("No changes")
 
+    # 4. Archive this version into the last-5 history (also seeds it).
+    archived = archive_history(data)
+    for note in archived:
+        print(note)
+
     with open(SUMMARY, "w", encoding="utf-8") as f:
         f.write("## Device data refresh\n\n")
         if changes:
             f.write("\n".join(f"- {c}" for c in changes) + "\n")
             f.write(f"\nNew dataVersion: {meta.get('dataVersion')}\n")
         else:
-            f.write("No changes this run.\n")
+            f.write("No data changes this run.\n")
+        if archived:
+            f.write("\n" + "\n".join(f"- {a}" for a in archived) + "\n")
     return 0
 
 
