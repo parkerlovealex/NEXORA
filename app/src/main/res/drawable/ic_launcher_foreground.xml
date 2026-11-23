@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive-icon foreground: ghost centred in the 108x108 safe canvas (scaled x3, offset 18). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M54,24 C39,24 30,36 30,54 L30,81 L39,75 L46.5,81 L54,75 L61.5,81 L69,75 L78,81 L78,54 C78,36 69,24 54,24 Z
+        M41.1,48 a3.9,3.9 0 1,0 7.8,0 a3.9,3.9 0 1,0 -7.8,0 Z
+        M59.1,48 a3.9,3.9 0 1,0 7.8,0 a3.9,3.9 0 1,0 -7.8,0 Z" />
+</vector>

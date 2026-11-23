@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nexora_bg"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/nexora_header"
+        app:title="Profile"
+        app:titleTextColor="@color/nexora_text" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PROFILE CONFIGURATION"
+                android:textColor="@color/nexora_muted"
+                android:textSize="10sp"
+                android:letterSpacing="0.12"
+                android:textStyle="bold" />
+
+            <!-- Identity -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Identity"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="Profile name"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="e.g. US Shopping 1"
+                        android:inputType="textCapWords"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="Device"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spDevice"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Operating system"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spOs"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="App mode (in-app browser)"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spApp"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="RAM"
+                                android:textColor="@color/nexora_muted"
+                                android:textSize="12sp" />
+
+                            <Spinner
+                                android:id="@+id/spRam"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Storage"
+                                android:textColor="@color/nexora_muted"
+                                android:textSize="12sp" />
+
+                            <Spinner
+                                android:id="@+id/spStorage"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- User agent -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Browser identity"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="User-Agent"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etUa"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:maxLines="4"
+                        android:minLines="2"
+                        android:padding="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="12sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRegenUa"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Regenerate User-Agent"
+                        android:textAllCaps="false"
+                        app:backgroundTint="@color/nexora_raised"
+                        app:cornerRadius="10dp"
+                        app:strokeColor="@color/nexora_line"
+                        app:strokeWidth="1dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Connection -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Connection"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spProxyType"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp" />
+
+                    <EditText
+                        android:id="@+id/etProxyHost"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="Proxy host or IP"
+                        android:inputType="textUri"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+
+                    <EditText
+                        android:id="@+id/etProxyPort"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="Port"
+                        android:inputType="number"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+
+                    <EditText
+                        android:id="@+id/etProxyUser"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="Username (optional)"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+
+                    <EditText
+                        android:id="@+id/etProxyPass"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="Password (optional)"
+                        android:inputType="textPassword"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="WebView proxy authentication is not supported. Profiles with credentials fail closed rather than connecting directly."
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestProxy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Test proxy"
+                        android:textAllCaps="false"
+                        app:backgroundTint="@color/nexora_raised"
+                        app:cornerRadius="10dp"
+                        app:strokeColor="@color/nexora_line"
+                        app:strokeWidth="1dp" />
+
+                    <TextView
+                        android:id="@+id/tvProxyResult"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Locale -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Locale"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Timezone"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spTimezone"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Language mode"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/spLanguageMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Language"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="en-US"
+                        android:textColor="@color/nexora_text" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Fingerprint -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fingerprint controls"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spWebrtc"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp" />
+
+                    <CheckBox
+                        android:id="@+id/cbCanvas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Canvas noise (stable per profile)"
+                        android:textColor="@color/nexora_text" />
+
+                    <CheckBox
+                        android:id="@+id/cbWebgl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="WebGL vendor and renderer override"
+                        android:textColor="@color/nexora_text" />
+
+                    <CheckBox
+                        android:id="@+id/cbAudio"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="AudioContext noise"
+                        android:textColor="@color/nexora_text" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Stage A controls are JavaScript-level and may not be consistent in every worker or browser API."
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Startup -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/nexora_surface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/nexora_line"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Startup"
+                        android:textColor="@color/nexora_text"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etStartupUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/omnibox_bg"
+                        android:hint="https://example.com (optional)"
+                        android:inputType="textUri"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/nexora_text"
+                        android:textColorHint="@color/nexora_muted" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp"
+        android:text="Save profile"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        app:backgroundTint="@color/nexora_cta"
+        app:cornerRadius="12dp" />
+</LinearLayout>

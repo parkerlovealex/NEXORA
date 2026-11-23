@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Nexora" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/nexora_accent</item>
+        <item name="colorPrimaryVariant">@color/nexora_cta</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/nexora_accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">@color/nexora_surface</item>
+        <item name="colorOnSurface">@color/nexora_text</item>
+        <item name="android:colorBackground">@color/nexora_bg</item>
+        <item name="android:windowBackground">@color/nexora_bg</item>
+        <item name="android:textColorPrimary">@color/nexora_text</item>
+        <item name="android:textColorSecondary">@color/nexora_muted</item>
+        <item name="android:statusBarColor">@color/nexora_header</item>
+        <item name="android:navigationBarColor">@color/nexora_bg</item>
+    </style>
+
+
+        <style name="BrowserBottomAction">
+            <item name="android:layout_width">0dp</item>
+            <item name="android:layout_height">match_parent</item>
+            <item name="android:layout_weight">1</item>
+            <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+            <item name="android:gravity">center</item>
+            <item name="android:textColor">@color/nexora_text</item>
+            <item name="android:textSize">21sp</item>
+        </style>
+    
+        <style name="Theme.Nexora.Browser" parent="Theme.MaterialComponents.NoActionBar">
+            <item name="colorPrimary">@color/nexora_accent</item>
+            <item name="colorPrimaryVariant">@color/nexora_cta</item>
+            <item name="colorOnPrimary">@color/white</item>
+            <item name="colorSecondary">@color/nexora_accent</item>
+            <item name="colorOnSecondary">@color/white</item>
+            <item name="colorSurface">@color/nexora_surface</item>
+            <item name="colorOnSurface">@color/nexora_text</item>
+            <item name="android:colorBackground">@color/nexora_bg</item>
+            <item name="android:windowBackground">@color/nexora_bg</item>
+            <item name="android:textColorPrimary">@color/nexora_text</item>
+            <item name="android:textColorSecondary">@color/nexora_muted</item>
+            <item name="android:statusBarColor">@color/nexora_header</item>
+            <item name="android:navigationBarColor">@color/nexora_bg</item>
+            <item name="android:isLightTheme">false</item>
+        </style>
+    </resources>

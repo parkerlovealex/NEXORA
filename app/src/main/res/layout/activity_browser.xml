@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nexora_bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@color/nexora_header"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NEXORA"
+                android:textColor="@color/nexora_text"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:id="@+id/tvProfileTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Profile"
+                android:textColor="@color/nexora_muted"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnOverflow"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Browser menu"
+            android:gravity="center"
+            android:text="⋮"
+            android:textColor="@color/nexora_text"
+            android:textSize="25sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/nexora_header"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="38dp"
+            android:layout_height="42dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="@color/nexora_text"
+            android:textSize="28sp" />
+
+        <TextView
+            android:id="@+id/btnForward"
+            android:layout_width="38dp"
+            android:layout_height="42dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Forward"
+            android:gravity="center"
+            android:text="›"
+            android:textColor="@color/nexora_text"
+            android:textSize="28sp" />
+
+        <EditText
+            android:id="@+id/etOmnibox"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/omnibox_bg"
+            android:hint="Search or enter address"
+            android:imeOptions="actionGo"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:selectAllOnFocus="true"
+            android:textColor="@color/nexora_text"
+            android:textColorHint="@color/nexora_muted"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/btnReload"
+            android:layout_width="38dp"
+            android:layout_height="42dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Reload"
+            android:gravity="center"
+            android:text="↻"
+            android:textColor="@color/nexora_text"
+            android:textSize="21sp" />
+
+        <TextView
+            android:id="@+id/btnNewTab"
+            android:layout_width="38dp"
+            android:layout_height="42dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="New tab"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@color/nexora_text"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:max="100"
+        android:progress="0"
+        android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/webContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#FFFFFF" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+        android:background="@color/nexora_header"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <TextView
+            android:id="@+id/btnHome"
+            style="@style/BrowserBottomAction"
+            android:contentDescription="Home"
+            android:text="⌂" />
+
+        <TextView
+            android:id="@+id/btnBookmarks"
+            style="@style/BrowserBottomAction"
+            android:contentDescription="Bookmarks"
+            android:text="☆" />
+
+        <TextView
+            android:id="@+id/btnTabs"
+            style="@style/BrowserBottomAction"
+            android:contentDescription="Tabs"
+            android:text="▢ 1" />
+
+        <TextView
+            android:id="@+id/btnDownloads"
+            style="@style/BrowserBottomAction"
+            android:contentDescription="Downloads"
+            android:text="↓" />
+
+    </LinearLayout>
+</LinearLayout>

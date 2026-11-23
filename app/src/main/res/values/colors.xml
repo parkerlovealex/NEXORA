@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nexora_bg">#0D0D0F</color>
+    <color name="nexora_surface">#1B1B20</color>
+    <color name="nexora_raised">#202027</color>
+    <color name="nexora_header">#151518</color>
+    <color name="nexora_text">#F5F5F7</color>
+    <color name="nexora_muted">#A2A2AD</color>
+    <color name="nexora_accent">#FF5A5F</color>
+    <color name="nexora_cta">#D92F35</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="nexora_line">#303038</color>
+</resources>

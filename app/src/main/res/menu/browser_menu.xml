@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/itemReload"
+        android:title="Reload" />
+    <item
+        android:id="@+id/itemDesktopSite"
+        android:checkable="true"
+        android:title="Desktop site" />
+    <item
+        android:id="@+id/itemFind"
+        android:title="Find in page" />
+    <item
+        android:id="@+id/itemCheckFp"
+        android:title="Check fingerprint" />
+    <item
+        android:id="@+id/itemProfileInfo"
+        android:title="Profile info" />
+    <item
+        android:id="@+id/itemClearData"
+        android:title="Clear profile data" />
+    <item
+        android:id="@+id/itemClose"
+        android:title="Close profile" />
+</menu>
