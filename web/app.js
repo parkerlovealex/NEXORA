@@ -10,7 +10,10 @@ const APP_NAMES = {
 };
 const state = {
   data: null, devices: [], apiOnline: false, apiError: "", token: sessionStorage.getItem("nexora_admin_token") || "",
-  isAdmin: false, dataset: [], appFilter: "all", theme: localStorage.getItem("nexora_theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+  isAdmin: false, dataset: [], appFilter: "all", uaTemplates: null, uaTemplateError: "",
+  uaResults: [], selectedDevices: { android: [], ios: [] }, customQuantities: {}, selectedApps: [],
+  deviceTab: "android", adminOverview: null, adminSources: [], adminRuns: [], adminAudit: [],
+  theme: localStorage.getItem("nexora_theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
 };
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -46,6 +49,12 @@ async function loadData() {
     ...(state.data.android || []).map(record => ({ platform: "android", record, sourceStatus: record.sourceStatus || "bundled" })),
     ...(state.data.ios_emulation || []).map(record => ({ platform: "ios_emulation", record, sourceStatus: record.sourceStatus || "bundled" }))
   ];
+  state.uaTemplates = null; state.uaTemplateError = "";
+  try {
+    const templateResponse = await fetch("./ua_templates.json", { cache: "no-store" });
+    if (templateResponse.ok) state.uaTemplates = await templateResponse.json();
+    else state.uaTemplateError = templateResponse.status === 404 ? "UA template catalog has not been published." : `Template catalog unavailable (${templateResponse.status}).`;
+  } catch (error) { state.uaTemplateError = error.message || "Template catalog unavailable."; }
   renderAll();
   updateHealth();
 }
@@ -94,9 +103,8 @@ function renderOverview() {
 function renderDeviceFilters() {
   const brands = [...new Set(allRecords().map(d => d.brand).filter(Boolean))].sort();
   const options = '<option value="all">All manufacturers</option>' + brands.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join("");
-  const deviceBrand = $("deviceBrand"), genBrand = $("genBrand");
+  const deviceBrand = $("deviceBrand");
   if (deviceBrand) { const old = deviceBrand.value; deviceBrand.innerHTML = options; if (brands.includes(old)) deviceBrand.value = old; }
-  if (genBrand) { const old = genBrand.value; genBrand.innerHTML = options; if (brands.includes(old)) genBrand.value = old; }
 }
 
 function filteredDevices() {
@@ -152,52 +160,352 @@ function renderCompatibility() {
   $("compatTable").innerHTML = rows.map(d => `<tr><td><div class="device-cell"><span class="device-glyph">▯</span><span><strong>${esc(d.brand)} ${esc(d.model)}</strong><small>${esc(d.id)}</small></span></div></td><td>${esc(d.platform === "android" ? "Android" : "iOS")}</td><td>${esc((d.osVersions || []).join(", "))}</td><td>${Object.keys(d.builds || {}).length ? esc(Object.keys(d.builds).join(", ")) : '<span class="tag warn">Not supplied</span>'}</td><td>${esc((d.ramGb || []).join(", "))} GB</td><td>${esc((d.storageGb || []).join(", "))} GB</td></tr>`).join("");
 }
 
-function renderGeneratorFilters() {
-  const records = allRecords();
-  const allOs = [...new Set(records.flatMap(d => d.osVersions || []))].sort((a, b) => Number(a) - Number(b));
-  const select = $("genOs"), previous = select.value;
-  select.innerHTML = '<option value="all">All supported versions</option>' + allOs.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-  if (allOs.includes(previous)) select.value = previous;
-}
 
-function makeDataset() {
-  const platform = $("genPlatform").value, brand = $("genBrand").value, search = $("genSearch").value.trim().toLowerCase();
-  const os = $("genOs").value, quantity = Number($("genQuantity").value) || 50;
-  const records = allRecords().filter(d => {
-    if (platform !== "all" && d.platform !== platform) return false;
-    if (brand !== "all" && d.brand !== brand) return false;
-    if (search && ![d.id, d.brand, d.model, d.uaModel, d.soc].join(" ").toLowerCase().includes(search)) return false;
-    return true;
+const UA_COUNTRIES = [
+  ["", "All countries / automatic", "auto"],
+  ["US","United States","en-US"],["GB","United Kingdom","en-GB"],["BD","Bangladesh","bn-BD"],
+  ["IN","India","en-IN"],["PK","Pakistan","ur-PK"],["CA","Canada","en-CA"],["AU","Australia","en-AU"],
+  ["DE","Germany","de-DE"],["FR","France","fr-FR"],["ES","Spain","es-ES"],["IT","Italy","it-IT"],
+  ["BR","Brazil","pt-BR"],["MX","Mexico","es-MX"],["JP","Japan","ja-JP"],["KR","South Korea","ko-KR"],
+  ["CN","China","zh-CN"],["TW","Taiwan","zh-TW"],["HK","Hong Kong","zh-HK"],["NL","Netherlands","nl-NL"],
+  ["SE","Sweden","sv-SE"],["NO","Norway","nb-NO"],["DK","Denmark","da-DK"],["FI","Finland","fi-FI"],
+  ["PL","Poland","pl-PL"],["GR","Greece","el-GR"],["TR","Türkiye","tr-TR"],["SA","Saudi Arabia","ar-SA"],
+  ["AE","United Arab Emirates","ar-AE"],["EG","Egypt","ar-EG"],["NG","Nigeria","en-NG"],["ZA","South Africa","en-ZA"],
+  ["ID","Indonesia","id-ID"],["MY","Malaysia","ms-MY"],["SG","Singapore","en-SG"],["PH","Philippines","en-PH"],
+  ["VN","Vietnam","vi-VN"],["TH","Thailand","th-TH"],["LK","Sri Lanka","si-LK"],["NP","Nepal","ne-NP"]
+];
+const UA_APP_NAMES = {
+  facebook:"Facebook", fb_lite:"Facebook Lite", instagram:"Instagram", tiktok:"TikTok", x:"X",
+  threads:"Threads", linkedin:"LinkedIn", pinterest:"Pinterest", reddit:"Reddit", snapchat:"Snapchat",
+  weibo:"Weibo", telegram:"Telegram", messenger:"Messenger", wechat:"WeChat", line:"LINE",
+  kik:"Kik", discord:"Discord", viber:"Viber"
+};
+function templateRecords() {
+  const source = state.uaTemplates;
+  if (!source) return [];
+  if (Array.isArray(source)) return source;
+  return source.records || source.templates || source.uaTemplates || [];
+}
+function verifiedTemplates(appId, platform) {
+  const aliases = appId === "fb_lite" ? ["fb_lite", "fblite", "facebook_lite"] : [appId];
+  return templateRecords().filter(row => aliases.includes(row.app) && row.platform === platform && row.status === "verified");
+}
+function platformDevices(platform) {
+  const expected = platform === "android" ? "android" : "ios_emulation";
+  const country = $("uaCountry")?.value || "";
+  return allRecords().filter(d => d.platform === expected && (!country || !Array.isArray(d.markets) || d.markets.includes(country)));
+}
+function numericVersionSort(values) {
+  return [...new Set(values)].sort((a,b) => {
+    const aa = String(a).split(/[._-]/).map(x => Number(x) || 0), bb = String(b).split(/[._-]/).map(x => Number(x) || 0);
+    for (let i=0;i<Math.max(aa.length,bb.length);i++) { const diff=(aa[i]||0)-(bb[i]||0); if(diff) return diff; }
+    return String(a).localeCompare(String(b));
   });
-  const combinations = [];
-  records.forEach(d => (d.osVersions || []).forEach(version => {
-    if (os === "all" || os === version) combinations.push({ d, version });
-  }));
-  return combinations.slice(0, quantity).map(({ d, version }, index) => ({
-    fixtureId: `nexora-${String(index + 1).padStart(4, "0")}`,
-    deviceId: d.id, brand: d.brand, model: d.model, modelIdentifier: d.uaModel,
-    platform: d.platform === "android" ? "Android" : "iOS",
-    osVersion: version, chipset: d.soc, gpu: d.gpu, cpuCores: d.cores,
-    display: d.display, ramOptionsGb: d.ramGb, storageOptionsGb: d.storageGb,
-    firmwareBuildId: (d.builds || {})[version] || null,
-    marketCodes: d.markets || [], sourceStatus: d.sourceStatus || "bundled",
-    catalogDataVersion: meta().dataVersion || null
-  }));
+}
+function setupUaGenerator() {
+  const androidVersions = numericVersionSort(platformDevices("android").flatMap(d => d.osVersions || []));
+  const iosVersions = numericVersionSort(platformDevices("ios").flatMap(d => d.osVersions || []));
+  const fillOs = (id, values) => {
+    const el = $(id); if (!el) return;
+    const previous = el.value;
+    el.innerHTML = '<option value="latest">Latest supported per device</option><option value="random">Random supported version</option>' +
+      values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+    if ([...el.options].some(o => o.value === previous)) el.value = previous;
+  };
+  fillOs("uaAndroidOs", androidVersions); fillOs("uaIosOs", iosVersions);
+  const country = $("uaCountry");
+  if (country && !country.dataset.ready) {
+    country.innerHTML = UA_COUNTRIES.map(([code,name]) => `<option value="${esc(code)}">${esc(name)}</option>`).join("");
+    country.dataset.ready = "1";
+  }
+  const chromeVersion = versions().chrome || "";
+  if ($("uaChromeVersion") && !$("uaChromeVersion").value) $("uaChromeVersion").value = chromeVersion;
+  if ($("uaChromiumEngineVersion") && !$("uaChromiumEngineVersion").value) $("uaChromiumEngineVersion").value = chromeVersion;
+  $("chromeCatalogVersion").textContent = chromeVersion ? `Catalog · ${chromeVersion}` : "Version not in catalog";
+  $("uaCatalogVersion").textContent = `DATA ${meta().dataVersion || "LOCAL"}`;
+  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS records`;
+  $("uaDataVersion").textContent = meta().dataVersion || "Unversioned";
+  $("uaDataDevices").textContent = allRecords().length;
+  $("uaDataApps").textContent = Object.keys(apps()).length;
+  $("uaDataSource").textContent = state.apiOnline ? "Live API" : "Bundled fallback";
+  const verified = templateRecords().filter(x => x.status === "verified").length;
+  $("uaDataTemplates").textContent = verified;
+  renderUaDevicePicker();
+  renderUaApps();
+  updateUaTotals();
+  renderSavedBatches();
+}
+function renderUaDevicePicker() {
+  const mode = document.querySelector('input[name="uaDistribution"]:checked')?.value || "random";
+  const picker = $("uaDevicePicker");
+  picker.classList.toggle("hidden", mode === "random");
+  document.querySelectorAll(".distribution-option").forEach(label => {
+    const input = label.querySelector("input");
+    label.classList.toggle("selected", Boolean(input?.checked));
+  });
+  const query = ($("uaDeviceSearch")?.value || "").trim().toLowerCase();
+  const renderList = (platform) => {
+    const target = $(platform === "android" ? "uaAndroidDeviceList" : "uaIosDeviceList");
+    const records = platformDevices(platform).filter(d => !query || [d.brand,d.model,d.id,d.uaModel].join(" ").toLowerCase().includes(query));
+    const selected = state.selectedDevices[platform] || [];
+    target.innerHTML = records.map(d => {
+      const checked = selected.includes(d.id);
+      const custom = mode === "custom" && checked
+        ? `<input class="device-quantity" type="number" min="0" max="500" value="${esc(state.customQuantities[d.id] ?? 0)}" data-custom-qty="${esc(d.id)}" aria-label="Quantity for ${esc(d.model)}">` : "";
+      return `<label class="device-option"><input type="checkbox" data-device-id="${esc(d.id)}" data-device-platform="${platform}" ${checked ? "checked" : ""}><span class="device-option-copy"><b>${esc(d.brand)} ${esc(d.model)}</b><small>${esc(d.uaModel || d.id)} · ${(d.osVersions || []).length} OS versions</small></span>${custom}<span class="device-checkmark">✓</span></label>`;
+    }).join("") || '<div class="device-list-empty">No devices match this search.</div>';
+  };
+  renderList("android"); renderList("ios");
+  $("uaAndroidDeviceList").classList.toggle("hidden", state.deviceTab !== "android");
+  $("uaIosDeviceList").classList.toggle("hidden", state.deviceTab !== "ios");
+  $("uaAndroidDeviceCount").textContent = platformDevices("android").length;
+  $("uaIosDeviceCount").textContent = platformDevices("ios").length;
+  const totalSelected = state.selectedDevices.android.length + state.selectedDevices.ios.length;
+  $("uaSelectedCount").textContent = `${totalSelected} device${totalSelected === 1 ? "" : "s"} selected`;
+  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS records in selected market`;
+  $("uaDistributionHint").textContent = mode === "custom"
+    ? "Enter an exact quantity for each selected device. Per-platform totals must match the requested quantities."
+    : mode === "balanced"
+      ? "Selected models receive an even distribution. Any remainder is assigned from the start of the selected list."
+      : "Only selected models are eligible. iOS model identity is retained as metadata because standard iPhone User-Agent strings do not expose the exact model.";
+}
+function renderUaApps() {
+  const records = Object.entries(apps());
+  const verified = templateRecords().filter(x => x.status === "verified");
+  $("uaTemplateSummary").textContent = state.uaTemplates
+    ? `${verified.length} verified templates · ${records.length} applications`
+    : `0 verified templates · ${records.length} apps have version/build data`;
+  const q = ($("uaAppSearch")?.value || "").trim().toLowerCase();
+  $("uaAppGrid").innerHTML = records.map(([id, raw]) => {
+    const label = UA_APP_NAMES[id] || id;
+    const version = typeof raw === "string" ? raw : raw?.version || "Version unavailable";
+    const readyRows = verifiedTemplates(id, "android").concat(verifiedTemplates(id, "ios"));
+    const ready = readyRows.length > 0;
+    const checked = state.selectedApps.includes(id);
+    const status = ready ? "VERIFIED TEMPLATE" : "TEMPLATE PENDING";
+    if (q && !(label + " " + id).toLowerCase().includes(q)) return "";
+    return `<label class="app-template-option ${ready ? "ready" : "pending"}"><input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready ? "" : "disabled"}><span class="app-template-logo">${esc(label.slice(0,2).toUpperCase())}</span><span class="app-template-copy"><b>${esc(label)}</b><small>App ${esc(version)}</small></span><span class="app-template-status">${status}</span></label>`;
+  }).join("") || '<div class="device-list-empty">No application matches your search.</div>';
+}
+function updateUaTotals() {
+  const android = Math.max(0, Math.min(500, Number($("uaAndroidQty").value) || 0));
+  const ios = Math.max(0, Math.min(500, Number($("uaIosQty").value) || 0));
+  $("uaAndroidQty").value = android; $("uaIosQty").value = ios;
+  $("uaAndroidRange").value = android; $("uaIosRange").value = ios;
+  const total = android + ios;
+  $("uaTotal").textContent = total;
+  $("uaReadySummary").textContent = `${android} Android + ${ios} iOS · ${total} total`;
+  $("uaAndroidRange").setAttribute("aria-valuenow", android);
+  $("uaIosRange").setAttribute("aria-valuenow", ios);
+  $("generateButton").disabled = total < 1 || total > 500;
+}
+function localeMeta() {
+  const code = $("uaCountry").value;
+  const entry = UA_COUNTRIES.find(x => x[0] === code);
+  const language = $("uaLanguage").value === "auto" ? (entry?.[2] || "en-US") : $("uaLanguage").value;
+  return { country: code || null, language, acceptLanguage: `${language},${language.split("-")[0]};q=0.9` };
+}
+function renderSavedBatches() {
+  let batches = [];
+  try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
+  $("savedBatchCount").textContent = `${batches.length} saved`;
+  $("uaSavedBatches").innerHTML = '<option value="">Open a saved set…</option>' + batches.map(b => `<option value="${esc(b.id)}">${esc(b.name)} · ${b.records.length} records</option>`).join("");
+}
+function getSelectedBrowsers(platform) {
+  return [...document.querySelectorAll(`[data-browser][data-platform="${platform}"]:checked`)].map(x => x.dataset.browser);
+}
+function browserVersion(platform, browser) {
+  const ids = {
+    android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion" },
+    ios: { safari:"uaSafariVersion", chrome:"uaChromeIosVersion", firefox:"uaFirefoxIosVersion", edge:"uaEdgeIosVersion" }
+  };
+  const id = ids[platform]?.[browser];
+  return id ? $(id).value.trim() : "";
+}
+function buildBrowserUa(platform, device, osVersion, browser) {
+  const model = device.uaModel || device.id;
+  const build = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "";
+  const engineVersion = $("uaChromiumEngineVersion").value.trim() || versions().chrome || "";
+  const version = browserVersion(platform, browser);
+  if (platform === "android") {
+    if (browser === "chrome") {
+      const v = version || versions().chrome;
+      if (!v) throw new Error("Chrome version is missing from the database.");
+      return `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v} Mobile Safari/537.36`;
+    }
+    if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} Android version is required. Open Advanced browser versions.`);
+    if (browser === "firefox") return `Mozilla/5.0 (Android ${osVersion}; Mobile; rv:${version}) Gecko/${version} Firefox/${version}`;
+    if (!engineVersion) throw new Error("Chromium engine version is required for Edge and Opera.");
+    const base = `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${engineVersion} Mobile Safari/537.36`;
+    if (browser === "edge") return `${base} EdgA/${version}`;
+    if (browser === "opera") return `${base} OPR/${version}`;
+  }
+  const ios = String(osVersion).replace(/\./g, "_");
+  const head = `Mozilla/5.0 (iPhone; CPU iPhone OS ${ios} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) `;
+  if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} iOS version is required. Open Advanced browser versions.`);
+  if (browser === "safari") return `${head}Version/${version} Mobile/15E148 Safari/604.1`;
+  if (browser === "chrome") return `${head}CriOS/${version} Mobile/15E148 Safari/604.1`;
+  if (browser === "firefox") return `${head}FxiOS/${version} Mobile/15E148 Safari/605.1.15`;
+  if (browser === "edge") return `${head}EdgiOS/${version} Mobile/15E148 Safari/605.1.15`;
+  throw new Error(`Unsupported ${platform} browser: ${browser}`);
+}
+function buildVerifiedAppUa(appId, platform, device, osVersion) {
+  const row = verifiedTemplates(appId, platform)[0];
+  if (!row) throw new Error(`${UA_APP_NAMES[appId] || appId} has no verified ${platform} template.`);
+  const app = apps()[appId] || {};
+  const appVersion = typeof app === "string" ? app : app.version;
+  const appBuild = typeof app === "object" ? app.build : "";
+  const display = device.display || {};
+  const loc = localeMeta();
+  const context = {
+    osVersion, model: device.uaModel || device.id,
+    buildId: device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "",
+    chromeVersion: versions().chrome || "",
+    appVersion: appVersion || "", appBuild: appBuild || "",
+    density: display.dpr ? `${Math.round(display.dpr * 160)}dpi` : "",
+    resolution: display.w && display.h ? `${display.w}x${display.h}` : "",
+    locale: (loc.language || "en-US").replace("-", "_"),
+    brand: device.brand || "", width: display.w || "", height: display.h || "",
+    sdkVersion: ({ "10":29,"11":30,"12":31,"13":33,"14":34,"15":35,"16":36,"17":37 })[String(osVersion).split(".")[0]] || ""
+  };
+  let ua = row.template || "";
+  const slots = row.slots || {};
+  const placeholders = [...ua.matchAll(/\{([A-Za-z0-9_]+)\}/g)].map(m => m[1]);
+  for (const key of placeholders) {
+    if (!(key in context) || context[key] === "") throw new Error(`Template ${appId}/${platform} has unresolved slot: ${key}`);
+    ua = ua.replaceAll(`{${key}}`, String(context[key]));
+  }
+  if (/\{[^}]+\}/.test(ua)) throw new Error(`Template ${appId}/${platform} contains unresolved placeholders.`);
+  return { ua, appVersion, appBuild, templateId: row.id || `${appId}-${platform}`, evidence: row.evidence || [] };
+}
+function chooseOsVersion(device, platform) {
+  const select = $(platform === "android" ? "uaAndroidOs" : "uaIosOs");
+  const value = select.value;
+  const supported = device.osVersions || [];
+  if (value === "latest") return numericVersionSort(supported).at(-1);
+  if (value === "random") return supported[Math.floor(Math.random() * supported.length)];
+  if (!supported.includes(value)) throw new Error(`${device.model} does not support selected OS ${value}.`);
+  return value;
+}
+function deviceSchedule(platform, quantity, mode) {
+  const all = platformDevices(platform);
+  const chosenIds = state.selectedDevices[platform] || [];
+  let pool = mode === "random" ? all : all.filter(d => chosenIds.includes(d.id));
+  if (!pool.length && quantity) throw new Error(`Select at least one ${platform} device or choose Random.`);
+  const custom = [];
+  if (mode === "custom") {
+    for (const d of pool) {
+      const count = Math.max(0, Number(state.customQuantities[d.id]) || 0);
+      for (let i=0;i<count;i++) custom.push(d);
+    }
+    if (custom.length !== quantity) throw new Error(`${platform.toUpperCase()} custom device quantities total ${custom.length}; expected ${quantity}.`);
+    return custom;
+  }
+  if (mode === "balanced") return Array.from({length:quantity}, (_,i)=>pool[i % pool.length]);
+  return Array.from({length:quantity}, () => pool[Math.floor(Math.random()*pool.length)]);
+}
+function generateUaBatch() {
+  const qty = { android: Number($("uaAndroidQty").value)||0, ios: Number($("uaIosQty").value)||0 };
+  const total = qty.android + qty.ios;
+  if (!total || total > 500) throw new Error("Choose a total between 1 and 500.");
+  const mode = document.querySelector('input[name="uaDistribution"]:checked')?.value || "random";
+  const locale = localeMeta();
+  const dedupe = $("uaDeduplicate").checked;
+  const output = [], seen = new Set();
+  for (const platform of ["android","ios"]) {
+    if (!qty[platform]) continue;
+    const browsers = getSelectedBrowsers(platform);
+    const selectedAppIds = state.selectedApps.filter(id => verifiedTemplates(id, platform).length);
+    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose at least one compatible ${platform.toUpperCase()} browser or verified in-app template.`);
+    const schedule = deviceSchedule(platform, qty[platform], mode);
+    for (let i=0;i<schedule.length;i++) {
+      const device = schedule[i];
+      const osVersion = chooseOsVersion(device, platform);
+      const useApp = selectedAppIds.length && (browsers.length === 0 || (i % (browsers.length + selectedAppIds.length)) >= browsers.length);
+      let ua, browser, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [];
+      if (useApp) {
+        appId = selectedAppIds[i % selectedAppIds.length];
+        const built = buildVerifiedAppUa(appId, platform, device, osVersion);
+        ua = built.ua; appVersion = built.appVersion; appBuild = built.appBuild; templateId = built.templateId; templateEvidence = built.evidence; browser = "In-app";
+      } else {
+        browser = browsers[i % browsers.length];
+        ua = buildBrowserUa(platform, device, osVersion, browser);
+      }
+      if (dedupe && seen.has(ua)) continue;
+      seen.add(ua);
+      const buildId = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || null;
+      output.push({
+        id: `nexora-ua-${String(output.length+1).padStart(4,"0")}`,
+        platform: platform === "android" ? "Android" : "iOS",
+        deviceId: device.id, brand: device.brand, deviceModel: device.model,
+        modelIdentifier: device.uaModel || null, osVersion, buildId,
+        browser, browserVersion: appId ? null : browserVersion(platform, browser) || (platform === "android" && browser === "chrome" ? versions().chrome : null),
+        browserVersionSource: appId ? "verified-template" : (platform === "android" && browser === "chrome" && !$("uaChromeVersion").dataset.manual ? "database" : "manual"),
+        appId, appVersion, appBuild, templateId, templateEvidence, userAgent: ua,
+        country: locale.country, language: locale.language, acceptLanguage: locale.acceptLanguage,
+        catalogDataVersion: meta().dataVersion || null,
+        sourceType: appId ? "verified-app-template" : "browser-template",
+        note: platform === "ios" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
+      });
+    }
+  }
+  return output;
+}
+function renderUaResultsView() {
+  const rows = state.dataset || [];
+  $("uaResultTotal").textContent = rows.length;
+  $("uaResultAndroid").textContent = rows.filter(x => x.platform === "Android").length;
+  $("uaResultIos").textContent = rows.filter(x => x.platform === "iOS").length;
+  $("uaResultSubtitle").textContent = rows.length ? `${rows.length} records · data ${meta().dataVersion || "local"}` : "Your results will appear here.";
+  if (!rows.length) {
+    $("generatorPreview").classList.remove("hidden");
+    $("uaResultsList").classList.add("hidden");
+    $("exportActions").classList.add("hidden");
+    return;
+  }
+  $("generatorPreview").classList.add("hidden");
+  $("uaResultsList").classList.remove("hidden");
+  $("uaResultsList").innerHTML = rows.slice(0,20).map((r,i) =>
+    `<article class="ua-result-item"><div class="ua-result-index">${String(i+1).padStart(2,"0")}</div><div class="ua-result-main"><div class="ua-result-tags"><span>${esc(r.platform)}</span><span>${esc(r.browser)}</span><span>${esc(r.osVersion)}</span></div><strong>${esc(r.brand)} ${esc(r.deviceModel)}</strong><code>${esc(r.userAgent)}</code></div><button class="copy-one" type="button" data-copy-ua="${i}" aria-label="Copy User-Agent ${i+1}">Copy</button></article>`
+  ).join("") + (rows.length > 20 ? `<div class="more-results">Showing 20 of ${rows.length} results. Export or copy all to access the complete batch.</div>` : "");
+  $("exportActions").classList.remove("hidden");
+  $("uaDataVersion").textContent = meta().dataVersion || "Unversioned";
+}
+function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
+function exportDataset() {
+  if (!state.dataset.length) return;
+  const format = $("uaExportFormat").value;
+  if (format === "json") downloadText("nexora-user-agents.json", JSON.stringify({ meta: { dataVersion: meta().dataVersion, generatedAt: new Date().toISOString(), count: state.dataset.length }, records: state.dataset }, null, 2), "application/json");
+  else if (format === "csv") {
+    const keys = Object.keys(state.dataset[0]);
+    const csv = [keys.map(csvValue).join(","), ...state.dataset.map(row => keys.map(key => csvValue(row[key])).join(","))].join("\n");
+    downloadText("nexora-user-agents.csv", csv, "text/csv;charset=utf-8");
+  } else downloadText("nexora-user-agents.txt", state.dataset.map(row => row.userAgent).join("\n"), "text/plain;charset=utf-8");
+}
+function downloadText(name, content, type = "text/plain") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a"); link.href = url; link.download = name; link.click();
+  URL.revokeObjectURL(url);
+}
+function playUiSound(kind = "tap") {
+  if (!$("uaSound")?.checked || !window.AudioContext) return;
+  try {
+    const ctx = new AudioContext(), osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = "sine"; osc.frequency.value = kind === "success" ? 660 : 420;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.13);
+    osc.onended = () => ctx.close();
+  } catch {}
 }
 
-function renderDatasetPreview() {
-  const rows = state.dataset;
-  $("outputCount").textContent = `${rows.length} RECORDS`;
-  const preview = $("generatorPreview");
-  if (!rows.length) {
-    preview.className = "output-empty";
-    preview.innerHTML = '<div class="empty-art">!</div><strong>No matching combinations</strong><span>Try a broader platform, manufacturer or OS filter.</span>';
-    $("exportActions").classList.add("hidden"); return;
-  }
-  preview.className = "output-preview";
-  preview.innerHTML = `<div class="preview-meta">Previewing ${Math.min(15, rows.length)} of ${rows.length} fixtures · ${esc(meta().dataVersion || "local data")}</div><div class="table-scroll"><table><thead><tr><th>FIXTURE</th><th>DEVICE</th><th>OS</th><th>DISPLAY</th><th>BUILD</th></tr></thead><tbody>${rows.slice(0, 15).map(r => `<tr><td>${esc(r.fixtureId)}</td><td>${esc(r.brand)} ${esc(r.model)}</td><td>${esc(r.osVersion)}</td><td>${r.display.w} × ${r.display.h}</td><td>${r.firmwareBuildId ? esc(r.firmwareBuildId) : '<span class="tag warn">Not supplied</span>'}</td></tr>`).join("")}</tbody></table></div>`;
-  $("exportActions").classList.remove("hidden");
-}
+function renderGeneratorFilters() { setupUaGenerator(); }
+
+function makeDataset() { return generateUaBatch(); }
+
+function renderDatasetPreview() { renderUaResultsView(); }
 
 function downloadText(filename, text, mime) {
   const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
@@ -205,22 +513,15 @@ function downloadText(filename, text, mime) {
   a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
 function csvValue(value) { const text = typeof value === "object" ? JSON.stringify(value) : String(value ?? ""); return `"${text.replace(/"/g, '""')}"`; }
-function exportDataset() {
-  if (!state.dataset.length) return;
-  const format = $("genFormat").value;
-  if (format === "json") downloadText("nexora-compatibility-dataset.json", JSON.stringify({ meta: { dataVersion: meta().dataVersion, generatedAt: new Date().toISOString(), count: state.dataset.length }, records: state.dataset }, null, 2), "application/json");
-  else if (format === "csv") {
-    const keys = Object.keys(state.dataset[0]);
-    const csv = [keys.map(csvValue).join(","), ...state.dataset.map(row => keys.map(key => csvValue(row[key])).join(","))].join("\n");
-    downloadText("nexora-compatibility-dataset.csv", csv, "text/csv;charset=utf-8");
-  } else downloadText("nexora-compatibility-dataset.ndjson", state.dataset.map(row => JSON.stringify(row)).join("\n"), "application/x-ndjson");
-}
+function exportDataset() { if (!state.dataset.length) return; const format = $("uaExportFormat").value; if (format === "json") downloadText("nexora-user-agents.json", JSON.stringify({meta:{dataVersion:meta().dataVersion,generatedAt:new Date().toISOString(),count:state.dataset.length},records:state.dataset},null,2), "application/json"); else if (format === "csv") { const keys=Object.keys(state.dataset[0]); const csv=[keys.map(csvValue).join(","),...state.dataset.map(row=>keys.map(key=>csvValue(row[key])).join(","))].join("\n"); downloadText("nexora-user-agents.csv",csv,"text/csv;charset=utf-8"); } else downloadText("nexora-user-agents.txt",state.dataset.map(row=>row.userAgent).join("\n"),"text/plain;charset=utf-8"); }
 
 function showToast(message, type = "") {
   const toast = document.createElement("div"); toast.className = `toast ${type}`; toast.textContent = message;
   $("toastRegion").appendChild(toast); setTimeout(() => toast.remove(), 3800);
 }
 function go(view) {
+  const adminViews = ["overview","compatibility","automation","review","assistant","audit","settings"];
+  if (adminViews.includes(view) && !state.isAdmin) { showToast("Sign in to access the system control center.", "error"); openModal("loginModal"); return; }
   document.querySelectorAll(".view").forEach(el => el.classList.toggle("active", el.id === `view-${view}`));
   document.querySelectorAll(".nav-item[data-view]").forEach(el => el.classList.toggle("active", el.dataset.view === view));
   const active = document.querySelector(`.nav-item[data-view="${view}"]`);
@@ -229,6 +530,7 @@ function go(view) {
   if (view === "automation" && state.isAdmin) loadAutomation();
   if (view === "review" && state.isAdmin) loadReview();
   if (view === "audit" && state.isAdmin) loadAudit();
+  if (view === "overview" && state.isAdmin) refreshAdminViews();
 }
 
 function setAdmin(token) {
@@ -238,13 +540,15 @@ function setAdmin(token) {
   $("adminLabel").textContent = "Administrator"; $("adminAvatar").textContent = "A"; $("authButton").textContent = "Sign out";
   renderDevices(); renderApplications(); renderOverview(); refreshAdminViews();
 }
+
 function clearAdmin() {
   state.token = ""; state.isAdmin = false; sessionStorage.removeItem("nexora_admin_token");
   document.body.classList.remove("is-admin"); document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
   $("adminLabel").textContent = "Guest access"; $("adminAvatar").textContent = "G"; $("authButton").textContent = "Sign in";
-  if (["automation", "review", "assistant", "audit", "settings"].includes(currentView())) go("overview");
+  if (["overview","compatibility","automation","review","assistant","audit","settings"].includes(currentView())) go("generator");
   renderDevices(); renderApplications(); renderOverview();
 }
+
 function currentView() { return document.querySelector(".view.active")?.id.replace("view-", "") || "overview"; }
 async function verifyAdmin() {
   if (!state.token) return;
@@ -324,17 +628,57 @@ async function saveAppVersion(event) {
   } catch (error) { $("appVersionError").textContent = error.message; $("appVersionError").classList.remove("hidden"); }
 }
 
+
+function renderSystemOverview(overview = state.adminOverview) {
+  const stats = overview?.stats || {};
+  const appRows = Object.values(apps());
+  const knownApps = appRows.filter(x => Boolean(typeof x === "string" ? x : x?.version)).length;
+  const verified = templateRecords().filter(x => x.status === "verified").length;
+  const pendingTemplates = Math.max(0, Object.keys(apps()).length - new Set(templateRecords().filter(x => x.status === "verified").map(x => x.app)).size);
+  $("systemApiStatus").textContent = state.apiOnline ? "Online" : "Fallback";
+  $("systemApiDetail").textContent = state.apiOnline ? "Live API responded" : "Bundled catalog in use";
+  $("systemDatabaseVersion").textContent = meta().dataVersion || "—";
+  $("systemDatabaseDate").textContent = meta().updatedAt || "No timestamp";
+  $("systemDeviceCount").textContent = stats.devices ?? allRecords().length;
+  $("systemPlatformCounts").textContent = `${stats.android ?? platformDevices("android").length} Android / ${stats.ios ?? platformDevices("ios").length} iOS`;
+  $("systemAppCount").textContent = stats.applications ?? Object.keys(apps()).length;
+  $("systemAppCoverage").textContent = `${stats.verifiedAppVersions ?? knownApps} app versions available`;
+  $("systemUaCatalog").textContent = state.uaTemplates ? (state.uaTemplates.dataVersion || "Published") : "Not published";
+  $("systemUaCoverage").textContent = `${verified} verified · ${pendingTemplates} pending`;
+  $("systemPendingCount").textContent = overview?.pendingProposals ?? "—";
+  const sourceCount = state.adminSources.length;
+  const healthySources = state.adminSources.filter(s => s.status === "healthy").length;
+  const lastRun = state.adminRuns[0];
+  $("systemPipelineRows").innerHTML = [
+    ["Device catalog", `${allRecords().length} records · ${meta().dataVersion || "unversioned"}`, "good"],
+    ["UA template catalog", state.uaTemplates ? `${verified} verified templates` : "Not published · collection pending", state.uaTemplates ? "good" : "warn"],
+    ["Source connectors", state.adminSources.length ? `${healthySources}/${sourceCount} healthy` : "Not loaded", state.adminSources.length && healthySources === sourceCount ? "good" : "warn"],
+    ["Latest automation", lastRun ? `${lastRun.status} · ${dateText(lastRun.startedAt)}` : "No runs recorded", lastRun?.status === "completed" ? "good" : "warn"]
+  ].map(([label,value,status]) => `<div class="system-status-row"><span>${esc(label)}</span><strong class="${status}">${esc(value)}</strong></div>`).join("");
+  const events = state.adminAudit.slice(0,5);
+  $("systemRecentEvents").innerHTML = events.map(e => `<div class="system-status-row"><span>${esc(e.action)} · ${esc(e.target)}</span><strong>${esc(dateText(e.createdAt))}</strong></div>`).join("") || '<div class="system-status-row"><span>No recent audit events</span><strong>—</strong></div>';
+}
+
 async function refreshAdminViews() {
   if (!state.isAdmin) return;
   try {
-    const overview = await api("/api/v1/admin/overview");
+    const [overview, sources, runs, audit] = await Promise.all([
+      api("/api/v1/admin/overview"), api("/api/v1/admin/sources"), api("/api/v1/admin/runs"), api("/api/v1/admin/audit?limit=8")
+    ]);
+    state.adminOverview = overview; state.adminSources = sources; state.adminRuns = runs; state.adminAudit = audit;
     $("reviewCount").textContent = overview.pendingProposals;
     $("reviewCount").classList.toggle("hidden", !overview.pendingProposals);
-  } catch { /* token may have expired */ }
+    renderSystemOverview(overview);
+  } catch (error) {
+    $("systemApiStatus").textContent = "Unavailable";
+    $("systemApiDetail").textContent = error.message || "Admin API unavailable";
+  }
 }
+
 async function loadAutomation() {
   try {
     const [sources, runs] = await Promise.all([api("/api/v1/admin/sources"), api("/api/v1/admin/runs")]);
+    state.adminSources = sources; state.adminRuns = runs; renderSystemOverview();
     $("sourceCount").textContent = `${sources.length} sources`;
     $("sourceTable").innerHTML = sources.map(s => `<tr><td><strong>${esc(s.name)}</strong><br><small class="muted-cell">${esc(s.url)}</small></td><td>${esc(s.category.replaceAll("_", " "))}</td><td>${s.trusted ? '<span class="tag">OFFICIAL</span>' : '<span class="tag neutral">UNVERIFIED</span>'}</td><td><span class="tag ${s.status === "healthy" ? "" : s.status === "error" ? "bad" : "warn"}">${esc(s.status.toUpperCase())}</span></td><td>${esc(dateText(s.lastChecked))}</td><td>${esc(s.details?.latestVersion || s.details?.error || s.details?.note || (s.details?.aiExtraction === "not_configured" ? "AI key not configured" : s.details?.lastObservation || "—"))}</td><td><button class="action-link" data-toggle-source="${esc(s.id)}" data-enabled="${s.enabled ? "true" : "false"}">${s.enabled ? "Pause" : "Enable"}</button></td></tr>`).join("") || '<tr><td colspan="7" class="empty-cell">No sources configured.</td></tr>';
     $("sourceTable").querySelectorAll("[data-toggle-source]").forEach(button => button.addEventListener("click", () => toggleSource(button.dataset.toggleSource, button.dataset.enabled !== "true")));
@@ -374,6 +718,7 @@ async function decideProposal(id, decision) {
 async function loadAudit() {
   try {
     const rows = await api("/api/v1/admin/audit");
+    state.adminAudit = rows; renderSystemOverview();
     $("auditTable").innerHTML = rows.map(r => `<tr><td>${esc(dateText(r.createdAt))}</td><td>${esc(r.actor)}</td><td>${esc(r.action)}</td><td>${esc(r.target)}</td><td>${esc(JSON.stringify(r.details))}</td></tr>`).join("") || '<tr><td colspan="5" class="empty-cell">No administrative changes recorded yet.</td></tr>';
   } catch (error) { $("auditTable").innerHTML = `<tr><td colspan="5" class="empty-cell">${esc(error.message)}</td></tr>`; }
 }
@@ -399,19 +744,98 @@ function bindEvents() {
   $("authButton").addEventListener("click", () => state.isAdmin ? (clearAdmin(), showToast("Signed out.")) : openModal("loginModal"));
   $("loginForm").addEventListener("submit", async event => {
     event.preventDefault(); $("loginError").classList.add("hidden");
-    try { const result = await api("/api/v1/admin/login", { method: "POST", body: JSON.stringify({ password: $("adminPassword").value }) }); setAdmin(result.accessToken); closeModal("loginModal"); $("adminPassword").value = ""; showToast("Administrator session started."); }
-    catch (error) { $("loginError").textContent = error.message; $("loginError").classList.remove("hidden"); }
+    try {
+      const result = await api("/api/v1/admin/login", { method: "POST", body: JSON.stringify({ password: $("adminPassword").value }) });
+      setAdmin(result.accessToken); closeModal("loginModal"); $("adminPassword").value = "";
+      go("overview"); showToast("Administrator session started.");
+    } catch (error) { $("loginError").textContent = error.message; $("loginError").classList.remove("hidden"); }
   });
   $("deviceSearch").addEventListener("input", renderDevices); $("devicePlatform").addEventListener("change", renderDevices); $("deviceBrand").addEventListener("change", renderDevices);
   $("addDevice").addEventListener("click", () => openDeviceEditor()); $("deviceForm").addEventListener("submit", saveDevice);
   $("exportDevices").addEventListener("click", () => downloadText("nexora-device-catalog.json", JSON.stringify(state.data, null, 2), "application/json"));
   $("appFilters").querySelectorAll("[data-app-filter]").forEach(button => button.addEventListener("click", () => { state.appFilter = button.dataset.appFilter; $("appFilters").querySelectorAll(".filter-pill").forEach(b => b.classList.toggle("active", b === button)); renderApplications(); }));
   $("editAppVersions").addEventListener("click", () => openAppEditor()); $("appVersionForm").addEventListener("submit", saveAppVersion);
-  $("genPlatform").addEventListener("change", () => {}); $("genBrand").addEventListener("change", () => {}); $("genSearch").addEventListener("input", () => {}); $("genOs").addEventListener("change", () => {});
-  $("genQuantity").addEventListener("input", () => $("genQuantityValue").textContent = $("genQuantity").value);
-  $("generateButton").addEventListener("click", () => { state.dataset = makeDataset(); renderDatasetPreview(); if (!state.dataset.length) showToast("No valid device and OS combinations matched your filters.", "error"); });
+
+  const uaRoot = $("uaGenerator");
+  uaRoot.addEventListener("input", event => {
+    const t = event.target;
+    if (t.id === "uaAndroidQty" || t.id === "uaIosQty") updateUaTotals();
+    if (t.id === "uaAndroidRange") { $("uaAndroidQty").value = t.value; updateUaTotals(); }
+    if (t.id === "uaIosRange") { $("uaIosQty").value = t.value; updateUaTotals(); }
+    if (t.id === "uaDeviceSearch") renderUaDevicePicker();
+    if (t.id === "uaAppSearch") renderUaApps();
+    if (t.id === "uaChromeVersion") t.dataset.manual = "1";
+    if (t.hasAttribute("data-custom-qty")) state.customQuantities[t.dataset.customQty] = Math.max(0, Math.min(500, Number(t.value) || 0));
+  });
+  uaRoot.addEventListener("change", event => {
+    const t = event.target;
+    if (t.name === "uaDistribution") renderUaDevicePicker();
+    if (t.hasAttribute("data-device-id")) {
+      const platform = t.dataset.devicePlatform, id = t.dataset.deviceId;
+      const list = new Set(state.selectedDevices[platform] || []);
+      if (t.checked) list.add(id); else list.delete(id);
+      state.selectedDevices[platform] = [...list];
+      renderUaDevicePicker();
+    }
+    if (t.hasAttribute("data-app-template")) {
+      const id = t.dataset.appTemplate;
+      const list = new Set(state.selectedApps);
+      if (t.checked) list.add(id); else list.delete(id);
+      state.selectedApps = [...list];
+      renderUaApps();
+    }
+    if (t.id === "uaCountry") {
+      $("uaLanguage").value = "auto";
+      renderGeneratorFilters();
+    }
+    if (t.id === "uaSound") playUiSound("tap");
+  });
+  uaRoot.addEventListener("click", event => {
+    const qtyButton = event.target.closest("[data-qty-step]");
+    if (qtyButton) {
+      const platform = qtyButton.dataset.qtyStep, input = $(platform === "android" ? "uaAndroidQty" : "uaIosQty");
+      input.value = Math.max(0, Math.min(500, Number(input.value || 0) + Number(qtyButton.dataset.step)));
+      updateUaTotals(); playUiSound("tap");
+    }
+    const tab = event.target.closest("[data-device-tab]");
+    if (tab) {
+      state.deviceTab = tab.dataset.deviceTab;
+      document.querySelectorAll("[data-device-tab]").forEach(x => x.classList.toggle("active", x === tab));
+      renderUaDevicePicker();
+    }
+    const copy = event.target.closest("[data-copy-ua]");
+    if (copy) {
+      const record = state.dataset[Number(copy.dataset.copyUa)];
+      if (record) navigator.clipboard.writeText(record.userAgent).then(() => showToast("User-Agent copied."), () => showToast("Clipboard unavailable.", "error"));
+    }
+  });
+  $("generateButton").addEventListener("click", () => {
+    try {
+      state.dataset = generateUaBatch();
+      renderDatasetPreview();
+      if (!state.dataset.length) showToast("No unique User-Agent strings matched this configuration.", "error");
+      else { showToast(`Generated ${state.dataset.length} User-Agent records.`); playUiSound("success"); }
+    } catch (error) { showToast(error.message, "error"); }
+  });
   $("downloadDataset").addEventListener("click", exportDataset);
-  $("copyDataset").addEventListener("click", async () => { try { await navigator.clipboard.writeText(JSON.stringify(state.dataset, null, 2)); showToast("Dataset JSON copied."); } catch { showToast("Clipboard access is unavailable in this browser.", "error"); } });
+  $("copyDataset").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(state.dataset.map(x => x.userAgent).join("\n")); showToast("All User-Agent strings copied."); }
+    catch { showToast("Clipboard access is unavailable in this browser.", "error"); }
+  });
+  $("saveUaBatch").addEventListener("click", () => {
+    if (!state.dataset.length) return;
+    let batches = []; try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
+    const id = `ua-${Date.now()}`;
+    batches.unshift({ id, name: `UA set ${new Date().toLocaleString()}`, records: state.dataset, savedAt: new Date().toISOString() });
+    localStorage.setItem("nexora_ua_batches", JSON.stringify(batches.slice(0,20)));
+    renderSavedBatches(); $("uaSavedBatches").value = id; showToast("User-Agent set saved on this device.");
+  });
+  $("uaSavedBatches").addEventListener("change", () => {
+    const id = $("uaSavedBatches").value; if (!id) return;
+    let batches = []; try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
+    const batch = batches.find(x => x.id === id);
+    if (batch) { state.dataset = batch.records || []; renderDatasetPreview(); showToast("Saved User-Agent set loaded."); }
+  });
   $("runRefresh").addEventListener("click", runRefresh); $("reloadRuns").addEventListener("click", reloadRuns); $("reloadAudit").addEventListener("click", loadAudit);
   $("assistantForm").addEventListener("submit", askAssistant);
   document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => { $("assistantPrompt").value = button.dataset.prompt; $("assistantPrompt").focus(); }));

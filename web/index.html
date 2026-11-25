@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101316">
-  <meta name="description" content="NEXORA is a public device compatibility data platform with AI-assisted research, validation and data management.">
-  <title>NEXORA Next — Device Intelligence Platform</title>
+  <meta name="description" content="Generate database-backed Android and iOS User-Agent compatibility datasets with NEXORA.">
+  <title>NEXORA Next — User-Agent Studio</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
@@ -14,7 +14,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-mark">N</div>
-      <div class="brand-copy"><strong>NEXORA</strong><small>NEXT / DEVICE INTELLIGENCE</small></div>
+      <div class="brand-copy"><strong>NEXORA</strong><small>NEXT / USER-AGENT STUDIO</small></div>
     </div>
     <div class="workspace-switcher">
       <span class="workspace-icon">NX</span>
@@ -22,18 +22,18 @@
       <span class="chevron">⌄</span>
     </div>
     <nav class="nav" aria-label="Main navigation">
-      <div class="nav-label">WORKSPACE</div>
-      <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>Overview</button>
-      <button class="nav-item" data-view="generator"><span class="nav-icon">▦</span>Bulk Studio</button>
-      <button class="nav-item" data-view="devices"><span class="nav-icon">▯</span>Device Library</button>
-      <button class="nav-item" data-view="applications"><span class="nav-icon">▣</span>Applications</button>
-      <button class="nav-item" data-view="compatibility"><span class="nav-icon">⌘</span>Compatibility</button>
-      <div class="nav-label admin-nav-label admin-only hidden">CONTROL CENTER</div>
-      <button class="nav-item admin-only hidden" data-view="automation"><span class="nav-icon">↻</span>Automation Center</button>
+      <div class="nav-label">GENERATION</div>
+      <button class="nav-item active" data-view="generator"><span class="nav-icon">✳</span>User-Agent Studio</button>
+      <button class="nav-item" data-view="devices"><span class="nav-icon">▯</span>Device Catalog</button>
+      <button class="nav-item" data-view="applications"><span class="nav-icon">▣</span>App Versions</button>
+      <div class="nav-label admin-nav-label admin-only hidden">SYSTEM ADMIN</div>
+      <button class="nav-item admin-only hidden" data-view="overview"><span class="nav-icon">◫</span>System Overview</button>
+      <button class="nav-item admin-only hidden" data-view="compatibility"><span class="nav-icon">⌘</span>Compatibility</button>
+      <button class="nav-item admin-only hidden" data-view="automation"><span class="nav-icon">↻</span>Sources & Automation</button>
       <button class="nav-item admin-only hidden" data-view="review"><span class="nav-icon">☷</span>Review Queue <span class="nav-count hidden" id="reviewCount">0</span></button>
       <button class="nav-item admin-only hidden" data-view="assistant"><span class="nav-icon">✳</span>AI Assistant <span class="nav-pill">AI</span></button>
-      <button class="nav-item admin-only hidden" data-view="audit"><span class="nav-icon">◷</span>Change History</button>
-      <button class="nav-item admin-only hidden" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
+      <button class="nav-item admin-only hidden" data-view="audit"><span class="nav-icon">◷</span>Audit Log</button>
+      <button class="nav-item admin-only hidden" data-view="settings"><span class="nav-icon">⚙</span>System Settings</button>
     </nav>
     <div class="sidebar-bottom">
       <div class="api-health"><span class="health-dot" id="healthDot"></span><span><strong id="healthText">Checking API</strong><small id="healthSub">Connecting to data service</small></span></div>
@@ -46,7 +46,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
-        <div class="breadcrumbs"><span>Workspace</span><b>/</b><strong id="breadcrumbCurrent">Overview</strong></div>
+        <div class="breadcrumbs"><span>NEXORA</span><b>/</b><strong id="breadcrumbCurrent">User-Agent Studio</strong></div>
       </div>
       <div class="topbar-actions">
         <div class="data-status"><span class="status-dot" id="topStatusDot"></span><span id="topStatusText">DATA READY</span></div>
@@ -56,10 +56,10 @@
     </header>
 
     <div class="content">
-      <section class="view active" id="view-overview">
+      <section class="view admin-only hidden" id="view-overview">
         <div class="page-intro intro-row">
-          <div><div class="eyebrow">NEXORA / OVERVIEW</div><h1>Device intelligence, in one place.</h1><p>Explore verified device records, build compatibility datasets and review the latest data health.</p></div>
-          <div class="intro-actions"><button class="button button-secondary" data-go="devices">Browse devices</button><button class="button button-primary" data-go="generator">Open Bulk Studio ↗</button></div>
+          <div><div class="eyebrow">NEXORA / SYSTEM OVERVIEW</div><h1>Your system, at a glance.</h1><p>Monitor catalog health, database releases, automation, review queues and application-template coverage.</p></div>
+          <div class="intro-actions"><button class="button button-secondary" data-go="automation">Source automation</button><button class="button button-primary" data-go="review">Review queue ↗</button></div>
         </div>
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-top"><span>DEVICE RECORDS</span><span class="stat-icon">▯</span></div><div class="stat-value" id="statDevices">—</div><div class="stat-foot"><span class="mini-dot good"></span><span id="statDeviceFoot">Android and iOS catalog</span></div></div>
@@ -69,8 +69,8 @@
         </div>
         <div class="overview-grid">
           <div class="panel welcome-panel">
-            <div class="panel-heading"><div><div class="eyebrow">YOUR DATA WORKSPACE</div><h2>One catalog. Multiple workflows.</h2></div><div class="panel-mark">N</div></div>
-            <p>NEXORA brings device specifications, operating-system support, application version metadata and compatibility test fixtures into one managed catalog. Public visitors can explore and generate datasets; authorized editors can maintain the source data.</p>
+            <div class="panel-heading"><div><div class="eyebrow">SYSTEM CONTROL CENTER</div><h2>One control plane. Full visibility.</h2></div><div class="panel-mark">N</div></div>
+            <p>Monitor device specifications, operating-system support, application version metadata, UA-template coverage and source automation from one private administrative workspace. Public generation remains separate from administrative controls.</p>
             <div class="welcome-actions"><button class="button button-primary" data-go="generator">Create a dataset ↗</button><button class="text-button" data-go="devices">Explore device library <span>→</span></button></div>
             <div class="feature-strip"><div><span>01 / CATALOG</span><strong>Structured device records</strong><small>Shared source of truth</small></div><div><span>02 / GENERATE</span><strong>Compatibility test data</strong><small>Reusable exports</small></div><div><span>03 / AUTOMATE</span><strong>Source monitoring</strong><small>Human-reviewed changes</small></div></div>
           </div>
@@ -81,37 +81,185 @@
             <div class="activity-note"><span class="info-icon">i</span><span>Only records with traceable evidence should be treated as verified. Empty version fields are intentionally shown as unverified, not guessed.</span></div>
           </div>
         </div>
-        <div class="panel quick-panel"><div class="panel-heading"><div><div class="eyebrow">QUICK ACCESS</div><h2>What would you like to do?</h2></div></div><div class="quick-grid">
+        <div class="panel quick-panel"><div class="panel-heading"><div><div class="eyebrow">ADMIN SHORTCUTS</div><h2>Operational shortcuts.</h2></div></div><div class="quick-grid">
           <button class="quick-card" data-go="generator"><span class="quick-icon">▦</span><strong>Build a bulk dataset</strong><small>Filter device records and export JSON or CSV.</small><span class="quick-arrow">↗</span></button>
           <button class="quick-card" data-go="devices"><span class="quick-icon">▯</span><strong>Manage device records</strong><small>Search specifications and model identifiers.</small><span class="quick-arrow">↗</span></button>
           <button class="quick-card" data-go="applications"><span class="quick-icon">▣</span><strong>Check app versions</strong><small>See which application versions have evidence.</small><span class="quick-arrow">↗</span></button>
           <button class="quick-card admin-only hidden" data-go="automation"><span class="quick-icon">↻</span><strong>Run source monitoring</strong><small>Check trusted sources for new information.</small><span class="quick-arrow">↗</span></button>
         </div></div>
-        <footer class="page-footer"><span>© NEXORA NEXT</span><span>Public compatibility data · Admin changes are audited</span><a href="./generator-legacy.html">Legacy UA generator ↗</a></footer>
+        <div class="admin-system-panel admin-only">
+          <div class="section-heading"><div><div class="eyebrow">SYSTEM INTELLIGENCE</div><h2>Operational overview</h2><p>Live status from the configured NEXORA service and published catalogs.</p></div><span class="tag" id="systemAdminStatus">ADMIN SESSION</span></div>
+          <div class="system-metrics">
+            <article class="system-metric"><span>API SERVICE</span><strong id="systemApiStatus">Checking</strong><small id="systemApiDetail">Service health</small></article>
+            <article class="system-metric"><span>DATABASE RELEASE</span><strong id="systemDatabaseVersion">—</strong><small id="systemDatabaseDate">Catalog revision</small></article>
+            <article class="system-metric"><span>DEVICE RECORDS</span><strong id="systemDeviceCount">—</strong><small id="systemPlatformCounts">Android / iOS</small></article>
+            <article class="system-metric"><span>APPLICATIONS</span><strong id="systemAppCount">—</strong><small id="systemAppCoverage">Version coverage</small></article>
+            <article class="system-metric"><span>UA TEMPLATES</span><strong id="systemUaCatalog">Not published</strong><small id="systemUaCoverage">Evidence-backed app templates</small></article>
+            <article class="system-metric"><span>REVIEW QUEUE</span><strong id="systemPendingCount">—</strong><small>Awaiting administrator decision</small></article>
+          </div>
+          <div class="system-detail-grid">
+            <div class="panel system-detail-card"><div class="panel-heading"><div><div class="eyebrow">DATA PIPELINE</div><h3>Collection status</h3></div><span class="tag neutral">Live</span></div><div id="systemPipelineRows" class="system-status-list"><div class="system-status-row"><span>Device catalog</span><strong>Loading</strong></div><div class="system-status-row"><span>UA template catalog</span><strong>Checking</strong></div><div class="system-status-row"><span>Source connectors</span><strong>Checking</strong></div></div></div>
+            <div class="panel system-detail-card"><div class="panel-heading"><div><div class="eyebrow">LATEST ACTIVITY</div><h3>Recent system events</h3></div><button class="text-button" data-go="audit">Open audit log →</button></div><div id="systemRecentEvents" class="system-status-list"><div class="system-status-row"><span>Waiting for audit events</span><strong>—</strong></div></div></div>
+          </div>
+          <div class="system-footnote"><span class="info-icon">i</span><span>Secrets and environment-variable values are never exposed in this dashboard. Configuration presence is shown only where the API reports it.</span></div>
+        </div>
+        <footer class="page-footer"><span>© NEXORA NEXT</span><span>Public compatibility data · Admin changes are audited</span><a href="./generator-legacy.html" class="legacy-link">Previous generator ↗</a></footer>
       </section>
 
-      <section class="view" id="view-generator">
-        <div class="page-intro"><div class="eyebrow">WORKSPACE / BULK STUDIO</div><h1>Build a compatibility dataset.</h1><p>Generate structured test fixtures from records in the current NEXORA catalog. No synthetic device specifications are invented.</p></div>
-        <div class="generator-layout">
-          <div class="panel generator-form">
-            <div class="panel-heading"><div><div class="eyebrow">DATASET CONFIGURATION</div><h2>Choose your records</h2></div><span class="step-badge">01 / 02</span></div>
-            <div class="form-grid">
-              <div class="field"><label for="genPlatform">PLATFORM</label><select class="form-control" id="genPlatform"><option value="all">All platforms</option><option value="android">Android</option><option value="ios_emulation">iOS</option></select></div>
-              <div class="field"><label for="genBrand">MANUFACTURER</label><select class="form-control" id="genBrand"><option value="all">All manufacturers</option></select></div>
-              <div class="field field-full"><label for="genSearch">MODEL FILTER</label><input class="form-control" id="genSearch" placeholder="Search model, model code or ID"></div>
-              <div class="field"><label for="genOs">OS VERSION</label><select class="form-control" id="genOs"><option value="all">All supported versions</option></select></div>
-              <div class="field"><label for="genFormat">EXPORT FORMAT</label><select class="form-control" id="genFormat"><option value="json">JSON</option><option value="csv">CSV</option><option value="txt">TXT</option></select></div>
-              <div class="field field-full"><div class="label-row"><label for="genQuantity">MAXIMUM RECORDS</label><strong id="genQuantityValue">50</strong></div><input type="range" id="genQuantity" min="1" max="500" value="50"><div class="range-hints"><span>1 record</span><span>500 records</span></div></div>
+      <section class="view active" id="view-generator">
+        <div class="ua-hero">
+          <div class="ua-hero-copy">
+            <div class="eyebrow"><span class="eyebrow-pulse"></span>NEXORA / GENERATION STUDIO</div>
+            <h1>Build your next<br><em>User-Agent set.</em></h1>
+            <p>Generate structured Android and iOS browser profiles from the live NEXORA device catalog. Precise controls, clean exports, no invented device records.</p>
+            <div class="ua-hero-meta">
+              <span class="catalog-pill"><i></i><b id="uaCatalogVersion">Connecting catalog</b></span>
+              <span class="hero-meta-copy" id="uaDeviceMeta">59 device records expected</span>
             </div>
-            <div class="generator-info"><span class="info-icon">i</span><span>Output is intended for QA, browser compatibility and software testing. Each row retains its catalog ID, source status and supported OS information.</span></div>
-            <button class="button button-primary button-wide" id="generateButton">Generate preview ↗</button>
-            <a class="text-button" href="./generator-legacy.html">Open the preserved legacy User-Agent generator →</a>
           </div>
-          <div class="panel generator-output">
-            <div class="panel-heading"><div><div class="eyebrow">LIVE OUTPUT</div><h2>Dataset preview</h2></div><span class="output-count" id="outputCount">0 RECORDS</span></div>
-            <div id="generatorPreview" class="output-empty"><div class="empty-art">▦</div><strong>Your preview will appear here</strong><span>Choose your filters, then generate a dataset preview.</span></div>
-            <div class="export-actions hidden" id="exportActions"><button class="button button-secondary" id="copyDataset">Copy JSON</button><button class="button button-primary" id="downloadDataset">Download dataset</button></div>
+          <div class="ua-hero-art" aria-hidden="true">
+            <div class="orb orb-one"></div><div class="orb orb-two"></div>
+            <div class="ua-art-card"><span class="art-kicker">NEXORA / UA ENGINE</span><div class="art-lines"><i></i><i></i><i></i><i></i></div><div class="art-chip">CATALOG · VERIFIED FIELDS</div></div>
+            <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div>
           </div>
+        </div>
+
+        <div class="ua-workspace" id="uaGenerator">
+          <div class="ua-config-column">
+            <section class="ua-card">
+              <div class="ua-section-head"><div><span class="ua-step">01</span><div><div class="eyebrow">PLATFORM MIX</div><h2>How many do you need?</h2><p>Generate Android and iOS in one batch.</p></div></div><span class="ua-section-mark">01 / 05</span></div>
+              <div class="ua-platform-grid">
+                <article class="ua-platform-card android-card">
+                  <div class="platform-top"><span class="platform-symbol android-symbol">A</span><span class="platform-live">CATALOG READY</span></div>
+                  <label for="uaAndroidQty">Android User-Agents</label>
+                  <div class="qty-control"><button type="button" data-qty-step="android" data-step="-1" aria-label="Decrease Android quantity">−</button><input id="uaAndroidQty" type="number" min="0" max="500" value="10" inputmode="numeric"><button type="button" data-qty-step="android" data-step="1" aria-label="Increase Android quantity">+</button></div>
+                  <div class="qty-range"><span>0</span><input id="uaAndroidRange" type="range" min="0" max="500" value="10"><span>500</span></div>
+                  <small>Android devices from the published catalog</small>
+                </article>
+                <article class="ua-platform-card ios-card">
+                  <div class="platform-top"><span class="platform-symbol ios-symbol">●</span><span class="platform-live">REFERENCE CATALOG</span></div>
+                  <label for="uaIosQty">iOS User-Agents</label>
+                  <div class="qty-control"><button type="button" data-qty-step="ios" data-step="-1" aria-label="Decrease iOS quantity">−</button><input id="uaIosQty" type="number" min="0" max="500" value="0" inputmode="numeric"><button type="button" data-qty-step="ios" data-step="1" aria-label="Increase iOS quantity">+</button></div>
+                  <div class="qty-range"><span>0</span><input id="uaIosRange" type="range" min="0" max="500" value="0"><span>500</span></div>
+                  <small>iOS reference templates; not native iOS execution</small>
+                </article>
+              </div>
+              <div class="ua-total-row"><div><span class="total-label">TOTAL GENERATION</span><strong id="uaTotal">10</strong><span class="total-unit">records · max 500 per batch</span></div><span class="total-icon">↗</span></div>
+            </section>
+
+            <section class="ua-card">
+              <div class="ua-section-head"><div><span class="ua-step">02</span><div><div class="eyebrow">DEVICE DISTRIBUTION</div><h2>Choose your device pool.</h2><p>Use the full catalog or restrict output to exact models.</p></div></div><span class="ua-section-mark">02 / 05</span></div>
+              <div class="distribution-grid" role="radiogroup" aria-label="Device distribution">
+                <label class="distribution-option selected"><input type="radio" name="uaDistribution" value="random" checked><span class="distribution-icon">✳</span><strong>Random</strong><small>Pick from all eligible devices</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="specific"><span class="distribution-icon">⌕</span><strong>Selected pool</strong><small>Only the models you choose</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="balanced"><span class="distribution-icon">⇄</span><strong>Balanced</strong><small>Spread evenly across models</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="custom"><span class="distribution-icon">≡</span><strong>Custom</strong><small>Set quantity per device</small></label>
+              </div>
+              <div class="ua-device-picker hidden" id="uaDevicePicker">
+                <div class="device-picker-head"><div><strong>Selected device pool</strong><small id="uaSelectedCount">0 devices selected</small></div><div class="device-search"><span>⌕</span><input id="uaDeviceSearch" placeholder="Search Pixel, Galaxy, iPhone…" autocomplete="off"></div></div>
+                <div class="device-platform-tabs"><button type="button" class="device-tab active" data-device-tab="android">Android <span id="uaAndroidDeviceCount">0</span></button><button type="button" class="device-tab" data-device-tab="ios">iOS <span id="uaIosDeviceCount">0</span></button></div>
+                <div id="uaAndroidDeviceList" class="ua-device-list"></div>
+                <div id="uaIosDeviceList" class="ua-device-list hidden"></div>
+                <p class="field-hint" id="uaDistributionHint">Select one or more models. iOS User-Agent strings do not expose the exact iPhone model; model selection is retained as output metadata.</p>
+              </div>
+              <div class="ua-os-grid">
+                <div class="field"><label for="uaAndroidOs">ANDROID VERSION</label><select class="form-control" id="uaAndroidOs"><option value="latest">Latest supported per device</option><option value="random">Random supported version</option></select></div>
+                <div class="field"><label for="uaIosOs">IOS VERSION</label><select class="form-control" id="uaIosOs"><option value="latest">Latest supported per device</option><option value="random">Random supported version</option></select></div>
+              </div>
+            </section>
+
+            <section class="ua-card">
+              <div class="ua-section-head"><div><span class="ua-step">03</span><div><div class="eyebrow">BROWSER FAMILIES</div><h2>Choose browser types.</h2><p>Only compatible browser families are used for each platform.</p></div></div><span class="ua-section-mark">03 / 05</span></div>
+              <div class="browser-platform-block">
+                <div class="browser-platform-title"><span class="mini-platform android-mini">A</span><strong>Android browsers</strong><small>Choose one or more</small></div>
+                <div class="browser-choice-grid">
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="android" checked><span class="browser-logo chrome-logo">C</span><span><b>Chrome</b><small id="chromeCatalogVersion">Catalog version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo firefox-logo">F</span><span><b>Firefox</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo edge-logo">E</span><span><b>Edge</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo opera-logo">O</span><span><b>Opera</b><small>Manual version</small></span></label>
+                </div>
+              </div>
+              <div class="browser-platform-block">
+                <div class="browser-platform-title"><span class="mini-platform ios-mini">●</span><strong>iOS browsers</strong><small>All use the platform's WebKit engine</small></div>
+                <div class="browser-choice-grid">
+                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo safari-logo">S</span><span><b>Safari</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo chrome-logo">C</span><span><b>Chrome</b><small>Manual iOS version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo firefox-logo">F</span><span><b>Firefox</b><small>Manual iOS version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo edge-logo">E</span><span><b>Edge</b><small>Manual iOS version</small></span></label>
+                </div>
+              </div>
+              <details class="ua-advanced">
+                <summary><span><b>Advanced browser versions</b><small>Use catalog values or enter exact versions</small></span><span class="details-plus">+</span></summary>
+                <div class="advanced-version-grid">
+                  <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
+                  <div class="field"><label for="uaChromeIosVersion">CHROME IOS</label><input id="uaChromeIosVersion" class="form-control" placeholder="Enter iOS app version" autocomplete="off"></div>
+                  <div class="field"><label for="uaSafariVersion">SAFARI IOS</label><input id="uaSafariVersion" class="form-control" placeholder="Required · e.g. 26.1" autocomplete="off"></div>
+                  <div class="field"><label for="uaFirefoxAndroidVersion">FIREFOX ANDROID</label><input id="uaFirefoxAndroidVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
+                  <div class="field"><label for="uaFirefoxIosVersion">FIREFOX IOS</label><input id="uaFirefoxIosVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
+                  <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
+                  <div class="field"><label for="uaEdgeIosVersion">EDGE IOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
+                  <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
+                  <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
+                </div>
+                <p class="field-hint">Only Chrome Android is prefilled from the current database. Other browser versions must be entered or added to a verified browser-version catalog.</p>
+              </details>
+            </section>
+
+            <section class="ua-card">
+              <div class="ua-section-head"><div><span class="ua-step">04</span><div><div class="eyebrow">IN-APP BROWSERS</div><h2>Embedded app templates.</h2><p>Optional. Nothing is included unless you explicitly select it.</p></div></div><span class="ua-section-mark">04 / 05</span></div>
+              <div class="app-template-notice"><span class="notice-mark">i</span><div><strong>App versions are not User-Agent templates.</strong><p>Only apps with verified records in the separate UA template catalog can be generated. Pending apps remain unavailable.</p></div></div>
+              <div class="app-template-toolbar"><span id="uaTemplateSummary">Checking template catalog…</span><input id="uaAppSearch" class="form-control" placeholder="Search applications…" autocomplete="off"></div>
+              <div class="app-template-grid" id="uaAppGrid"></div>
+              <div class="field-hint">No app is selected by default. If you leave this section untouched, output contains standalone browser User-Agents only.</div>
+            </section>
+
+            <section class="ua-card">
+              <div class="ua-section-head"><div><span class="ua-step">05</span><div><div class="eyebrow">LOCALE & OUTPUT</div><h2>Set regional metadata.</h2><p>Country filters the catalog by supported market. Language is output metadata; neither is inserted into a standard browser UA string.</p></div></div><span class="ua-section-mark">05 / 05</span></div>
+              <div class="locale-grid">
+                <div class="field"><label for="uaCountry">COUNTRY</label><select class="form-control" id="uaCountry"><option value="">All countries / automatic</option></select></div>
+                <div class="field"><label for="uaLanguage">LANGUAGE</label><select class="form-control" id="uaLanguage"><option value="auto">Automatic from country</option><option value="en-US">English (United States)</option><option value="en-GB">English (United Kingdom)</option><option value="bn-BD">Bangla (Bangladesh)</option><option value="en-IN">English (India)</option><option value="ur-PK">Urdu (Pakistan)</option><option value="de-DE">German</option><option value="fr-FR">French</option><option value="es-ES">Spanish</option><option value="ja-JP">Japanese</option><option value="ko-KR">Korean</option><option value="zh-CN">Chinese (Simplified)</option></select></div>
+              </div>
+              <div class="ua-output-options">
+                <label class="toggle-line"><span><b>Remove duplicate strings</b><small>Keep unique User-Agent values in the final batch.</small></span><input id="uaDeduplicate" type="checkbox"><i></i></label>
+                <label class="toggle-line"><span><b>Enable subtle interface sounds</b><small>Optional feedback for selection and generation.</small></span><input id="uaSound" type="checkbox"><i></i></label>
+              </div>
+            </section>
+
+            <div class="ua-generate-bar">
+              <div><span class="eyebrow">READY TO BUILD</span><strong id="uaReadySummary">10 Android · add iOS when ready</strong></div>
+              <button class="button button-primary ua-generate-button" id="generateButton"><span>Generate User-Agents</span><b>↗</b></button>
+            </div>
+            <p class="ua-disclaimer">Output is a compatibility/testing template based on catalog data and selected browser versions. A User-Agent string does not change the actual device, operating system, hardware, browser engine or network identity.</p>
+          </div>
+
+          <aside class="ua-results-column">
+            <div class="ua-results-card">
+              <div class="results-heading"><div><div class="eyebrow">LIVE OUTPUT</div><h2>Your generated set</h2><p id="uaResultSubtitle">Your results will appear here.</p></div><span class="results-spark">✳</span></div>
+              <div class="results-summary">
+                <div><span>TOTAL</span><strong id="uaResultTotal">0</strong></div>
+                <div><span>ANDROID</span><strong id="uaResultAndroid">0</strong></div>
+                <div><span>IOS</span><strong id="uaResultIos">0</strong></div>
+              </div>
+              <div class="ua-results-empty" id="generatorPreview"><div class="empty-orbit"><span>NX</span></div><strong>Nothing generated yet</strong><p>Configure your device pool and browser families, then generate your first set.</p></div>
+              <div class="ua-results-list hidden" id="uaResultsList"></div>
+              <div class="ua-result-actions hidden" id="exportActions">
+                <button class="button button-primary" id="copyDataset">Copy all UAs</button>
+                <div class="export-row"><select class="form-control" id="uaExportFormat"><option value="txt">TXT</option><option value="json">JSON</option><option value="csv">CSV</option></select><button class="button button-secondary" id="downloadDataset">Export</button><button class="button button-quiet" id="saveUaBatch">Save set</button></div>
+              </div>
+              <div class="saved-batches">
+                <div class="saved-batches-head"><span>LOCAL SAVED SETS</span><small id="savedBatchCount">0 saved</small></div>
+                <select class="form-control" id="uaSavedBatches"><option value="">No saved sets yet</option></select>
+              </div>
+            </div>
+            <div class="ua-data-card">
+              <div class="eyebrow">DATABASE SOURCE</div><div class="ua-data-version" id="uaDataVersion">—</div>
+              <div class="ua-data-line"><span>Device records</span><b id="uaDataDevices">—</b></div>
+              <div class="ua-data-line"><span>Application records</span><b id="uaDataApps">—</b></div>
+              <div class="ua-data-line"><span>Verified app UA templates</span><b id="uaDataTemplates">0</b></div>
+              <div class="ua-data-line"><span>Data source</span><b id="uaDataSource">Checking</b></div>
+              <p>Generated sets stay in this browser unless you export them. No customer account is required.</p>
+            </div>
+          </aside>
         </div>
       </section>
 
