@@ -51,7 +51,7 @@ the repository or ask a focused question instead of guessing.
 - Keep the Android / iOS / Both platform switch, combined 500-record batch limit, quick presets and four device distribution modes.
 - Use real Simple Icons brand marks for Android, Apple, browser and app brands, with a text fallback if the icon CDN is unavailable.
 - Browser-only is the default. In-app generation is explicitly opt-in and must not add app-specific tokens when the toggle is off.
-- Only `verified` records from `ua_templates.json` are selectable. Facebook/Instagram Python scripts are candidate-format references only.
+- Only `verified` records from `ua_templates.json` are selectable. Facebook/Instagram Python scripts and AppUa.kt are candidate-format references only. The useragent.in corpus must be fetched by discovering its category file from its index; never guess the filename or claim its 108 rows were collected unless raw rows are preserved.
 - TXT export must contain one raw User-Agent per line. JSON/CSV may include metadata.
 - Keep all app-version and device data source-backed. Do not promote the UserAgentGen snapshot's browser versions into verified database values.
 - Device Catalog, App Versions and system administration are administrator-only in the website.
