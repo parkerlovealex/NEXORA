@@ -1,6 +1,6 @@
 # NEXORA Website UX v2 — User-Agent Generator
 
-**Status:** Implemented in the supplied website source package. Static/browser visual QA is partially blocked by the execution environment; production deployment is not verified.  
+**Status:** Desktop UA generation is implemented in the supplied `web-current/` source snapshot. The configured Vercel output directory is `web/`, which is absent from this handoff pack; production source integration, visual QA and deployment are not verified.  
 **Reference:** User-supplied UserAgentGen saved HTML snapshot and `User-Agent.zip` Python source scripts.  
 **Catalog:** `web/devices.json`, dataVersion `2026.11.25.6`.
 
@@ -17,15 +17,18 @@ The generation flow follows the supplied reference's core sequence:
 
 ## Implemented generator UX
 
-- Platform switch: Android, iOS, or Both.
-- Batch presets: 10, 25, 50, 100, 250 and 500; Android/iOS quantities remain independently editable. Combined maximum is 500.
+- Platform switch: Android, iOS, Both, Windows, macOS, Desktop, or All (four platforms).
+- Batch presets: 10, 25, 50, 100, 250 and 500; Android, iOS, Windows and macOS quantities are independently editable. Combined maximum is 500.
 - Device distribution: Random, Selected, Balanced and Custom per-device quantities.
 - Searchable device selection with platform tabs, select-visible and clear-visible actions.
-- OS options: latest supported per device, random supported, or a specific supported version. Explicit OS selection filters ineligible devices; custom mode reports unsupported combinations.
+- Mobile OS options: latest supported per device, random supported, or a specific supported version. Explicit OS selection filters ineligible devices; custom mode reports unsupported combinations.
+- Desktop OS options: latest five Windows 11 releases, last three Windows 10 feature releases, and latest ten macOS major releases. Windows/macOS output uses virtual desktop records; mobile device distribution remains Android/iOS-only.
 - Browser choices with brand marks:
   - Android: Chrome, Firefox, Edge, Opera and Android WebView.
   - iOS: Safari, Chrome, Firefox and Edge.
-- Chrome Android and Chromium/WebView engine versions use the catalog value. Browser versions absent from the database remain manual inputs; the reference snapshot's browser versions are not silently treated as verified live values.
+  - Windows: Chrome, Firefox, Edge and Opera.
+  - macOS: Chrome, Firefox, Edge, Opera and Safari.
+- Chrome Android and Chromium/WebView engine versions use the device catalog value. Mobile browser versions absent from the device catalog remain manual inputs. Desktop browser versions use the separately source-documented `desktop-catalog.json` asset, with five stable releases per supported browser.
 - Optional in-app User-Agent generation. It is off by default. The 18 application records show their app version/build and real brand marks. Only records with `status=verified` in `ua_templates.json` can be selected.
 - Facebook and Instagram show collapsible candidate-format previews derived from the supplied Python scripts:
   - Facebook Android and iOS.
@@ -67,3 +70,16 @@ No app template is marked verified. The existing `docs/UA_TEMPLATES_SPEC.md` sti
 - Android app source and APK are untouched.
 - `docs/UA_TEMPLATES_SPEC.md` is preserved.
 - Workstream B collection/verification remains separate and must be completed before any in-app template becomes selectable.
+
+
+## Desktop User-Agent generation — 2026-11-25
+
+The supplied `web-current/` source snapshot now contains Windows/macOS support alongside Android/iOS. Desktop OS release metadata is kept in `data/desktop-platforms-2026-11-25.json` and staged as `web-current/desktop-catalog.json`. The actual Vercel output directory is `web/` and is absent from this handoff pack; port these changes into the current `web/` files rather than replacing that directory wholesale. The Workstream A device catalog is not modified.
+
+- Windows OS list: Windows 11 26H2, 26H1, 25H2, 24H2, 23H2; Windows 10 22H2, 21H2 and 21H1.
+- macOS OS list: 27 Golden Gate, 26 Tahoe, 15 Sequoia, 14 Sonoma, 13 Ventura, 12 Monterey, 11 Big Sur, 10.15 Catalina, 10.14 Mojave and 10.13 High Sierra.
+- Browser lists contain the last five stable release trains per supported desktop browser: Chrome, Firefox, Edge and Opera on both desktop platforms; Safari on macOS only.
+- Chromium-family UA tokens are reduced to `major.0.0.0`; Opera's Chrome engine token is mapped to its corresponding Chromium train. Firefox uses `rv`/`Firefox` version tokens; Safari uses `Version`/`Safari`.
+- Modern Windows 10 and Windows 11 browser UAs both report `Windows NT 10.0`. Modern Chrome-family and Safari macOS UAs report the frozen `Mac OS X 10_15_7` token; Firefox caps the macOS token at `10.15`. The selected OS release/build is output metadata, not an invented UA token.
+- The desktop OS/browser compatibility matrix is not a claim that every latest browser can be installed on every historical OS release. The generated strings are compatibility templates.
+- In-app app-specific templates remain Android/iOS-only and remain governed by `UA_TEMPLATES_SPEC.md`; this desktop feature does not create desktop app/in-app templates.
