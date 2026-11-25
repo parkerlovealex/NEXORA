@@ -7,7 +7,7 @@
   <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
   <title>NEXORA — User-Agent Generator</title>
   <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261125-8">
+  <link rel="stylesheet" href="./styles.css?v=20261125-9">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -119,13 +119,17 @@
           <div class="ua-config-column">
             <section class="ua-card">
               <div class="ua-section-head">
-                <div class="ua-section-title"><span class="ua-step">01</span><div><h2>Platform & batch</h2><p>Choose one platform or generate both together.</p></div></div>
+                <div class="ua-section-title"><span class="ua-step">01</span><div><h2>Platform & batch</h2><p>Choose one platform or combine mobile and desktop batches.</p></div></div>
                 <span class="step-note">MAX 500</span>
               </div>
               <div class="platform-switch" role="group" aria-label="Platform selection">
                 <button type="button" class="platform-mode active" data-platform-mode="android"><img src="https://cdn.simpleicons.org/android/3DDC84" alt="" loading="lazy"><span>Android</span></button>
                 <button type="button" class="platform-mode" data-platform-mode="ios"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="" loading="lazy"><span>iOS</span></button>
                 <button type="button" class="platform-mode" data-platform-mode="mixed"><span class="dual-platform-icons"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><span>Both</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="windows"><img src="https://cdn.simpleicons.org/windows/0078D4" alt="" loading="lazy"><span>Windows</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="macos"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="" loading="lazy"><span>macOS</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="desktop"><span class="dual-platform-icons"><img src="https://cdn.simpleicons.org/windows/0078D4" alt=""><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><span>Desktop</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="all"><span class="dual-platform-icons"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""><img src="https://cdn.simpleicons.org/windows/0078D4" alt=""></span><span>All</span></button>
               </div>
               <div class="ua-platform-grid">
                 <article class="ua-platform-card android-card" data-platform-card="android">
@@ -140,6 +144,18 @@
                   <input class="qty-range" id="uaIosRange" type="range" min="0" max="500" value="0" aria-label="iOS batch size">
                   <small>iPhone/iOS reference records</small>
                 </article>
+                <article class="ua-platform-card windows-card hidden" data-platform-card="windows">
+                  <div class="platform-card-head"><span class="platform-symbol windows-symbol"><img src="https://cdn.simpleicons.org/windows/0078D4" alt="Windows"></span><span class="platform-name">WINDOWS DESKTOP</span><span class="platform-live">OS CATALOG</span></div>
+                  <div class="qty-control"><button type="button" data-qty-step="windows" data-step="-1" aria-label="Decrease Windows quantity">−</button><input id="uaWindowsQty" type="number" min="0" max="500" value="0" inputmode="numeric" aria-label="Windows quantity"><button type="button" data-qty-step="windows" data-step="1" aria-label="Increase Windows quantity">+</button></div>
+                  <input class="qty-range" id="uaWindowsRange" type="range" min="0" max="500" value="0" aria-label="Windows batch size">
+                  <small>Windows 11 and Windows 10 releases</small>
+                </article>
+                <article class="ua-platform-card macos-card hidden" data-platform-card="macos">
+                  <div class="platform-card-head"><span class="platform-symbol macos-symbol"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="macOS"></span><span class="platform-name">macOS DESKTOP</span><span class="platform-live">OS CATALOG</span></div>
+                  <div class="qty-control"><button type="button" data-qty-step="macos" data-step="-1" aria-label="Decrease macOS quantity">−</button><input id="uaMacosQty" type="number" min="0" max="500" value="0" inputmode="numeric" aria-label="macOS quantity"><button type="button" data-qty-step="macos" data-step="1" aria-label="Increase macOS quantity">+</button></div>
+                  <input class="qty-range" id="uaMacosRange" type="range" min="0" max="500" value="0" aria-label="macOS batch size">
+                  <small>Latest 10 macOS major releases</small>
+                </article>
               </div>
               <div class="batch-presets"><span>QUICK BATCH</span><div>
                 <button type="button" data-batch-preset="10" class="active">10</button><button type="button" data-batch-preset="25">25</button><button type="button" data-batch-preset="50">50</button><button type="button" data-batch-preset="100">100</button><button type="button" data-batch-preset="250">250</button><button type="button" data-batch-preset="500">500</button>
@@ -148,8 +164,8 @@
               <p class="batch-limit-note" id="batchLimitNote">One batch can contain up to 500 records.</p>
             </section>
 
-            <section class="ua-card">
-              <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">02</span><div><h2>Device selection</h2><p>Randomize, balance or choose exact models.</p></div></div></div>
+            <section class="ua-card" id="uaMobileDeviceCard">
+              <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">02</span><div><h2>Mobile device selection</h2><p>Randomize, balance or choose exact Android/iPhone models.</p></div></div></div>
               <div class="distribution-grid" role="radiogroup" aria-label="Device distribution">
                 <label class="distribution-option selected"><input type="radio" name="uaDistribution" value="random" checked><span class="distribution-icon">↝</span><strong>Random</strong><small>Use all eligible models</small></label>
                 <label class="distribution-option"><input type="radio" name="uaDistribution" value="specific"><span class="distribution-icon">⌕</span><strong>Selected</strong><small>Choose exact devices</small></label>
@@ -170,6 +186,15 @@
                 <div class="field"><label for="uaAndroidOs">ANDROID VERSION</label><select class="form-control" id="uaAndroidOs"><option value="latest">Latest per device</option><option value="random">Random supported</option></select></div>
                 <div class="field"><label for="uaIosOs">iOS VERSION</label><select class="form-control" id="uaIosOs"><option value="latest">Latest per device</option><option value="random">Random supported</option></select></div>
               </div>
+            </section>
+
+            <section class="ua-card hidden" id="uaDesktopOsCard">
+              <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">02B</span><div><h2>Desktop OS releases</h2><p>Choose a Windows or macOS release for the output metadata.</p></div></div></div>
+              <div class="ua-os-grid desktop-os-grid">
+                <div class="field" id="uaWindowsOsField"><label for="uaWindowsOs">WINDOWS RELEASE</label><select class="form-control" id="uaWindowsOs"><option value="latest">Latest Windows release</option><option value="random">Random Windows release</option></select></div>
+                <div class="field" id="uaMacosOsField"><label for="uaMacosOs">macOS RELEASE</label><select class="form-control" id="uaMacosOs"><option value="latest">Latest macOS release</option><option value="random">Random macOS release</option></select></div>
+              </div>
+              <p class="field-hint desktop-os-note">Windows 10/11 and modern macOS releases use frozen platform tokens in standard browser User-Agents. The selected OS release/build is recorded separately; it is not inserted as a made-up token.</p>
             </section>
 
             <section class="ua-card">
@@ -193,7 +218,26 @@
                   <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="./icons/microsoftedge.svg" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Version list</small></span></label>
                 </div>
               </div>
-              <label class="include-apps-toggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
+              <div class="browser-platform-block" data-desktop-browser-platform="windows">
+                <div class="browser-platform-title"><span class="mini-platform windows-mini"><img src="https://cdn.simpleicons.org/windows/0078D4" alt=""></span><strong>Windows browsers</strong><small>Latest 5 stable releases per browser</small></div>
+                <div class="browser-choice-grid">
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="windows" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="windows"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="windows"><span class="browser-logo"><img src="./icons/microsoftedge.svg" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="windows"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Stable · 5 releases</small></span></label>
+                </div>
+              </div>
+              <div class="browser-platform-block" data-desktop-browser-platform="macos">
+                <div class="browser-platform-title"><span class="mini-platform macos-mini"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><strong>macOS browsers</strong><small>Latest 5 stable releases per browser</small></div>
+                <div class="browser-choice-grid">
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="macos"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="macos"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="macos"><span class="browser-logo"><img src="./icons/microsoftedge.svg" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="macos"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Stable · 5 releases</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="macos" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Stable · 5 releases</small></span></label>
+                </div>
+              </div>
+              <label class="include-apps-toggle" id="uaIncludeAppsToggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
               <div class="in-app-panel hidden" id="uaInAppPanel">
                 <div class="app-template-toolbar"><span id="uaTemplateSummary">Checking app template catalog…</span><input id="uaAppSearch" class="form-control" placeholder="Search apps…" autocomplete="off"></div>
                 <div class="app-template-grid" id="uaAppGrid"></div>
@@ -205,7 +249,7 @@
               <div class="advanced-content">
                 <div class="advanced-block">
                   <div class="advanced-block-title">Browser versions</div>
-                  <div class="field version-mode-field"><label for="uaVersionMode">VERSION MODE</label><select id="uaVersionMode" class="form-control"><option value="latest">Latest version (default)</option><option value="random3">Random · last 3 versions</option></select></div>
+                  <div class="field version-mode-field"><label for="uaVersionMode">VERSION MODE</label><select id="uaVersionMode" class="form-control"><option value="latest">Latest version (default)</option><option value="random5">Random · last 5 versions</option></select></div>
                   <div class="advanced-version-grid">
                     <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
                     <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
@@ -216,8 +260,17 @@
                     <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
                     <div class="field"><label for="uaEdgeIosVersion">EDGE iOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
                     <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaChromeWindowsVersion">CHROME WINDOWS</label><input id="uaChromeWindowsVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxWindowsVersion">FIREFOX WINDOWS</label><input id="uaFirefoxWindowsVersion" class="form-control" placeholder="Pick stable release" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeWindowsVersion">EDGE WINDOWS</label><input id="uaEdgeWindowsVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaOperaWindowsVersion">OPERA WINDOWS</label><input id="uaOperaWindowsVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaChromeMacosVersion">CHROME macOS</label><input id="uaChromeMacosVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxMacosVersion">FIREFOX macOS</label><input id="uaFirefoxMacosVersion" class="form-control" placeholder="Pick stable release" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeMacosVersion">EDGE macOS</label><input id="uaEdgeMacosVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaOperaMacosVersion">OPERA macOS</label><input id="uaOperaMacosVersion" class="form-control" placeholder="Desktop UA token version" autocomplete="off"></div>
+                    <div class="field"><label for="uaSafariMacosVersion">SAFARI macOS</label><input id="uaSafariMacosVersion" class="form-control" placeholder="Pick stable release" autocomplete="off"></div>
                   </div>
-                  <p class="field-hint">Every browser defaults to its latest catalog version. Pick another from a field's list, type an exact version, or use Random mode to vary each result across the last 3 versions.</p>
+                  <p class="field-hint">Pick a version from each field's list, enter an exact token, or use Random mode to vary each result across the last 5 stable releases. Chromium-family desktop tokens are reduced to major.0.0.0.</p>
                 </div>
                 <div class="advanced-block">
                   <div class="advanced-block-title">Locale</div>
@@ -392,8 +445,8 @@
           <aside class="ua-results-column">
             <div class="ua-results-card">
               <div class="results-heading"><div><div class="eyebrow">OUTPUT</div><h2>Generated User-Agents</h2><p id="uaResultSubtitle">Your batch will appear here.</p></div><span class="results-spark">✳</span></div>
-              <div class="results-summary"><div><span>TOTAL</span><strong id="uaResultTotal">0</strong></div><div><span>ANDROID</span><strong id="uaResultAndroid">0</strong></div><div><span>iOS</span><strong id="uaResultIos">0</strong></div></div>
-              <div class="result-filters"><button type="button" class="active" data-result-filter="all">All</button><button type="button" data-result-filter="android">Android</button><button type="button" data-result-filter="ios">iOS</button><button type="button" data-result-filter="apps">In-app</button></div>
+              <div class="results-summary"><div><span>TOTAL</span><strong id="uaResultTotal">0</strong></div><div><span>ANDROID</span><strong id="uaResultAndroid">0</strong></div><div><span>iOS</span><strong id="uaResultIos">0</strong></div><div><span>WINDOWS</span><strong id="uaResultWindows">0</strong></div><div><span>macOS</span><strong id="uaResultMacos">0</strong></div></div>
+              <div class="result-filters"><button type="button" class="active" data-result-filter="all">All</button><button type="button" data-result-filter="android">Android</button><button type="button" data-result-filter="ios">iOS</button><button type="button" data-result-filter="windows">Windows</button><button type="button" data-result-filter="macos">macOS</button><button type="button" data-result-filter="apps">In-app</button></div>
               <div class="ua-results-empty" id="generatorPreview"><div class="empty-orbit"><span>NX</span></div><strong>Ready when you are</strong><p>Choose a platform, device pool and browser, then generate your batch.</p></div>
               <div class="ua-results-list hidden" id="uaResultsList"></div>
               <div class="ua-result-actions hidden" id="exportActions">
@@ -492,6 +545,6 @@
 
 <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 <script src="./config.js"></script>
-<script src="./app.js?v=20261125-8"></script>
+<script src="./app.js?v=20261125-9"></script>
 </body>
 </html>

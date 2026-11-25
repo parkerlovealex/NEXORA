@@ -9,7 +9,7 @@ const APP_NAMES = {
   wechat: "WeChat", line: "LINE", kik: "Kik", discord: "Discord", viber: "Viber"
 };
 const state = {
-  data: null, devices: [], apiOnline: false, apiError: "", token: sessionStorage.getItem("nexora_admin_token") || "",
+  data: null, devices: [], desktopCatalog: null, desktopCatalogError: "", apiOnline: false, apiError: "", token: sessionStorage.getItem("nexora_admin_token") || "",
   isAdmin: false, dataset: [], appFilter: "all", uaTemplates: null, uaTemplateError: "",
   uaResults: [], selectedDevices: { android: [], ios: [] }, customQuantities: {}, selectedApps: [], platformMode: "android", appMode: false, resultFilter: "all", showAllResults: false, duplicatesBlocked: 0,
   deviceTab: "android", adminOverview: null, adminSources: [], adminRuns: [], adminAudit: []
@@ -19,7 +19,7 @@ const setText = (id, value) => { const el = $(id); if (el) el.textContent = valu
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 const BRAND_ICON_MAP = {
-  android:["android","3DDC84"], apple:["apple","FFFFFF"],
+  android:["android","3DDC84"], apple:["apple","FFFFFF"], windows:["windows","0078D4"], microsoft:["microsoft","FFFFFF"],
   chrome:["googlechrome","4285F4"], webview:["googlechrome","4285F4"],
   safari:["safari","0A84FF"], firefox:["firefoxbrowser","FF7139"],
   edge:["microsoftedge","0A84FF"], opera:["opera","FF1B2D"],
@@ -104,6 +104,14 @@ async function loadData() {
     if (templateResponse.ok) state.uaTemplates = await templateResponse.json();
     else state.uaTemplateError = templateResponse.status === 404 ? "UA template catalog has not been published." : `Template catalog unavailable (${templateResponse.status}).`;
   } catch (error) { state.uaTemplateError = error.message || "Template catalog unavailable."; }
+  state.desktopCatalog = null; state.desktopCatalogError = "";
+  try {
+    const desktopResponse = await fetch("./desktop-catalog.json", { cache: "no-store" });
+    if (!desktopResponse.ok) throw new Error(`Desktop catalog unavailable (${desktopResponse.status}).`);
+    state.desktopCatalog = await desktopResponse.json();
+  } catch (error) {
+    state.desktopCatalogError = error.message || "Desktop catalog unavailable.";
+  }
   renderAll();
   updateHealth();
 }
@@ -112,6 +120,12 @@ function allRecords() { return state.devices.map(item => ({ ...item.record, plat
 function meta() { return state.data?.meta || {}; }
 function versions() { return meta().versions || {}; }
 function apps() { return meta().apps || {}; }
+function desktopPlatform(platform) { return state.desktopCatalog?.platforms?.[platform] || null; }
+function desktopOsVersions(platform) { return desktopPlatform(platform)?.osVersions || []; }
+function desktopBrowserEntries(platform, browser) { return desktopPlatform(platform)?.browsers?.[browser]?.versions || []; }
+function desktopBrowserEntry(platform, browser, uaVersion) {
+  return desktopBrowserEntries(platform, browser).find(entry => entry.uaVersion === uaVersion) || null;
+}
 
 function updateHealth() {
   const dot = $("healthDot"), topDot = $("topStatusDot");
@@ -315,6 +329,20 @@ function setupUaGenerator() {
     if ([...el.options].some(o => o.value === previous)) el.value = previous;
   };
   fillOs("uaAndroidOs", androidVersions); fillOs("uaIosOs", iosVersions);
+  const fillDesktopOs = (id, platform) => {
+    const el = $(id), records = desktopOsVersions(platform);
+    if (!el || !records.length) return;
+    const previous = el.value;
+    const options = records.map(record => {
+      const detail = platform === "windows"
+        ? `${record.name} · build ${record.latestBuild || record.baseBuild}${record.latestBuildChannel ? ` · ${record.latestBuildChannel}` : ""}`
+        : `${record.name} · ${record.latestVersion || record.version}`;
+      return `<option value="${esc(record.id)}">${esc(detail)}</option>`;
+    }).join("");
+    el.innerHTML = `<option value="latest">Latest ${platform === "windows" ? "Windows" : "macOS"} release</option><option value="random">Random ${platform === "windows" ? "Windows" : "macOS"} release</option>${options}`;
+    if ([...el.options].some(option => option.value === previous)) el.value = previous;
+  };
+  fillDesktopOs("uaWindowsOs", "windows"); fillDesktopOs("uaMacosOs", "macos");
   const country = $("uaCountry");
   if (country && !country.dataset.ready) {
     country.innerHTML = UA_COUNTRIES.map(([code,name]) => `<option value="${esc(code)}">${esc(name)}</option>`).join("");
@@ -323,9 +351,26 @@ function setupUaGenerator() {
   const chromeVersion = versions().chrome || "";
   if ($("uaChromeVersion") && !$("uaChromeVersion").value) $("uaChromeVersion").value = chromeVersion;
   const browserVersionLists = (meta().browserVersions) || {};
-  const datalistFor = { uaChromeVersion:"chromeAndroid", uaSafariVersion:"safariIos", uaChromeIosVersion:"chromeIos", uaFirefoxAndroidVersion:"firefoxAndroid", uaFirefoxIosVersion:"firefoxIos", uaEdgeAndroidVersion:"edgeAndroid", uaEdgeIosVersion:"edgeIos", uaOperaVersion:"operaAndroid" };
-  for (const [inputId, key] of Object.entries(datalistFor)) {
-    const input = $(inputId), list = browserVersionLists[key] || [];
+  const datalistFor = {
+    uaChromeVersion:{kind:"mobile",key:"chromeAndroid"}, uaSafariVersion:{kind:"mobile",key:"safariIos"},
+    uaChromeIosVersion:{kind:"mobile",key:"chromeIos"}, uaFirefoxAndroidVersion:{kind:"mobile",key:"firefoxAndroid"},
+    uaFirefoxIosVersion:{kind:"mobile",key:"firefoxIos"}, uaEdgeAndroidVersion:{kind:"mobile",key:"edgeAndroid"},
+    uaEdgeIosVersion:{kind:"mobile",key:"edgeIos"}, uaOperaVersion:{kind:"mobile",key:"operaAndroid"},
+    uaChromeWindowsVersion:{kind:"desktop",platform:"windows",browser:"chrome"},
+    uaFirefoxWindowsVersion:{kind:"desktop",platform:"windows",browser:"firefox"},
+    uaEdgeWindowsVersion:{kind:"desktop",platform:"windows",browser:"edge"},
+    uaOperaWindowsVersion:{kind:"desktop",platform:"windows",browser:"opera"},
+    uaChromeMacosVersion:{kind:"desktop",platform:"macos",browser:"chrome"},
+    uaFirefoxMacosVersion:{kind:"desktop",platform:"macos",browser:"firefox"},
+    uaEdgeMacosVersion:{kind:"desktop",platform:"macos",browser:"edge"},
+    uaOperaMacosVersion:{kind:"desktop",platform:"macos",browser:"opera"},
+    uaSafariMacosVersion:{kind:"desktop",platform:"macos",browser:"safari"}
+  };
+  for (const [inputId, spec] of Object.entries(datalistFor)) {
+    const input = $(inputId);
+    const list = spec.kind === "desktop"
+      ? desktopBrowserEntries(spec.platform, spec.browser).map(entry => entry.uaVersion)
+      : browserVersionLists[spec.key] || [];
     if (!input || !list.length) continue;
     let dl = document.getElementById(`${inputId}List`);
     if (!dl) { dl = document.createElement("datalist"); dl.id = `${inputId}List`; input.after(dl); }
@@ -336,7 +381,7 @@ function setupUaGenerator() {
   if ($("uaChromiumEngineVersion") && !$("uaChromiumEngineVersion").value) $("uaChromiumEngineVersion").value = chromeVersion;
   $("chromeCatalogVersion").textContent = chromeVersion ? `Catalog · ${chromeVersion}` : "Version not in catalog";
   $("uaCatalogVersion").textContent = `DATA ${meta().dataVersion || "LOCAL"}`;
-  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS records`;
+  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS · 2 desktop platforms`;
   setText("uaDataVersion", meta().dataVersion || "Unversioned");
   setText("uaDataDevices", allRecords().length);
   setText("uaDataApps", Object.keys(apps()).length);
@@ -440,62 +485,120 @@ function wireLogoFallbacks() {
   });
 }
 
+function currentPlatformQuantities() {
+  return {
+    android: Math.max(0, Number($("uaAndroidQty")?.value) || 0),
+    ios: Math.max(0, Number($("uaIosQty")?.value) || 0),
+    windows: Math.max(0, Number($("uaWindowsQty")?.value) || 0),
+    macos: Math.max(0, Number($("uaMacosQty")?.value) || 0)
+  };
+}
 function updatePlatformCards() {
+  const qty = currentPlatformQuantities();
   document.querySelectorAll("[data-platform-mode]").forEach(button => {
     button.classList.toggle("active", button.dataset.platformMode === state.platformMode);
     button.setAttribute("aria-pressed", button.dataset.platformMode === state.platformMode ? "true" : "false");
   });
   document.querySelectorAll("[data-platform-card]").forEach(card => {
-    const show = state.platformMode === "mixed" || state.platformMode === card.dataset.platformCard;
+    const platform = card.dataset.platformCard;
+    const show = state.platformMode === "all"
+      || (state.platformMode === "mixed" && ["android","ios"].includes(platform))
+      || (state.platformMode === "desktop" && ["windows","macos"].includes(platform))
+      || state.platformMode === platform;
     card.classList.toggle("hidden", !show);
+  });
+  const hasMobile = qty.android > 0 || qty.ios > 0;
+  const hasWindows = qty.windows > 0;
+  const hasMacos = qty.macos > 0;
+  $("uaMobileDeviceCard")?.classList.toggle("hidden", !hasMobile);
+  $("uaIncludeAppsToggle")?.classList.toggle("hidden", !hasMobile);
+  $("uaInAppPanel")?.classList.toggle("hidden", !hasMobile || !$("uaIncludeApps")?.checked);
+  $("uaDesktopOsCard")?.classList.toggle("hidden", !hasWindows && !hasMacos);
+  $("uaWindowsOsField")?.classList.toggle("hidden", !hasWindows);
+  $("uaMacosOsField")?.classList.toggle("hidden", !hasMacos);
+  document.querySelectorAll("[data-desktop-browser-platform]").forEach(block => {
+    const show = block.dataset.desktopBrowserPlatform === "windows" ? hasWindows : hasMacos;
+    block.classList.toggle("hidden", !show);
   });
 }
 function setPlatformMode(mode) {
   const old = state.platformMode;
-  let android = Number($("uaAndroidQty").value) || 0;
-  let ios = Number($("uaIosQty").value) || 0;
-  if (mode === "android") { if (!android) android = 10; ios = 0; }
-  else if (mode === "ios") { if (!ios) ios = 10; android = 0; }
-  else {
-    if (old === "android" && android && !ios) ios = android;
-    else if (old === "ios" && ios && !android) android = ios;
-    else if (!android && !ios) { android = 5; ios = 5; }
+  const qty = currentPlatformQuantities();
+  const total = Object.values(qty).reduce((sum, value) => sum + value, 0);
+  if (["android","ios","windows","macos"].includes(mode)) {
+    qty[mode] = qty[mode] || 10;
+    for (const platform of Object.keys(qty)) if (platform !== mode) qty[platform] = 0;
+  } else if (mode === "mixed") {
+    let mobileTotal = qty.android + qty.ios;
+    if (!mobileTotal) mobileTotal = total || 10;
+    if (!qty.android && !qty.ios) { qty.android = Math.ceil(mobileTotal / 2); qty.ios = Math.floor(mobileTotal / 2); }
+    else if (old === "android" && qty.android && !qty.ios) qty.ios = qty.android;
+    else if (old === "ios" && qty.ios && !qty.android) qty.android = qty.ios;
+    qty.windows = 0; qty.macos = 0;
+  } else if (mode === "desktop") {
+    let desktopTotal = qty.windows + qty.macos;
+    if (!desktopTotal) desktopTotal = total || 10;
+    if (!qty.windows && !qty.macos) { qty.windows = Math.ceil(desktopTotal / 2); qty.macos = Math.floor(desktopTotal / 2); }
+    else if (old === "windows" && qty.windows && !qty.macos) qty.macos = qty.windows;
+    else if (old === "macos" && qty.macos && !qty.windows) qty.windows = qty.macos;
+    qty.android = 0; qty.ios = 0;
+  } else if (mode === "all") {
+    const target = total || 10;
+    qty.android = Math.ceil(target / 4);
+    qty.ios = Math.floor(target / 4);
+    qty.windows = Math.floor(target / 4);
+    qty.macos = target - qty.android - qty.ios - qty.windows;
   }
   state.platformMode = mode;
-  $("uaAndroidQty").value = android; $("uaIosQty").value = ios;
+  $("uaAndroidQty").value = qty.android; $("uaIosQty").value = qty.ios;
+  $("uaWindowsQty").value = qty.windows; $("uaMacosQty").value = qty.macos;
   updateUaTotals(); playUiSound("tap");
 }
 function applyBatchPreset(total) {
-  if (state.platformMode === "android") { $("uaAndroidQty").value = total; $("uaIosQty").value = 0; }
-  else if (state.platformMode === "ios") { $("uaAndroidQty").value = 0; $("uaIosQty").value = total; }
-  else {
-    $("uaAndroidQty").value = Math.ceil(total / 2);
-    $("uaIosQty").value = Math.floor(total / 2);
+  const qty = {android:0,ios:0,windows:0,macos:0};
+  if (["android","ios","windows","macos"].includes(state.platformMode)) qty[state.platformMode] = total;
+  else if (state.platformMode === "mixed") {
+    qty.android = Math.ceil(total / 2); qty.ios = Math.floor(total / 2);
+  } else if (state.platformMode === "desktop") {
+    qty.windows = Math.ceil(total / 2); qty.macos = Math.floor(total / 2);
+  } else {
+    qty.android = Math.ceil(total / 4);
+    qty.ios = Math.floor(total / 4);
+    qty.windows = Math.floor(total / 4);
+    qty.macos = total - qty.android - qty.ios - qty.windows;
   }
+  $("uaAndroidQty").value = qty.android; $("uaIosQty").value = qty.ios;
+  $("uaWindowsQty").value = qty.windows; $("uaMacosQty").value = qty.macos;
   document.querySelectorAll("[data-batch-preset]").forEach(button => button.classList.toggle("active", Number(button.dataset.batchPreset) === total));
   updateUaTotals(); playUiSound("tap");
 }
 function syncPlatformModeFromQuantities() {
-  const android = Number($("uaAndroidQty").value) || 0;
-  const ios = Number($("uaIosQty").value) || 0;
-  if (android > 0 && ios > 0) state.platformMode = "mixed";
-  else if (android > 0) state.platformMode = "android";
-  else if (ios > 0) state.platformMode = "ios";
+  const qty = currentPlatformQuantities();
+  const active = Object.keys(qty).filter(platform => qty[platform] > 0);
+  if (active.length === 1) state.platformMode = active[0];
+  else if (active.length === 2 && active.includes("android") && active.includes("ios")) state.platformMode = "mixed";
+  else if (active.length === 2 && active.includes("windows") && active.includes("macos")) state.platformMode = "desktop";
+  else if (active.length > 1) state.platformMode = "all";
   updatePlatformCards();
 }
 
 function updateUaTotals() {
-  const android = Math.max(0, Math.min(500, Number($("uaAndroidQty").value) || 0));
-  const ios = Math.max(0, Math.min(500, Number($("uaIosQty").value) || 0));
-  $("uaAndroidQty").value = android; $("uaIosQty").value = ios;
-  $("uaAndroidRange").value = android; $("uaIosRange").value = ios;
-  const total = android + ios;
+  const qty = currentPlatformQuantities();
+  for (const platform of ["android","ios","windows","macos"]) {
+    const capped = Math.max(0, Math.min(500, qty[platform]));
+    const title = platform[0].toUpperCase() + platform.slice(1);
+    $(`ua${title}Qty`).value = capped;
+    $(`ua${title}Range`).value = capped;
+  }
+  for (const platform of ["android","ios","windows","macos"]) qty[platform] = Math.max(0, Math.min(500, qty[platform]));
+  const total = Object.values(qty).reduce((sum, value) => sum + value, 0);
+  const summary = `Android ${qty.android} · iOS ${qty.ios} · Windows ${qty.windows} · macOS ${qty.macos}`;
   $("uaTotal").textContent = total;
-  $("uaReadySummary").textContent = `${android} Android · ${ios} iOS`;
-  if ($("uaBatchSummary")) $("uaBatchSummary").textContent = `${android} Android · ${ios} iOS`;
+  $("uaReadySummary").textContent = summary;
+  if ($("uaBatchSummary")) $("uaBatchSummary").textContent = summary;
   $("generateButtonCount").textContent = total;
   $("generateButton").disabled = total < 1 || total > 500;
-  $("batchLimitNote").textContent = total > 500 ? "Batch limit is 500. Reduce one platform quantity." : `${500 - total} slots remaining in this batch.`;
+  $("batchLimitNote").textContent = total > 500 ? "Batch limit is 500. Reduce one or more platform quantities." : `${500 - total} slots remaining in this batch.`;
   document.querySelectorAll("[data-batch-preset]").forEach(button => button.classList.toggle("active", Number(button.dataset.batchPreset) === total));
   updatePlatformCards();
 }
@@ -518,30 +621,69 @@ function getSelectedBrowsers(platform) {
   return [...document.querySelectorAll(`[data-browser][data-platform="${platform}"]:checked`)].map(x => x.dataset.browser);
 }
 const BROWSER_LABELS = { chrome:"Chrome", safari:"Safari", firefox:"Firefox", edge:"Edge", opera:"Opera", webview:"Android WebView" };
+function browserVersionInputId(platform, browser) {
+  const ids = {
+    android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion", webview:"uaChromiumEngineVersion" },
+    ios: { safari:"uaSafariVersion", chrome:"uaChromeIosVersion", firefox:"uaFirefoxIosVersion", edge:"uaEdgeIosVersion" },
+    windows: { chrome:"uaChromeWindowsVersion", firefox:"uaFirefoxWindowsVersion", edge:"uaEdgeWindowsVersion", opera:"uaOperaWindowsVersion" },
+    macos: { safari:"uaSafariMacosVersion", chrome:"uaChromeMacosVersion", firefox:"uaFirefoxMacosVersion", edge:"uaEdgeMacosVersion", opera:"uaOperaMacosVersion" }
+  };
+  return ids[platform]?.[browser] || "";
+}
 function browserUsable(platform, browser) {
   if (browserVersion(platform, browser)) return true;
   if (platform === "android" && (browser === "chrome" || browser === "webview")) return Boolean(versions().chrome);
   return false;
 }
 function browserVersion(platform, browser) {
-  if (browser !== "webview" && $("uaVersionMode")?.value === "random3") {
-    const key = { android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid" }, ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" } }[platform]?.[browser];
-    const list = key ? (meta().browserVersions || {})[key] || [] : [];
-    if (list.length) return list[Math.floor(Math.random() * Math.min(3, list.length))];
+  if (browser !== "webview" && $("uaVersionMode")?.value === "random5") {
+    let list = [];
+    if (platform === "windows" || platform === "macos") {
+      list = desktopBrowserEntries(platform, browser).map(entry => entry.uaVersion);
+    } else {
+      const key = {
+        android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid" },
+        ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" }
+      }[platform]?.[browser];
+      list = key ? (meta().browserVersions || {})[key] || [] : [];
+    }
+    if (list.length) return list[Math.floor(Math.random() * Math.min(5, list.length))];
   }
-  const ids = {
-    android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion", webview:"uaChromiumEngineVersion" },
-    ios: { safari:"uaSafariVersion", chrome:"uaChromeIosVersion", firefox:"uaFirefoxIosVersion", edge:"uaEdgeIosVersion" }
-  };
-  const id = ids[platform]?.[browser];
-  return id ? $(id).value.trim() : "";
+  const id = browserVersionInputId(platform, browser);
+  return id ? $(id)?.value.trim() || "" : "";
 }
 
-function buildBrowserUa(platform, device, osVersion, browser) {
+function buildBrowserUa(platform, device, osVersion, browser, versionOverride = null) {
+  const version = versionOverride || browserVersion(platform, browser);
+  if (platform === "windows" || platform === "macos") {
+    if (!version) throw new Error(`${BROWSER_LABELS[browser] || browser} ${platform} version is required. Open Advanced options.`);
+    const entry = desktopBrowserEntry(platform, browser, version);
+    const operaEngineByMajor = { "140":"157.0.0.0", "139":"155.0.0.0", "138":"154.0.0.0", "137":"153.0.0.0", "136":"152.0.0.0" };
+    const engineVersion = browser === "opera"
+      ? (entry?.engineVersion || operaEngineByMajor[version.split(".")[0]] || "")
+      : (entry?.engineVersion || version);
+    if (browser === "opera" && !engineVersion) throw new Error("Opera's Chromium engine version is unknown for this manual release; choose one of the five catalog versions.");
+    const chromiumPlatform = platform === "windows"
+      ? "Windows NT 10.0; Win64; x64"
+      : "Macintosh; Intel Mac OS X 10_15_7";
+    if (browser === "firefox") {
+      const firefoxPlatform = platform === "windows" ? "Windows NT 10.0; Win64; x64" : "Macintosh; Intel Mac OS X 10.15";
+      return `Mozilla/5.0 (${firefoxPlatform}; rv:${version}) Gecko/20100101 Firefox/${version}`;
+    }
+    if (browser === "safari") {
+      if (platform !== "macos") throw new Error("Safari is only available for macOS.");
+      return `Mozilla/5.0 (${chromiumPlatform}) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/${version} Safari/605.1.15`;
+    }
+    const base = `Mozilla/5.0 (${chromiumPlatform}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${engineVersion} Safari/537.36`;
+    if (browser === "chrome") return base;
+    if (browser === "edge") return `${base} Edg/${version}`;
+    if (browser === "opera") return `${base} OPR/${version}`;
+    throw new Error(`Unsupported ${platform} browser: ${browser}`);
+  }
+
   const model = device.uaModel || device.id;
   const build = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "";
   const engineVersion = $("uaChromiumEngineVersion").value.trim() || versions().chrome || "";
-  const version = browserVersion(platform, browser);
   if (platform === "android") {
     if (browser === "chrome") {
       const v = version || versions().chrome;
@@ -552,7 +694,7 @@ function buildBrowserUa(platform, device, osVersion, browser) {
       if (!engineVersion) throw new Error("Chromium engine version is missing from the database.");
       return `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/${engineVersion} Mobile Safari/537.36`;
     }
-    if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} Android version is required. Open Advanced options.`);
+    if (!version) throw new Error(`${BROWSER_LABELS[browser] || browser} Android version is required. Open Advanced options.`);
     if (browser === "firefox") return `Mozilla/5.0 (Android ${osVersion}; Mobile; rv:${version}) Gecko/${version} Firefox/${version}`;
     if (!engineVersion) throw new Error("Chromium engine version is required for Edge and Opera.");
     const base = `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${engineVersion} Mobile Safari/537.36`;
@@ -562,7 +704,7 @@ function buildBrowserUa(platform, device, osVersion, browser) {
   const ios = String(osVersion).replace(/\./g, "_");
   const mobileBuild = build || "15E148";
   const head = `Mozilla/5.0 (iPhone; CPU iPhone OS ${ios} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) `;
-  if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} iOS version is required. Open Advanced options.`);
+  if (!version) throw new Error(`${BROWSER_LABELS[browser] || browser} iOS version is required. Open Advanced options.`);
   if (browser === "safari") return `${head}Version/${version} Mobile/${mobileBuild} Safari/604.1`;
   if (browser === "chrome") return `${head}CriOS/${version} Mobile/${mobileBuild} Safari/604.1`;
   if (browser === "firefox") return `${head}FxiOS/${version} Mobile/${mobileBuild} Safari/605.1.15`;
@@ -586,6 +728,17 @@ function chooseOsVersion(device, platform) {
   if (value === "random") return supported[Math.floor(Math.random() * supported.length)];
   if (!supported.includes(value)) throw new Error(`${device.model} does not support selected OS ${value}.`);
   return value;
+}
+function chooseDesktopOs(platform) {
+  const select = $(platform === "windows" ? "uaWindowsOs" : "uaMacosOs");
+  const records = desktopOsVersions(platform);
+  if (!records.length) throw new Error(`${platform} OS release catalog is unavailable.`);
+  const value = select?.value || "latest";
+  if (value === "latest") return records[0];
+  if (value === "random") return records[Math.floor(Math.random() * records.length)];
+  const selected = records.find(record => record.id === value);
+  if (!selected) throw new Error(`Selected ${platform} release is not in the desktop catalog.`);
+  return selected;
 }
 
 function deviceSchedule(platform, quantity, mode) {
@@ -617,8 +770,8 @@ function deviceSchedule(platform, quantity, mode) {
 }
 
 function generateUaBatch() {
-  const qty = { android: Number($("uaAndroidQty").value)||0, ios: Number($("uaIosQty").value)||0 };
-  const total = qty.android + qty.ios;
+  const qty = currentPlatformQuantities();
+  const total = Object.values(qty).reduce((sum, value) => sum + value, 0);
   if (!total || total > 500) throw new Error("Choose a total between 1 and 500.");
   const mode = document.querySelector('input[name="uaDistribution"]:checked')?.value || "random";
   const locale = localeMeta();
@@ -626,26 +779,43 @@ function generateUaBatch() {
   const output = [], seen = new Set();
   const warnings = [];
   let duplicatesBlocked = 0;
-  for (const platform of ["android","ios"]) {
+  for (const platform of ["android","ios","windows","macos"]) {
     if (!qty[platform]) continue;
+    const isDesktop = platform === "windows" || platform === "macos";
+    const platformLabel = platform === "android" ? "Android" : platform === "ios" ? "iOS" : platform === "windows" ? "Windows" : "macOS";
     const selectedBrowsers = getSelectedBrowsers(platform);
     const browsers = selectedBrowsers.filter(b => browserUsable(platform, b));
     const skippedBrowsers = selectedBrowsers.filter(b => !browserUsable(platform, b));
-    const selectedAppIds = $("uaIncludeApps").checked
+    const selectedAppIds = !isDesktop && $("uaIncludeApps").checked
       ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform))
       : [];
     if (!browsers.length && !selectedAppIds.length) {
-      if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} ${platform === "ios" ? "iOS" : "Android"} version is required. Open Advanced options.`));
-      else warnings.push(`Choose a compatible ${platform.toUpperCase()} browser or an in-app app.`);
+      if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} ${platformLabel} version is required. Open Advanced options.`));
+      else warnings.push(`Choose a compatible ${platformLabel} browser${isDesktop ? "" : " or an in-app app"}.`);
       continue;
     }
     if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} skipped — no version set in Advanced options.`));
-    const schedule = deviceSchedule(platform, qty[platform], mode);
+    const schedule = isDesktop
+      ? Array.from({length: qty[platform]}, () => null)
+      : deviceSchedule(platform, qty[platform], mode);
     for (let i=0;i<schedule.length;i++) {
-      const device = schedule[i];
-      const osVersion = chooseOsVersion(device, platform);
-      const useApp = selectedAppIds.length && (browsers.length === 0 || (i % (browsers.length + selectedAppIds.length)) >= browsers.length);
-      let ua, browser, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [], appSource = null;
+      let device, osVersion, desktopOs = null;
+      if (isDesktop) {
+        desktopOs = chooseDesktopOs(platform);
+        osVersion = desktopOs.version;
+        device = {
+          id: `${platform}-desktop`,
+          brand: platform === "windows" ? "Microsoft" : "Apple",
+          model: platform === "windows" ? "Windows Desktop" : "Mac Desktop",
+          uaModel: null,
+          builds: {}
+        };
+      } else {
+        device = schedule[i];
+        osVersion = chooseOsVersion(device, platform);
+      }
+      const useApp = !isDesktop && selectedAppIds.length && (browsers.length === 0 || (i % (browsers.length + selectedAppIds.length)) >= browsers.length);
+      let ua, browser, selectedBrowserVersion = null, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [], appSource = null;
       if (useApp) {
         appId = selectedAppIds[i % selectedAppIds.length];
         const isVerified = verifiedTemplates(appId, platform).length > 0;
@@ -654,25 +824,49 @@ function generateUaBatch() {
         ua = built.ua; appVersion = built.appVersion; appBuild = built.appBuild; templateId = built.templateId; templateEvidence = built.evidence; browser = "In-app";
       } else {
         browser = browsers[i % browsers.length];
-        ua = buildBrowserUa(platform, device, osVersion, browser);
+        selectedBrowserVersion = browserVersion(platform, browser);
+        ua = buildBrowserUa(platform, device, osVersion, browser, selectedBrowserVersion);
       }
       if (dedupe && seen.has(ua)) { duplicatesBlocked++; continue; }
       seen.add(ua);
-      const buildId = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || null;
-      const browserVersionValue = appId ? null : browserVersion(platform, browser) || (platform === "android" && browser === "chrome" ? versions().chrome : browser === "webview" ? $("uaChromiumEngineVersion").value.trim() || versions().chrome : null);
-      const versionInputId = browser === "webview" ? "uaChromiumEngineVersion" : "uaChromeVersion";
+      const buildId = isDesktop ? null : (device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || null);
+      const resolvedBrowserVersion = appId ? null : selectedBrowserVersion;
+      const desktopBrowser = isDesktop ? desktopBrowserEntry(platform, browser, resolvedBrowserVersion) : null;
+      const browserVersionValue = appId ? null : (isDesktop ? (desktopBrowser?.releaseVersion || resolvedBrowserVersion) : resolvedBrowserVersion || (platform === "android" && browser === "chrome" ? versions().chrome : browser === "webview" ? $("uaChromiumEngineVersion").value.trim() || versions().chrome : null));
+      const versionInputId = browserVersionInputId(platform, browser);
+      const platformName = platformLabel;
+      const platformNote = platform === "windows"
+        ? "Selected Windows release/build is metadata. Standard reduced desktop UAs report Windows NT 10.0 for both Windows 10 and Windows 11."
+        : platform === "macos"
+          ? "Selected macOS release is metadata. Modern browser UAs use frozen Mac OS X 10_15_7 / 10.15 platform tokens."
+          : platform === "ios"
+            ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact iPhone model."
+            : "Generated compatibility UA; this does not alter the real runtime device.";
       output.push({
         id: `nexora-ua-${String(output.length+1).padStart(4,"0")}`,
-        platform: platform === "android" ? "Android" : "iOS",
-        deviceId: device.id, brand: device.brand, deviceModel: device.model,
-        modelIdentifier: device.uaModel || null, osVersion, buildId,
-        browser, browserVersion: browserVersionValue,
-        browserVersionSource: appId ? (appSource === "script-candidate-app" ? "script-candidate" : "verified-template") : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId).dataset.manual ? "database" : "manual"),
+        platform: platformName,
+        deviceId: isDesktop ? null : device.id,
+        brand: device.brand,
+        deviceModel: device.model,
+        modelIdentifier: device.uaModel || null,
+        osVersion,
+        osReleaseName: desktopOs?.name || null,
+        osReleaseId: desktopOs?.id || null,
+        osFamily: desktopOs?.family || null,
+        osBuild: desktopOs?.latestBuild || desktopOs?.baseBuild || null,
+        osSecurityBuild: desktopOs?.latestSecurityBuild || null,
+        osBuildChannel: desktopOs?.latestBuildChannel || null,
+        buildId,
+        browser,
+        browserVersion: browserVersionValue,
+        browserVersionToken: isDesktop ? resolvedBrowserVersion : null,
+        browserVersionSource: appId ? (appSource === "script-candidate-app" ? "script-candidate" : "verified-template") : (isDesktop ? (desktopBrowser ? "desktop-catalog" : "manual") : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId)?.dataset.manual ? "database" : "manual")),
         appId, appVersion, appBuild, templateId, templateEvidence, userAgent: ua,
         country: locale.country, language: locale.language, acceptLanguage: locale.acceptLanguage,
         catalogDataVersion: meta().dataVersion || null,
+        desktopCatalogDate: isDesktop ? state.desktopCatalog?.collectedAt || null : null,
         sourceType: appId ? appSource : "browser-template",
-        note: appSource === "script-candidate-app" ? "Script-candidate in-app UA — format supplied by the owner's scripts, not yet verified by the collection pipeline." : platform === "iOS" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
+        note: appSource === "script-candidate-app" ? "Script-candidate in-app UA — format supplied by the owner's scripts, not yet verified by the collection pipeline." : platformNote
       });
     }
   }
@@ -687,6 +881,8 @@ function renderUaResultsView() {
   $("uaResultTotal").textContent = rows.length;
   $("uaResultAndroid").textContent = rows.filter(x => x.platform === "Android").length;
   $("uaResultIos").textContent = rows.filter(x => x.platform === "iOS").length;
+  $("uaResultWindows").textContent = rows.filter(x => x.platform === "Windows").length;
+  $("uaResultMacos").textContent = rows.filter(x => x.platform === "macOS").length;
   $("uaResultSubtitle").textContent = rows.length
     ? `${rows.length} generated · ${meta().dataVersion || "local catalog"}${state.duplicatesBlocked ? ` · ${state.duplicatesBlocked} duplicates skipped` : ""}`
     : "Your batch will appear here.";
@@ -701,6 +897,8 @@ function renderUaResultsView() {
   const filtered = rows.map((record,index)=>({record,index})).filter(({record}) => {
     if (state.resultFilter === "android") return record.platform === "Android";
     if (state.resultFilter === "ios") return record.platform === "iOS";
+    if (state.resultFilter === "windows") return record.platform === "Windows";
+    if (state.resultFilter === "macos") return record.platform === "macOS";
     if (state.resultFilter === "apps") return Boolean(record.appId);
     return true;
   });
@@ -708,20 +906,25 @@ function renderUaResultsView() {
   $("uaResultsList").innerHTML = visible.map(({record:r,index:i}) => {
     const title = r.appId ? (UA_APP_NAMES[r.appId] || r.appId) : ({chrome:"Chrome",safari:"Safari",firefox:"Firefox",edge:"Edge",opera:"Opera",webview:"Android WebView"}[r.browser] || r.browser);
     const iconKey = r.appId || r.browser;
-    const platformLogo = r.platform === "Android" ? brandLogo("android","Android","result-platform-logo") : brandLogo("apple","Apple","result-platform-logo");
+    const platformLogo = r.platform === "Android" ? brandLogo("android","Android","result-platform-logo")
+      : r.platform === "iOS" ? brandLogo("apple","Apple","result-platform-logo")
+      : r.platform === "Windows" ? brandLogo("windows","Windows","result-platform-logo")
+      : brandLogo("apple","macOS","result-platform-logo");
+    const osLabel = r.osReleaseName || r.osVersion;
+    const buildLabel = r.osBuild ? ` · OS build ${esc(r.osBuild)}${r.osBuildChannel ? ` (${esc(r.osBuildChannel)})` : ""}` : r.buildId ? ` · device build ${esc(r.buildId)}` : "";
     const versionLine = r.appId
       ? `App ${esc(r.appVersion || "—")}${r.appBuild ? ` · build ${esc(r.appBuild)}` : ""}`
-      : `${esc(r.browserVersion || "Version not recorded")}`;
-    const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : "Browser template";
+      : `${esc(r.browserVersion || "Version not recorded")}${r.browserVersionToken && r.browserVersionToken !== r.browserVersion ? ` · UA token ${esc(r.browserVersionToken)}` : ""}`;
+    const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
     return `<article class="ua-result-item">
       <div class="ua-result-head">
         ${brandLogo(brandKey(r.brand), r.brand || title, "result-brand-logo")}
-        <div class="ua-result-title"><strong>${esc(r.brand || "")} ${esc(r.deviceModel)}</strong><small>${platformLogo}<span>${esc(r.platform)} · OS ${esc(r.osVersion)}${r.buildId ? ` · Build ${esc(r.buildId)}` : ""}</span></small></div>
+        <div class="ua-result-title"><strong>${esc(r.brand || "")} ${esc(r.deviceModel)}</strong><small>${platformLogo}<span>${esc(r.platform)} · OS ${esc(osLabel)}${buildLabel}</span></small></div>
         <button class="copy-one" type="button" data-copy-ua="${i}" aria-label="Copy User-Agent ${i+1}">Copy</button>
       </div>
-      <div class="ua-result-meta">${brandLogo(iconKey, title, "result-sub-logo")}<span><b>${esc(title)}</b> · ${esc(versionLine)}</span></div>
+      <div class="ua-result-meta">${brandLogo(iconKey, title, "result-sub-logo")}<span><b>${esc(title)}</b> · ${versionLine}</span></div>
       <pre class="ua-result-string">${esc(r.userAgent)}</pre>
-      <div class="ua-result-foot"><span>${esc(r.modelIdentifier || "")}</span><span>${esc(sourceLabel)}</span></div>
+      <div class="ua-result-foot"><span>${esc(r.modelIdentifier || r.osFamily || "")}</span><span>${esc(sourceLabel)}</span></div>
     </article>`;
   }).join("") || '<div class="device-list-empty">No results match this filter.</div>';
   if (filtered.length > visible.length) {
@@ -733,7 +936,6 @@ function renderUaResultsView() {
   $("exportActions").classList.remove("hidden");
   setText("uaDataVersion", meta().dataVersion || "Unversioned");
 }
-
 function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
 function exportDataset() {
   if (!state.dataset.length) return;
@@ -1037,9 +1239,10 @@ function bindEvents() {
   if (uaRoot) {
     uaRoot.addEventListener("input", event => {
       const t = event.target;
-      if (t.id === "uaAndroidQty" || t.id === "uaIosQty") { syncPlatformModeFromQuantities(); updateUaTotals(); }
-      if (t.id === "uaAndroidRange") { $("uaAndroidQty").value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
-      if (t.id === "uaIosRange") { $("uaIosQty").value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
+      const qtyPlatform = ["android","ios","windows","macos"].find(platform => t.id === `ua${platform[0].toUpperCase()+platform.slice(1)}Qty`);
+      if (qtyPlatform) { syncPlatformModeFromQuantities(); updateUaTotals(); }
+      const rangePlatform = ["android","ios","windows","macos"].find(platform => t.id === `ua${platform[0].toUpperCase()+platform.slice(1)}Range`);
+      if (rangePlatform) { $(`ua${rangePlatform[0].toUpperCase()+rangePlatform.slice(1)}Qty`).value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
       if (t.id === "uaDeviceSearch") renderUaDevicePicker();
       if (t.id === "uaAppSearch") renderUaApps();
       if (t.id === "uaChromeVersion" || t.id === "uaChromiumEngineVersion") t.dataset.manual = "1";
@@ -1079,7 +1282,9 @@ function bindEvents() {
       if (preset) { applyBatchPreset(Number(preset.dataset.batchPreset)); return; }
       const qtyButton = event.target.closest("[data-qty-step]");
       if (qtyButton) {
-        const input = $(qtyButton.dataset.qtyStep === "android" ? "uaAndroidQty" : "uaIosQty");
+        const platform = qtyButton.dataset.qtyStep;
+        const title = platform[0].toUpperCase() + platform.slice(1);
+        const input = $(`ua${title}Qty`);
         input.value = Math.max(0, Math.min(500, Number(input.value || 0) + Number(qtyButton.dataset.step)));
         syncPlatformModeFromQuantities(); updateUaTotals(); playUiSound("tap"); return;
       }
@@ -1118,7 +1323,7 @@ function bindEvents() {
       renderDatasetPreview();
       if (!state.dataset.length) showToast("No unique User-Agent strings matched this configuration.", "error");
       else {
-        const requested = Number($("uaAndroidQty").value) + Number($("uaIosQty").value);
+        const requested = ["android","ios","windows","macos"].reduce((sum, platform) => sum + (Number($(`ua${platform[0].toUpperCase()+platform.slice(1)}Qty`).value) || 0), 0);
         showToast((state.duplicatesBlocked
           ? `Generated ${state.dataset.length} of ${requested}; ${state.duplicatesBlocked} duplicates skipped.`
           : `Generated ${state.dataset.length} User-Agents.`) + (state.uaWarnings?.length ? " " + state.uaWarnings.join(" ") : ""));
