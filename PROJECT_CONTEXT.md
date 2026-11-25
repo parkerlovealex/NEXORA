@@ -363,3 +363,25 @@ catalog; the Android app consumes it; user profiles and saved generation
 batches remain local. Workstream A is complete. B is verified app-UA
 data collection. C is app integration. Browser reliability and
 real-device verification remain essential to Beta 0.1.
+
+
+## Current handoff — Website UX v2 (2026-11-25)
+
+The website source was redesigned from the supplied UserAgentGen saved page and the supplied `User-Agent.zip` Python scripts. The public entry point is now a focused generator, not a general data dashboard.
+
+- Platform: Android / iOS / Both.
+- Batch: 10/25/50/100/250/500 presets; combined max 500.
+- Device modes: Random / Selected / Balanced / Custom; searchable brand/model list.
+- Browser families: Android Chrome/Firefox/Edge/Opera/WebView; iOS Safari/Chrome/Firefox/Edge.
+- App mode: explicit opt-in. All 18 apps are listed; only verified `ua_templates.json` entries are selectable.
+- The supplied Facebook/Instagram scripts are shown as candidate format previews only. They do not become verified templates and randomized app IDs/build suffixes are not treated as official data.
+- Output: full UA preview, copy-one/copy-all, TXT one UA per line, JSON/CSV and local saved batches.
+- Locale: 148 reference language options; country filters catalog markets.
+- Public nav is generator-only; device/app catalogs and all admin tools are behind sign-in.
+- Single graphite/mint design; no theme picker or unrelated public tools.
+
+Verification: JS syntax passed; HTML has no duplicate IDs/missing direct DOM IDs; generator VM tests passed for Android, mixed Android+iOS, selected, balanced, custom, WebView and dedupe; 20 backend API/collector tests passed; device validator reports 59 devices / 0 errors / 0 warnings.
+
+Browser visual test is not claimed: Chromium navigation to local HTTP/file URLs was blocked with `ERR_BLOCKED_BY_ADMINISTRATOR`. Production deployment is not verified.
+
+No changes were made to `web/devices.json`, Android source/APK or `docs/UA_TEMPLATES_SPEC.md`. Workstream B still owns in-app template collection and verification.

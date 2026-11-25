@@ -1,17 +1,19 @@
 # NEXORA Next
 
-**Public device intelligence and compatibility-data platform with a private AI-assisted control center.**
+**Database-driven User-Agent generation studio with a private NEXORA system control center.**
 
 NEXORA Next upgrades the original NEXORA website while preserving the existing Android project and the original User-Agent generator as a separate legacy page.
 
 ## Product decisions
 
-- Public visitors can browse the device catalog, review application-version coverage and generate compatibility QA datasets.
+- The website opens directly into the mobile-first User-Agent Studio. Visitors can generate Android and iOS browser compatibility UA sets from the published device catalog.
+- Device-specific pools, random/balanced/custom distribution, browser-family selection, locale metadata, saved local batches and TXT/CSV/JSON exports are supported by the front end.
+- In-app browser options are displayed from the 18-app catalog but remain unavailable until a separate evidence-backed `web/ua_templates.json` catalog contains verified templates.
 - Only authenticated administrators can edit the shared catalog, change application metadata, run source monitoring, approve proposals or use the AI assistant.
 - Trusted structured sources can auto-publish only the narrowly configured version updates that pass validation (currently Chrome Stable from Google's Chrome Version History API).
 - New device discoveries and social application version candidates from official Google Play listings become evidence-bound proposals and require administrator approval.
 - AI suggestions never directly modify or publish records.
-- The Android application is not changed in this release. The API is versioned so Android sync can be added later.
+- The Android application is not changed by this website redesign. Its active Alpha source/build line remains separate.
 
 ## Project structure
 
@@ -23,9 +25,9 @@ NEXORA-main/
 │   ├── celery_app.py            # Optional scheduled worker configuration
 │   └── tasks.py                 # Background source-monitor task
 ├── web/
-│   ├── index.html               # NEXORA Next dashboard
-│   ├── app.js                   # Dashboard, public generator and admin UI
-│   ├── styles.css               # Responsive neutral dashboard design
+│   ├── index.html               # User-Agent Studio landing page + admin views
+│   ├── app.js                   # Database-backed UA generation and admin control center
+│   ├── styles.css               # Premium mobile-first visual system
 │   ├── config.js                # API origin configuration
 │   ├── devices.json             # Bundled public catalog fallback
 │   ├── generator-legacy.html    # Preserved original generator page
@@ -130,3 +132,27 @@ pytest -q
 - API rate limiting, CAPTCHA/abuse controls, managed backups, observability and database migrations must be configured before high-traffic production launch.
 
 See [Technical Specification](docs/TECHNICAL_SPEC.md) and [Deployment Guide](docs/DEPLOYMENT.md).
+
+
+## Website User-Agent Studio
+
+The public website now opens directly to the User-Agent Studio. It reads the current catalog from `/api/v1/data`, with `web/devices.json` as a read-only fallback.
+
+- Android and iOS quantities are independent; combined batch limit is 500.
+- Device pools support random, specific, balanced and custom distribution.
+- Only Chrome Android is prefilled from the current catalog's `meta.versions.chrome`. Other browser versions require an explicit value until a verified browser-version catalog is added.
+- Country filters devices by the catalog's supported market codes; language/Accept-Language are exported as metadata and are not inserted into standard UA strings.
+- App version/build records are not app UA templates. The 18 in-app browser choices remain pending and disabled until `web/ua_templates.json` is published with verified records.
+- Saved batches use browser-local storage. They are not uploaded to a customer cloud account.
+- iOS output is a compatibility UA template. It does not create a real iOS runtime, and standard iPhone UA strings do not expose the exact iPhone model.
+
+Administrator sign-in opens the System Overview and exposes catalog, compatibility, source automation, review queue, AI assistant, audit log and settings views. The dashboard intentionally does not expose secret environment-variable values.
+
+
+## Current website UX
+
+The public website opens directly into the focused NEXORA User-Agent generator. The v2 experience supports Android/iOS/mixed batches, batch presets up to 500, random/selected/balanced/custom device distribution, browser selection, optional verified in-app templates, full UA previews, one-line-per-UA TXT export, JSON/CSV, local saved sets and optional sound feedback.
+
+The supplied Python scripts are candidate format references only. In-app applications remain unavailable until the separate `ua_templates.json` collection is verified and published. Public visitors see only the generator; catalog and system administration remain behind administrator sign-in.
+
+See `docs/WEBSITE_UX_REDESIGN_V2.md`.

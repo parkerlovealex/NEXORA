@@ -43,3 +43,16 @@ the repository or ask a focused question instead of guessing.
 - Browser versions not present in the database must remain explicit/manual; do not silently insert guessed versions.
 - The Admin System Overview is private and uses existing admin APIs. Never expose secret values in frontend code.
 - Website changes do not imply Android APK changes or production deployment.
+
+
+## Website UX v2 rules
+
+- The public landing page is the focused User-Agent generator only. Do not add theme pickers, IP tools, SEO/marketing sections or unrelated widgets.
+- Keep the Android / iOS / Both platform switch, combined 500-record batch limit, quick presets and four device distribution modes.
+- Use real Simple Icons brand marks for Android, Apple, browser and app brands, with a text fallback if the icon CDN is unavailable.
+- Browser-only is the default. In-app generation is explicitly opt-in and must not add app-specific tokens when the toggle is off.
+- Only `verified` records from `ua_templates.json` are selectable. Facebook/Instagram Python scripts are candidate-format references only.
+- TXT export must contain one raw User-Agent per line. JSON/CSV may include metadata.
+- Keep all app-version and device data source-backed. Do not promote the UserAgentGen snapshot's browser versions into verified database values.
+- Device Catalog, App Versions and system administration are administrator-only in the website.
+- Read `docs/WEBSITE_UX_REDESIGN_V2.md` before changing the public generator.
