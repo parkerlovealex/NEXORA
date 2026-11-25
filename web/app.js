@@ -27,12 +27,12 @@ const BRAND_ICON_MAP = {
   instagram:["instagram","E4405F"], tiktok:["tiktok","FFFFFF"], x:["x","FFFFFF"],
   threads:["threads","FFFFFF"], linkedin:["linkedin","0A66C2"], pinterest:["pinterest","E60023"],
   reddit:["reddit","FF4500"], snapchat:["snapchat","FFFC00"], weibo:["sinaweibo","E6162D"],
-  telegram:["telegram","26A5E4"], messenger:["facebookmessenger","0866FF"],
+  telegram:["telegram","26A5E4"], messenger:["messenger","0866FF"],
   wechat:["wechat","07C160"], line:["line","06C755"], kik:["kik","82BC23"],
   discord:["discord","5865F2"], viber:["viber","7360F2"],
-  google:["google","4285F4"], samsung:["samsung","1428A0"], xiaomi:["xiaomi","FF6900"],
+  google:["google","4285F4"], xiaomi:["xiaomi","FF6900"],
   motorola:["motorola","E60000"], oneplus:["oneplus","F5010C"], oppo:["oppo","00A862"],
-  vivo:["vivo","415FFF"], realme:["realme","FFC915"], nothing:["nothing","FFFFFF"],
+  vivo:["vivo","415FFF"], 
   honor:["honor","FFFFFF"], huawei:["huawei","FF0000"], sony:["sony","FFFFFF"], asus:["asus","00539B"]
 };
 const BRAND_ALIASES = {
@@ -45,12 +45,14 @@ function brandKey(value) {
   const key = String(value || "").toLowerCase();
   return BRAND_ALIASES[key] || key.replace(/[^a-z0-9_]/g, "");
 }
+const LOCAL_ICONS = { microsoftedge: "./icons/microsoftedge.svg", linkedin: "./icons/linkedin.svg" };
 function brandLogo(name, label, extraClass = "") {
   const key = String(name || "").toLowerCase();
   const brand = BRAND_ICON_MAP[key] || BRAND_ICON_MAP[brandKey(label)] || null;
   const fallback = String(label || name || "N").trim().slice(0,1).toUpperCase();
   if (!brand) return `<span class="brand-logo ${extraClass}"><span>${esc(fallback)}</span></span>`;
-  return `<span class="brand-logo ${extraClass}"><img src="https://cdn.simpleicons.org/${brand[0]}/${brand[1]}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>${esc(fallback)}</span></span>`;
+  const src = LOCAL_ICONS[brand[0]] || `https://cdn.simpleicons.org/${brand[0]}/${brand[1]}`;
+  return `<span class="brand-logo ${extraClass}"><img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>${esc(fallback)}</span></span>`;
 }
 const UA_CANDIDATE_FORMATS = {
   facebook: {
