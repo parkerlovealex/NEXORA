@@ -1,0 +1,1464 @@
+{
+  "schemaVersion": 1,
+  "source": "NEXORA specs evidence: primary official findings plus secondary discovery observations",
+  "fetched_at": "2026-11-24T19:41:46+00:00",
+  "evidence_policy": "Primary official source required for publishable catalog values. Third-party values remain candidates; identity must be independently verified.",
+  "devices": {
+    "galaxy-s24": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/b61d5e15",
+            "quoted_text": "Model alias: SM-S921B; Resolution: 1080 x 2340 pixels; Pixel density: 416 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 416,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 416,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-s24-ultra": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/554d5e11",
+            "quoted_text": "Model alias: SM-S928U SM-S928B SM-S928N SM-S928; Resolution: 1440 x 3120 pixels; Pixel density: 505 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 505,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 505,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-s23": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/89ef5bb4",
+            "quoted_text": "Model alias: SM-S9110 SM-S911B SM-S911B/DS SM-S911E SM-S911E/DS SM-S911N SM-S911U SM-S911U1 SM-S911W; Resolution: 1080 x 2340 pixels; Pixel density: 422 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 422,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 422,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-a55": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/37ea5f5d",
+            "quoted_text": "Model alias: SM-A556B SM-A556B/DS; Resolution: 1080 x 2340 pixels; Pixel density: 390 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 390,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 390,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-a35": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/36565e5c",
+            "quoted_text": "Model alias: SM-A356B SM-A356B/DS; Resolution: 1080 x 2340 pixels; Pixel density: 390 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 390,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 390,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "pixel-9": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/9c4c60aa",
+            "quoted_text": "Model alias: GUR25 G2YBB; Resolution: 1080 x 2424 pixels; Pixel density: 421 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 421,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "1080 x 2424 OLED at 422 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 422,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9",
+              "resolution": [
+                1080,
+                2424
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 422,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 9 (tokay)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "tokay",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "tokay",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "pixel-9-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/53df60ab",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2424 pixels; Pixel density: 421 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 421,
+            "eligible": false,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "1280 x 2856 LTPO OLED at 495 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 495,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9 Pro",
+              "resolution": [
+                1280,
+                2856
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 495,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 9 Pro (caiman)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "caiman",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9 Pro",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "caiman",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "pixel-8": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/307a5df9",
+            "quoted_text": "Model alias: GPJ41 GKWS6 G9BQD; Resolution: 1080 x 2400 pixels; Pixel density: 424 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 424,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "(1080 x 2400) OLED at 428 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 428,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8",
+              "resolution": [
+                1080,
+                2400
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 428,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 8 (shiba)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "shiba",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "shiba",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "pixel-8a": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/a90b5fd4",
+            "quoted_text": "Model alias: G6GPR G8HHN; Resolution: 1080 x 2400 pixels; Pixel density: 431 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 431,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "1080 x 2400 OLED at 430 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 430,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8a",
+              "resolution": [
+                1080,
+                2400
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 430,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 8a (akita)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "akita",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8a",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "akita",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "pixel-7": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/93415ac1",
+            "quoted_text": "Model alias: GVU6C GQML3 G03Z5; Resolution: 1080 x 2400 pixels; Pixel density: 418 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 418,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "FHD+ (1080 x 2400) OLED at 416 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 416,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 7",
+              "resolution": [
+                1080,
+                2400
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 416,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 7 (panther)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "panther",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 7",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "panther",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "oneplus-12": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/bef05e84",
+            "quoted_text": "Model alias: PJD110; Resolution: 1440 x 3168 pixels; Pixel density: 510 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 510,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 510,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "oneplus-12r": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/66465f0d",
+            "quoted_text": "Model alias: None; Resolution: 1264 x 2780 pixels; Pixel density: 450 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 450,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 450,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "xiaomi-14": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/39d4628d",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2400 pixels; Pixel density: 395 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 395,
+            "eligible": false,
+            "source_class": "secondary"
+          },
+          {
+            "source": "xiaomi_official_specs",
+            "source_class": "primary",
+            "source_url": "https://www.mi.com/global/product/xiaomi-14/specs/",
+            "quoted_text": "1.5K 6.36\" AMOLED 2670 x 1200, 460 ppi LTPO",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 460,
+            "eligible": true,
+            "identity": {
+              "model_text": "Xiaomi Xiaomi 14",
+              "resolution": [
+                1200,
+                2670
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 460,
+          "sources": [
+            "xiaomi_official_specs"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "redmi-note-13": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/10b85ef8",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2400 pixels; Pixel density: 395 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 395,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 395,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "poco-x6": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/2d8c5efd",
+            "quoted_text": "Model alias: 23122PCD1G; Resolution: 1220 x 2712 pixels; Pixel density: 446 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 446,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 446,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "nothing-phone-2": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/953d5d33",
+            "quoted_text": "Model alias: A065; Resolution: 1080 x 2412 pixels; Pixel density: 394 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 394,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 394,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "motorola-edge-40": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/ee9c5c97",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2400 pixels; Pixel density: 402 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 402,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 402,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-s22": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/6ff55880",
+            "quoted_text": "Model alias: SM-S901E SM-S901E/DS SM-S901B SM-S901B/DS; Resolution: 1080 x 2340 pixels; Pixel density: 422 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 422,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 422,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "pixel-6a": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/4e1e596d",
+            "quoted_text": "Model alias: G1AZG GB62Z GX7AS GB62Z; Resolution: 1080 x 2340 pixels; Pixel density: 422 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 422,
+            "eligible": false,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "FHD + (1080 x 2400) OLED at 429 ppi",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 429,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 6a",
+              "resolution": [
+                1080,
+                2400
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 429,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 6a (bluejay)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "bluejay",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 6a",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "bluejay",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "galaxy-a15": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/76bf5ebe",
+            "quoted_text": "Model alias: SM-A155F/DSN SM-A155F; Resolution: 1080 x 2340 pixels; Pixel density: 396 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 396,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 396,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-s24-fe": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/822c613b",
+            "quoted_text": "Model alias: SM-S721B SM-S721B/DS SM-S721U1 SM-S721U SM-S721W SM-S7210 SM-S721N; Resolution: 1080 x 2340 pixels; Pixel density: 385 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 385,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 385,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-z-flip-6": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/ace3607f",
+            "quoted_text": "Model alias: Galaxy Z Flip 6; Resolution: 1080 x 2640 pixels; Pixel density: 426 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 426,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 426,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "galaxy-a25": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/5be45e5d",
+            "quoted_text": "Model alias: SM-A256 SM-A256E/DSN; Resolution: 1080 x 2340 pixels; Pixel density: 396 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 396,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 396,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "pixel-9a": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/234e62e7",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2424 pixels; Pixel density: 421 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 421,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "1080 x 2424 pOLED at 422.2 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 422.2,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9a",
+              "resolution": [
+                1080,
+                2424
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 422.2,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 9a (tegu)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "tegu",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 9a",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "tegu",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "pixel-8-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/60d75dfa",
+            "quoted_text": "Model alias: GC3VE G1MNW; Resolution: 1344 x 2992 pixels; Pixel density: 489 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 489,
+            "eligible": true,
+            "source_class": "secondary"
+          },
+          {
+            "source": "google_pixel_support",
+            "source_class": "primary",
+            "source_url": "https://support.google.com/pixelphone/answer/7158570?hl=en",
+            "quoted_text": "(1344 x 2992) LTPO OLED at 489 PPI",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 489,
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8 Pro",
+              "resolution": [
+                1344,
+                2992
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 489,
+          "sources": [
+            "google_pixel_support"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [
+          {
+            "source": "google_aosp_pixel_docs",
+            "source_class": "primary",
+            "source_url": "https://source.android.com/docs/setup/build/building-pixel-kernels",
+            "quoted_text": "Pixel 8 Pro (husky)",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": "husky",
+            "eligible": true,
+            "identity": {
+              "model_text": "Google Pixel 8 Pro",
+              "resolution": null,
+              "method": "official_aosp_device_mapping"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": "husky",
+          "sources": [
+            "google_aosp_pixel_docs"
+          ]
+        }
+      }
+    },
+    "redmi-note-13-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/31f95dd1",
+            "quoted_text": "Model alias: None; Resolution: 1220 x 2712 pixels; Pixel density: 446 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 446,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 446,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "poco-m6-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/15775ef9",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2400 pixels; Pixel density: 395 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 395,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 395,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "xiaomi-14t": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/81256140",
+            "quoted_text": "Model alias: None; Resolution: 1220 x 2712 pixels; Pixel density: 446 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 446,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 446,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "oneplus-nord-4": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/016160a2",
+            "quoted_text": "Model alias: None; Resolution: 1240 x 2772 pixels; Pixel density: 451 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 451,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 451,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "moto-g84": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/2cd75da8",
+            "quoted_text": "Model alias: PAYM0016IN; Resolution: 1080 x 2400 pixels; Pixel density: 402 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 402,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 402,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "vivo-v40": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/dbf3605e",
+            "quoted_text": "Model alias: None; Resolution: 1260 x 2800 pixels; Pixel density: 453 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 453,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 453,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "oppo-reno-12": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/c67f6064",
+            "quoted_text": "Model alias: Reno 12 CPH2625; Resolution: 1080 x 2412 pixels; Pixel density: 394 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 394,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 394,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "realme-12-pro-plus": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/51575f5c",
+            "quoted_text": "Model alias: Realme 12 Pro Plus; Resolution: 1080 x 2412 pixels; Pixel density: 394 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 394,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 394,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "honor-x9b": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/17f05e29",
+            "quoted_text": "Model alias: None; Resolution: 1200 x 2652 pixels; Pixel density: 429 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 429,
+            "eligible": false,
+            "source_class": "secondary"
+          },
+          {
+            "source": "honor_official_specs",
+            "source_class": "primary",
+            "source_url": "https://www.honor.com/ae-en/phones/honor-x9b/",
+            "quoted_text": "2652*1200; 429 PPI; 6.78-inch AMOLED display",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": 429,
+            "eligible": true,
+            "identity": {
+              "model_text": "Honor X9b",
+              "resolution": [
+                1200,
+                2652
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": 429,
+          "sources": [
+            "honor_official_specs"
+          ],
+          "secondary_dissent": null
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      },
+      "display_resolution": {
+        "observations": [
+          {
+            "source": "honor_official_specs",
+            "source_class": "primary",
+            "source_url": "https://www.honor.com/ae-en/phones/honor-x9b/",
+            "quoted_text": "2652*1200 Resolution",
+            "fetched_at": "2026-11-24T23:25:00Z",
+            "value": {
+              "w": 1200,
+              "h": 2652
+            },
+            "eligible": true,
+            "identity": {
+              "model_text": "Honor X9b",
+              "resolution": [
+                1200,
+                2652
+              ],
+              "method": "official_product_specs_model_match"
+            }
+          }
+        ],
+        "verdict": {
+          "status": "primary",
+          "value": {
+            "w": 1200,
+            "h": 2652
+          },
+          "sources": [
+            "honor_official_specs"
+          ]
+        }
+      }
+    },
+    "tecno-spark-20-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/fa9b5eb5",
+            "quoted_text": "Model alias: None; Resolution: 1080 x 2460 pixels; Pixel density: 396 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 396,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 396,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    },
+    "infinix-hot-40-pro": {
+      "ppi": {
+        "observations": [
+          {
+            "source": "devicespecifications",
+            "source_url": "https://www.devicespecifications.com/en/model/cfa25e86",
+            "quoted_text": "Model alias: X6837; Resolution: 1080 x 2460 pixels; Pixel density: 396 ppi",
+            "fetched_at": "2026-11-24T19:41:46+00:00",
+            "value": 396,
+            "eligible": true,
+            "source_class": "secondary"
+          }
+        ],
+        "verdict": {
+          "status": "secondary_only_candidate",
+          "value": null,
+          "candidate_value": 396,
+          "sources": [
+            "devicespecifications"
+          ]
+        }
+      },
+      "codename": {
+        "observations": [],
+        "verdict": {
+          "status": "none",
+          "value": null,
+          "sources": []
+        }
+      }
+    }
+  }
+}
