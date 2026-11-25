@@ -3,7 +3,7 @@
 **Status: APPROVED FOR COLLECTION — owner authorization received 2026-11-25.**  
 **Publication status: NOT PUBLISHED.** A validated proposal still requires separate owner approval before it is mirrored into the website/app runtime catalogs.
 
-The published device catalog remains `web/devices.json`, dataVersion `2026.11.25.6`. Workstream B must not edit it.
+The published device catalog remains `web/devices.json`, dataVersion `2026.11.25.7` (advanced from .6 on 2026-11-25 when vendor-sourced browser versions were added; app version/build histories unchanged). Workstream B must not edit it.
 
 ## 1. Purpose
 
