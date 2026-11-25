@@ -1,0 +1,167 @@
+name: NEXORA Specs Refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_path:
+        description: "Optional path to the canonical devices.json"
+        required: false
+        type: string
+  schedule:
+    - cron: "25 4 1 * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: nexora-specs-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout database repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-specs.txt
+
+      - name: Install collector
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-specs.txt
+
+      - name: Resolve canonical database path
+        id: paths
+        env:
+          INPUT_PATH: ${{ inputs.catalog_path }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_PATH:-}" ] && [ -f "$INPUT_PATH" ]; then
+            CATALOG_PATH="$INPUT_PATH"
+          elif [ -f "app/src/main/assets/devices.json" ]; then
+            CATALOG_PATH="app/src/main/assets/devices.json"
+          elif [ -f "devices.json" ]; then
+            CATALOG_PATH="devices.json"
+          else
+            echo "::error::Could not find app/src/main/assets/devices.json or root devices.json"
+            exit 1
+          fi
+          echo "catalog_path=$CATALOG_PATH" >> "$GITHUB_OUTPUT"
+          echo "CATALOG_PATH=$CATALOG_PATH" >> "$GITHUB_ENV"
+          mkdir -p output data/evidence/specs reports/specs
+
+      - name: Collect secondary specs observations
+        id: collect
+        continue-on-error: true
+        run: |
+          set +e
+          python tools/collect_specs.py \
+            --input "$CATALOG_PATH" \
+            --out output/devices.secondary-proposal.json \
+            --evidence output/specs-live-evidence.json \
+            --report output/REPORT-live-specs.md \
+            --report-json output/specs-live-report.json \
+            --live-blocked \
+            --fail-on-source-errors
+          RC=$?
+          echo "exit_code=$RC" >> "$GITHUB_OUTPUT"
+          echo "Collector exit code: $RC"
+          if [ ! -s output/devices.secondary-proposal.json ]; then
+            cp "$CATALOG_PATH" output/devices.secondary-proposal.json
+          fi
+          if [ ! -s output/specs-live-evidence.json ]; then
+            printf '{"schemaVersion":1,"devices":{}}\n' > output/specs-live-evidence.json
+          fi
+          exit 0
+
+      - name: Apply verified official findings
+        run: |
+          python tools/apply_official_findings.py \
+            --input output/devices.secondary-proposal.json \
+            --findings data/official-specs-findings.json \
+            --secondary-evidence output/specs-live-evidence.json \
+            --existing-evidence data/evidence/specs/latest.json \
+            --out output/devices.proposed.json \
+            --evidence output/specs-evidence.json \
+            --report output/REPORT-specs.md
+
+      - name: Validate proposal
+        id: validate
+        run: |
+          set -euo pipefail
+          python tools/validate_devices.py output/devices.proposed.json
+          python tools/validate_specs.py output/devices.proposed.json \
+            --evidence output/specs-evidence.json
+          set +e
+          python tools/validate_specs.py output/devices.proposed.json \
+            --evidence output/specs-evidence.json --strict \
+            > output/REPORT-strict-merge-gate.txt 2>&1
+          STRICT_RC=$?
+          set -e
+          echo "strict_exit_code=$STRICT_RC" >> "$GITHUB_OUTPUT"
+          cat output/REPORT-strict-merge-gate.txt
+
+      - name: Prepare review files
+        run: |
+          set -euo pipefail
+          cp output/devices.proposed.json "$CATALOG_PATH"
+          cp output/specs-evidence.json data/evidence/specs/latest.json
+          cp output/REPORT-specs.md reports/specs/latest.md
+          if [ -f output/REPORT-live-specs.md ]; then
+            cp output/REPORT-live-specs.md reports/specs/live-latest.md
+          else
+            echo "Collector did not produce a live report; inspect the workflow log." > reports/specs/live-latest.md
+          fi
+          cp output/REPORT-strict-merge-gate.txt reports/specs/strict-merge-gate.txt
+          cat > output/PR_BODY.md <<EOF
+          ## NEXORA device specs refresh
+
+          This is an automatically generated **draft** proposal. It is not
+          auto-merged.
+
+          - Collector exit code: ${{ steps.collect.outputs.exit_code }}
+          - Strict merge-gate exit code: ${{ steps.validate.outputs.strict_exit_code }}
+          - Source policy: primary official evidence only for canonical fields.
+          - Secondary-only DeviceSpecifications / PhoneDB / GSMArena results
+            remain evidence candidates and are not published.
+
+          Review:
+          - \`reports/specs/latest.md\`
+          - \`reports/specs/live-latest.md\`
+          - \`reports/specs/strict-merge-gate.txt\`
+
+          A blocked source is reported as blocked. No anti-bot challenge bypass
+          is attempted. Review the evidence before merging.
+          EOF
+
+      - name: Upload collection artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-specs-refresh-${{ github.run_id }}
+          path: |
+            output/
+            reports/specs/
+            data/evidence/specs/latest.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Open draft database update PR
+        if: steps.validate.outcome == 'success'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/nexora-specs-refresh
+          delete-branch: true
+          draft: true
+          title: "data: refresh verified device specs and codenames"
+          body-path: output/PR_BODY.md
+          commit-message: "data: refresh verified device specifications"
