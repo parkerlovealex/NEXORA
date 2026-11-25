@@ -130,6 +130,9 @@ def build_proposal(
         if status not in STATUSES:
             rejected.append({"finding": rid, "reason": f"unsupported status {status!r}"})
             continue
+        if status in {"pending", "verified", "outdated"} and not str(row.get("template") or "").strip():
+            rejected.append({"finding": rid, "reason": f"status {status} requires a normalized template; held in findings until its unresolved tokens can be slotted"})
+            continue
         row.setdefault("schemaVersion", 1)
         row.setdefault("slots", {})
         row.setdefault("evidence", [])
