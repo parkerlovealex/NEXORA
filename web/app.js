@@ -320,6 +320,16 @@ function setupUaGenerator() {
   }
   const chromeVersion = versions().chrome || "";
   if ($("uaChromeVersion") && !$("uaChromeVersion").value) $("uaChromeVersion").value = chromeVersion;
+  const browserVersionLists = (meta().browserVersions) || {};
+  const datalistFor = { uaChromeVersion:"chromeAndroid", uaSafariVersion:"safariIos", uaChromeIosVersion:"chromeIos", uaFirefoxAndroidVersion:"firefoxAndroid", uaFirefoxIosVersion:"firefoxIos", uaEdgeAndroidVersion:"edgeAndroid", uaEdgeIosVersion:"edgeIos", uaOperaVersion:"operaAndroid" };
+  for (const [inputId, key] of Object.entries(datalistFor)) {
+    const input = $(inputId), list = browserVersionLists[key] || [];
+    if (!input || !list.length) continue;
+    let dl = document.getElementById(`${inputId}List`);
+    if (!dl) { dl = document.createElement("datalist"); dl.id = `${inputId}List`; input.after(dl); }
+    input.setAttribute("list", dl.id);
+    dl.innerHTML = list.map(v => `<option value="${esc(v)}"></option>`).join("");
+  }
   if ($("uaChromiumEngineVersion") && !$("uaChromiumEngineVersion").value) $("uaChromiumEngineVersion").value = chromeVersion;
   $("chromeCatalogVersion").textContent = chromeVersion ? `Catalog · ${chromeVersion}` : "Version not in catalog";
   $("uaCatalogVersion").textContent = `DATA ${meta().dataVersion || "LOCAL"}`;

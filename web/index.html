@@ -7,7 +7,7 @@
   <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
   <title>NEXORA — User-Agent Generator</title>
   <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261125-5">
+  <link rel="stylesheet" href="./styles.css?v=20261125-6">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -178,19 +178,19 @@
                 <div class="browser-platform-title"><span class="mini-platform android-mini"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""></span><strong>Android browsers</strong><small>Choose one or more</small></div>
                 <div class="browser-choice-grid">
                   <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="android" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small id="chromeCatalogVersion">Database version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Version list</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Version list</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Version list</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="webview" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="WebView"></span><span><b>Android WebView</b><small>Chrome engine</small></span></label>
                 </div>
               </div>
               <div class="browser-platform-block">
                 <div class="browser-platform-title"><span class="mini-platform ios-mini"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><strong>iOS browsers</strong><small>WebKit-based</small></div>
                 <div class="browser-choice-grid">
-                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Version list</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Version list</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Version list</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Version list</small></span></label>
                 </div>
               </div>
               <label class="include-apps-toggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
@@ -208,13 +208,13 @@
                   <div class="advanced-version-grid">
                     <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
                     <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
-                    <div class="field"><label for="uaSafariVersion">SAFARI iOS</label><input id="uaSafariVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaChromeIosVersion">CHROME iOS</label><input id="uaChromeIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaFirefoxAndroidVersion">FIREFOX ANDROID</label><input id="uaFirefoxAndroidVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaFirefoxIosVersion">FIREFOX iOS</label><input id="uaFirefoxIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaEdgeIosVersion">EDGE iOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
-                    <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaSafariVersion">SAFARI iOS</label><input id="uaSafariVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaChromeIosVersion">CHROME iOS</label><input id="uaChromeIosVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxAndroidVersion">FIREFOX ANDROID</label><input id="uaFirefoxAndroidVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxIosVersion">FIREFOX iOS</label><input id="uaFirefoxIosVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeIosVersion">EDGE iOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
                   </div>
                   <p class="field-hint">Chrome Android uses the catalog version. Other browser versions must be entered explicitly.</p>
                 </div>
@@ -491,6 +491,6 @@
 
 <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 <script src="./config.js"></script>
-<script src="./app.js?v=20261125-5"></script>
+<script src="./app.js?v=20261125-6"></script>
 </body>
 </html>
