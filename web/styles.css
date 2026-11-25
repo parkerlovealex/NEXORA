@@ -706,3 +706,15 @@ body.is-admin .mobile-menu{display:grid}
   body.is-admin .sidebar{transform:translateX(-100%)}
   body.is-admin .sidebar.open{transform:translateX(0)}
 }
+
+/* Owner fixes 2026-11-25: compact heading, stacked result cards, app option layout */
+.generator-heading{align-items:center;margin-bottom:12px}
+.gen-title{display:flex;align-items:center;gap:11px}
+.gen-brand{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:17px;background:#223129;color:#cfe6d4;border:1px solid var(--nx-line)}
+.gen-title h1{font-size:20px;margin:0;letter-spacing:-.02em;line-height:1.1}
+.gen-title p{margin:2px 0 0;font-size:11px;color:var(--muted)}
+.ua-result-item{flex-direction:column;align-items:stretch}
+.ua-result-meta{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:10px;color:var(--muted)}
+.ua-result-meta .brand-logo{width:19px;height:19px;border-radius:6px}
+.ua-result-meta .brand-logo img{width:12px;height:12px}
+.app-template-option{flex-direction:column;align-items:stretch}

@@ -237,6 +237,58 @@ function verifiedTemplates(appId, platform) {
   const aliases = appId === "fb_lite" ? ["fb_lite", "fblite", "facebook_lite"] : [appId];
   return templateRecords().filter(row => aliases.includes(row.app) && row.platform === platform && row.status === "verified");
 }
+function hasCandidate(appId, platform) {
+  if (platform !== "android") return false;
+  const formats = UA_CANDIDATE_FORMATS[appId];
+  return Boolean(formats && (formats.android || formats.androidSamsung || formats.androidMotorola));
+}
+function candidateFormatFor(appId, platform, device) {
+  if (!hasCandidate(appId, platform)) return null;
+  const formats = UA_CANDIDATE_FORMATS[appId];
+  if (appId === "instagram") {
+    const brand = String(device?.brand || "").toLowerCase();
+    if (brand.includes("motorola")) return formats.androidMotorola || formats.androidSamsung || null;
+    return formats.androidSamsung || formats.android || null;
+  }
+  return formats.android || null;
+}
+function uaSlotContext(device, osVersion, appId) {
+  const app = apps()[appId] || {};
+  const appVersion = typeof app === "string" ? app : app.version || "";
+  const appBuild = typeof app === "object" ? app.build || "" : "";
+  const display = device.display || {};
+  const loc = localeMeta();
+  return {
+    osVersion, model: device.uaModel || device.id,
+    buildId: device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "",
+    chromeVersion: versions().chrome || "",
+    appVersion, appBuild, appBuildId: appBuild,
+    density: display.dpr ? `${Math.round(display.dpr * 160)}dpi` : "",
+    resolution: display.w && display.h ? `${display.w}x${display.h}` : "",
+    locale: (loc.language || "en-US").replace("-", "_"),
+    brand: device.brand || "", width: display.w || "", height: display.h || "",
+    codename: device.codename || "", chipset: device.soc || "",
+    androidFull: `Android ${osVersion}`,
+    sdkVersion: ({ "10":29,"11":30,"12":31,"13":33,"14":34,"15":35,"16":36,"17":37 })[String(osVersion).split(".")[0]] || ""
+  };
+}
+function fillUaTemplate(template, context, appId, platform) {
+  let ua = template || "";
+  const placeholders = [...ua.matchAll(/\{([A-Za-z0-9_]+)\}/g)].map(m => m[1]);
+  for (const key of placeholders) {
+    if (!(key in context) || context[key] === "") throw new Error(`Template ${appId}/${platform} has unresolved slot: ${key}`);
+    ua = ua.replaceAll(`{${key}}`, String(context[key]));
+  }
+  if (/\{[^}]+\}/.test(ua)) throw new Error(`Template ${appId}/${platform} contains unresolved placeholders.`);
+  return ua;
+}
+function buildCandidateAppUa(appId, platform, device, osVersion) {
+  const template = candidateFormatFor(appId, platform, device);
+  if (!template) throw new Error(`${UA_APP_NAMES[appId] || appId} has no usable script-candidate format for ${platform}.`);
+  const context = uaSlotContext(device, osVersion, appId);
+  const ua = fillUaTemplate(template, context, appId, platform);
+  return { ua, appVersion: context.appVersion, appBuild: context.appBuild, templateId: `${appId}-${platform}-script-candidate`, evidence: [] };
+}
 function platformDevices(platform) {
   const expected = platform === "android" ? "android" : "ios_emulation";
   const country = $("uaCountry")?.value || "";
@@ -328,8 +380,8 @@ function renderUaDevicePicker() {
 function renderUaApps() {
   const records = Object.entries(apps()).sort((a,b) => (UA_APP_NAMES[a[0]] || a[0]).localeCompare(UA_APP_NAMES[b[0]] || b[0]));
   const verified = templateRecords().filter(x => x.status === "verified");
-  const candidateCount = Object.values(UA_CANDIDATE_FORMATS).reduce((n, formats) => n + Object.keys(formats).length, 0);
-  $("uaTemplateSummary").textContent = `${verified.length} verified · ${candidateCount} script candidates · ${records.length} apps`;
+  const candidateCount = Object.keys(UA_CANDIDATE_FORMATS).length;
+  $("uaTemplateSummary").textContent = `${verified.length} verified · ${candidateCount} script-candidate apps · ${records.length} apps`;
   const q = ($("uaAppSearch")?.value || "").trim().toLowerCase();
   $("uaAppGrid").innerHTML = records.map(([id, raw]) => {
     const label = UA_APP_NAMES[id] || id;
@@ -346,12 +398,12 @@ function renderUaApps() {
     ).join("") : "";
     return `<article class="app-template-option ${ready ? "ready" : "pending"}">
       <label class="app-template-select">
-        <input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready ? "" : "disabled"}>
+        <input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready || candidate ? "" : "disabled"}>
         ${brandLogo(id, label, "app-logo")}
         <span class="app-template-copy"><b>${esc(label)}</b><small>${esc(version)}${build ? ` · build ${esc(build)}` : ""}</small></span>
         <span class="app-template-status ${ready ? "ready" : candidate ? "candidate" : "pending"}">${status}</span>
       </label>
-      ${candidate ? `<details class="app-format-preview"><summary>View supplied format</summary><div class="candidate-format-list">${previews}</div><p>Candidate source only. Not verified and not selectable until the collection pipeline approves it.</p></details>` : ""}
+      ${candidate ? `<details class="app-format-preview"><summary>View supplied format</summary><div class="candidate-format-list">${previews}</div><p>Candidate format from the supplied scripts. Selectable — generated results are labelled as unverified script candidates until the collection pipeline verifies them.</p></details>` : ""}
     </article>`;
   }).join("") || '<div class="device-list-empty">No matching applications.</div>';
 }
@@ -496,31 +548,9 @@ function buildBrowserUa(platform, device, osVersion, browser) {
 function buildVerifiedAppUa(appId, platform, device, osVersion) {
   const row = verifiedTemplates(appId, platform)[0];
   if (!row) throw new Error(`${UA_APP_NAMES[appId] || appId} has no verified ${platform} template.`);
-  const app = apps()[appId] || {};
-  const appVersion = typeof app === "string" ? app : app.version;
-  const appBuild = typeof app === "object" ? app.build : "";
-  const display = device.display || {};
-  const loc = localeMeta();
-  const context = {
-    osVersion, model: device.uaModel || device.id,
-    buildId: device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "",
-    chromeVersion: versions().chrome || "",
-    appVersion: appVersion || "", appBuild: appBuild || "",
-    density: display.dpr ? `${Math.round(display.dpr * 160)}dpi` : "",
-    resolution: display.w && display.h ? `${display.w}x${display.h}` : "",
-    locale: (loc.language || "en-US").replace("-", "_"),
-    brand: device.brand || "", width: display.w || "", height: display.h || "",
-    sdkVersion: ({ "10":29,"11":30,"12":31,"13":33,"14":34,"15":35,"16":36,"17":37 })[String(osVersion).split(".")[0]] || ""
-  };
-  let ua = row.template || "";
-  const slots = row.slots || {};
-  const placeholders = [...ua.matchAll(/\{([A-Za-z0-9_]+)\}/g)].map(m => m[1]);
-  for (const key of placeholders) {
-    if (!(key in context) || context[key] === "") throw new Error(`Template ${appId}/${platform} has unresolved slot: ${key}`);
-    ua = ua.replaceAll(`{${key}}`, String(context[key]));
-  }
-  if (/\{[^}]+\}/.test(ua)) throw new Error(`Template ${appId}/${platform} contains unresolved placeholders.`);
-  return { ua, appVersion, appBuild, templateId: row.id || `${appId}-${platform}`, evidence: row.evidence || [] };
+  const context = uaSlotContext(device, osVersion, appId);
+  const ua = fillUaTemplate(row.template || "", context, appId, platform);
+  return { ua, appVersion: context.appVersion, appBuild: context.appBuild, templateId: row.id || `${appId}-${platform}`, evidence: row.evidence || [] };
 }
 function chooseOsVersion(device, platform) {
   const select = $(platform === "android" ? "uaAndroidOs" : "uaIosOs");
@@ -574,18 +604,20 @@ function generateUaBatch() {
     if (!qty[platform]) continue;
     const browsers = getSelectedBrowsers(platform);
     const selectedAppIds = $("uaIncludeApps").checked
-      ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length)
+      ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform))
       : [];
-    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose a compatible ${platform.toUpperCase()} browser or a verified in-app template.`);
+    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose a compatible ${platform.toUpperCase()} browser or an in-app app.`);
     const schedule = deviceSchedule(platform, qty[platform], mode);
     for (let i=0;i<schedule.length;i++) {
       const device = schedule[i];
       const osVersion = chooseOsVersion(device, platform);
       const useApp = selectedAppIds.length && (browsers.length === 0 || (i % (browsers.length + selectedAppIds.length)) >= browsers.length);
-      let ua, browser, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [];
+      let ua, browser, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [], appSource = null;
       if (useApp) {
         appId = selectedAppIds[i % selectedAppIds.length];
-        const built = buildVerifiedAppUa(appId, platform, device, osVersion);
+        const isVerified = verifiedTemplates(appId, platform).length > 0;
+        appSource = isVerified ? "verified-app-template" : "script-candidate-app";
+        const built = isVerified ? buildVerifiedAppUa(appId, platform, device, osVersion) : buildCandidateAppUa(appId, platform, device, osVersion);
         ua = built.ua; appVersion = built.appVersion; appBuild = built.appBuild; templateId = built.templateId; templateEvidence = built.evidence; browser = "In-app";
       } else {
         browser = browsers[i % browsers.length];
@@ -602,12 +634,12 @@ function generateUaBatch() {
         deviceId: device.id, brand: device.brand, deviceModel: device.model,
         modelIdentifier: device.uaModel || null, osVersion, buildId,
         browser, browserVersion: browserVersionValue,
-        browserVersionSource: appId ? "verified-template" : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId).dataset.manual ? "database" : "manual"),
+        browserVersionSource: appId ? (appSource === "script-candidate-app" ? "script-candidate" : "verified-template") : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId).dataset.manual ? "database" : "manual"),
         appId, appVersion, appBuild, templateId, templateEvidence, userAgent: ua,
         country: locale.country, language: locale.language, acceptLanguage: locale.acceptLanguage,
         catalogDataVersion: meta().dataVersion || null,
-        sourceType: appId ? "verified-app-template" : "browser-template",
-        note: platform === "iOS" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
+        sourceType: appId ? appSource : "browser-template",
+        note: appSource === "script-candidate-app" ? "Script-candidate in-app UA — format supplied by the owner's scripts, not yet verified by the collection pipeline." : platform === "iOS" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
       });
     }
   }
@@ -645,14 +677,16 @@ function renderUaResultsView() {
     const versionLine = r.appId
       ? `App ${esc(r.appVersion || "—")}${r.appBuild ? ` · build ${esc(r.appBuild)}` : ""}`
       : `${esc(r.browserVersion || "Version not recorded")}`;
+    const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : "Browser template";
     return `<article class="ua-result-item">
       <div class="ua-result-head">
-        ${brandLogo(iconKey,title,"result-brand-logo")}
-        <div class="ua-result-title"><strong>${esc(title)}</strong><small>${platformLogo}<span>${esc(r.platform)} · ${esc(r.deviceModel)} · ${esc(r.osVersion)}</span></small></div>
+        ${brandLogo(brandKey(r.brand), r.brand || title, "result-brand-logo")}
+        <div class="ua-result-title"><strong>${esc(r.brand || "")} ${esc(r.deviceModel)}</strong><small>${platformLogo}<span>${esc(r.platform)} · OS ${esc(r.osVersion)}${r.buildId ? ` · Build ${esc(r.buildId)}` : ""}</span></small></div>
         <button class="copy-one" type="button" data-copy-ua="${i}" aria-label="Copy User-Agent ${i+1}">Copy</button>
       </div>
+      <div class="ua-result-meta">${brandLogo(iconKey, title, "result-sub-logo")}<span><b>${esc(title)}</b> · ${esc(versionLine)}</span></div>
       <pre class="ua-result-string">${esc(r.userAgent)}</pre>
-      <div class="ua-result-foot"><span>${esc(r.brand || "")}</span><span>${esc(versionLine)}</span></div>
+      <div class="ua-result-foot"><span>${esc(r.modelIdentifier || "")}</span><span>${esc(sourceLabel)}</span></div>
     </article>`;
   }).join("") || '<div class="device-list-empty">No results match this filter.</div>';
   if (filtered.length > visible.length) {

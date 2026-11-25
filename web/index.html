@@ -7,7 +7,7 @@
   <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
   <title>NEXORA — User-Agent Generator</title>
   <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261125-3">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -112,10 +112,12 @@
 
       <section class="view active" id="view-generator">
         <div class="generator-heading">
-          <div>
-            <div class="eyebrow">NEXORA / GENERATOR</div>
-            <h1>User-Agent generator</h1>
-            <p>Build clean browser and in-app batches from the NEXORA catalog.</p>
+          <div class="gen-title">
+            <span class="brand-mark gen-brand">N</span>
+            <div>
+              <h1>Nexora</h1>
+              <p>User-Agent Generator</p>
+            </div>
           </div>
           <div class="catalog-status">
             <span class="status-dot" id="catalogStatusDot"></span>
@@ -187,7 +189,7 @@
                 <div class="browser-choice-grid">
                   <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="android" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small id="chromeCatalogVersion">Database version</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.hidden=true"></span><span><b>Edge</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Manual version</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Manual version</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="webview" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="WebView"></span><span><b>Android WebView</b><small>Chrome engine</small></span></label>
                 </div>
@@ -198,7 +200,7 @@
                   <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Manual version</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Manual version</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.hidden=true"></span><span><b>Edge</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge" onerror="this.remove()"></span><span><b>Edge</b><small>Manual version</small></span></label>
                 </div>
               </div>
               <label class="include-apps-toggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
@@ -506,6 +508,6 @@
 
 <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 <script src="./config.js"></script>
-<script src="./app.js"></script>
+<script src="./app.js?v=20261125-3"></script>
 </body>
 </html>
