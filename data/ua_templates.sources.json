@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-25",
+  "sources": [
+    {
+      "sourceId": "useragent-in-inapp-corpus",
+      "name": "useragent.in — In-App Browsers category",
+      "sourceUrl": "https://useragent.in/user-agents",
+      "termsUrl": "https://useragent.in/terms",
+      "category": "In-App Browsers",
+      "reportedRecordCount": 108,
+      "reportedCoverage": [
+        "Facebook",
+        "Instagram",
+        "TikTok",
+        "WeChat",
+        "LINE",
+        "Electron desktop apps"
+      ],
+      "datasetIndexUrl": "https://useragent.in/assets/data/index.json",
+      "datasetFile": "discover from index.json; do not guess a filename",
+      "retrievalStatus": "not-retrieved",
+      "retrievedAt": null,
+      "sourceNotes": [
+        "The category page reports 108 in-app browser user-agent entries.",
+        "The site says in-app entries are transcribed from real observed traffic; desktop/mobile/tablet categories are generated from real components.",
+        "The page warns that not every generated cross-product row corresponds to a shipping configuration; retain row-level source classification.",
+        "The terms permit download, use, modification and redistribution including commercial use; attribution is appreciated but not required.",
+        "The local collection runtime could not resolve the host; no raw category data was downloaded. A GitHub Actions runner should retry.",
+        "The category page says in-app entries are transcribed from real observed traffic, but the Terms of Use also state that the dataset is not a sample of live traffic and that entries do not all correspond to shipping configurations; treat rows as published dataset evidence, not raw telemetry.",
+        "The site notes iOS/iPadOS base User-Agent strings do not expose the exact iPhone/iPad model; any app-specific model token must be independently observed before using a model slot."
+      ],
+      "nextAction": "Fetch index.json, discover the exact In-App Browsers dataset filename, preserve raw JSON and decoder version, then ingest rows with source row IDs.",
+      "retrievalAttempts": {
+        "web_browser": "HTTP 429 Too Many Requests",
+        "python_urllib": "DNS resolution failure (Temporary failure in name resolution)",
+        "raw_rows_preserved": false
+      },
+      "evidenceKind": "published-dataset-entry"
+    },
+    {
+      "sourceId": "github-inapp-debugger-issue-16",
+      "name": "GitHub inapp-debugger issue #16 — user-submitted observed examples",
+      "sourceUrl": "https://github.com/shalanah/inapp-debugger/issues/16",
+      "category": "technical-reference",
+      "reportedRecordCount": 2,
+      "retrievalStatus": "indexed-search-snippet-only",
+      "sourceNotes": [
+        "Contains user-submitted iOS Facebook and Instagram in-app UA examples; sample app versions are historical and must not be mixed with current app version/build pairs."
+      ]
+    },
+    {
+      "sourceId": "deviceatlas-mobile-ua-reference",
+      "name": "DeviceAtlas — mobile browser user-agent strings",
+      "sourceUrl": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
+      "category": "technical-reference",
+      "retrievalStatus": "indexed-search-snippet-only",
+      "sourceNotes": [
+        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews."
+      ]
+    },
+    {
+      "sourceId": "appy-inapp-checker",
+      "name": "Appy — in-app browser checker",
+      "sourceUrl": "https://appy.to/tools/in-app-browser-checker",
+      "category": "technical-reference",
+      "retrievalStatus": "indexed-search-result",
+      "sourceNotes": [
+        "Describes in-app browser behavior and an Instagram sample shape; corroboration is still required for any verified NEXORA template."
+      ]
+    }
+  ]
+}
