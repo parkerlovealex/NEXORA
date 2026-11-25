@@ -66,5 +66,38 @@
       "26.6",
       "26.5"
     ]
+  },
+  "desktopCatalog": {
+    "file": "data/desktop-platforms-2026-11-25.json",
+    "websiteAsset": "web/desktop-catalog.json",
+    "collected": "2026-11-25",
+    "summary": {
+      "windows11ReleaseTrains": [
+        "26H2",
+        "26H1",
+        "25H2",
+        "24H2",
+        "23H2"
+      ],
+      "windows10ReleaseTrains": [
+        "22H2",
+        "21H2",
+        "21H1"
+      ],
+      "macosMajorVersions": [
+        "27",
+        "26",
+        "15",
+        "14",
+        "13",
+        "12",
+        "11",
+        "10.15",
+        "10.14",
+        "10.13"
+      ],
+      "browserVersionPolicy": "Five latest stable release trains per supported desktop browser; Chromium-family UA tokens are major.0.0.0."
+    },
+    "sourceRefresh": "2026-11-25"
   }
 }
