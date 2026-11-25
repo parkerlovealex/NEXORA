@@ -2,7 +2,7 @@
 
 **Purpose:** Persistent project memory for ChatGPT, coding agents,
 researchers and developers.\
-**Last updated:** 2026-11-25\
+**Last updated:** 2026-11-25 (website redesign package)\
 **Status:** Living document --- update after every meaningful milestone.
 
 > Read this file before planning or changing NEXORA. Distinguish
@@ -312,7 +312,33 @@ files changed and commit/PR references. - Record tests actually run and
 their results. - Record remaining defects and next milestone. - Keep
 completed work closed unless a regression is proven.
 
-## 10. Immediate next steps
+## 10. Website status — User-Agent Studio redesign
+
+**Status: Implemented in the uploaded website source package; deployment not verified.**
+
+The website root (`web/index.html`) now opens directly to a premium, mobile-first User-Agent Studio rather than the old device-intelligence overview.
+
+Implemented in this source package:
+- Mixed Android/iOS quantities with a combined 500-record limit.
+- Random, selected-pool, balanced and custom per-device distribution.
+- Searchable device catalog and per-platform OS version selection.
+- Platform-specific browser family selection.
+- Chrome Android version sourced from the current database; other browser versions require explicit user input until a verified browser-version catalog exists.
+- Optional in-app browser catalog showing all 18 apps. Because this repository does not contain `web/ua_templates.json`, all app templates remain Pending and disabled. No app-specific tokens are fabricated.
+- Country filters the catalog by supported market; language/Accept-Language metadata, duplicate removal, copy, TXT/CSV/JSON export and browser-local saved batches.
+- Optional interface sounds (off by default) and reduced-motion support.
+- Admin System Overview with API/catalog/device/app/template/source/review status, plus existing device, app, compatibility, automation, review, AI, audit and settings pages.
+
+Important boundaries:
+- Browser UA outputs are compatibility templates, not hardware-level fingerprint modification.
+- iOS output is a reference UA template, not native iOS runtime emulation. Standard iPhone UA strings do not identify exact iPhone models.
+- Country/language metadata is not inserted into standard UA strings.
+- No Android APK changes are included.
+- Deployment is not verified. Static Vercel hosting needs `NEXORA_CONFIG.apiBase` pointed at the FastAPI service for admin APIs; bundled catalog fallback remains read-only.
+
+Full details: `docs/WEBSITE_GENERATOR_REDESIGN.md`.
+
+## 11. Immediate next steps
 
 1.  Inspect the actual database repository and confirm whether
     `docs/UA_TEMPLATES_SPEC.md` exists on the intended branch.

@@ -32,3 +32,14 @@ Before doing any NEXORA work:
 
 Prefer small, tested, reviewable changes. If context is missing, inspect
 the repository or ask a focused question instead of guessing.
+
+
+## Website work
+
+- The website root is the User-Agent Studio; do not restore the old overview as the public landing page.
+- Read `docs/WEBSITE_GENERATOR_REDESIGN.md` before changing the website generator.
+- Keep mixed Android/iOS quantities, device selection modes, optional app templates, exports and local saved sets.
+- App-version data is not app-UA evidence. Do not enable an in-app app unless its template status is `verified` in `web/ua_templates.json`.
+- Browser versions not present in the database must remain explicit/manual; do not silently insert guessed versions.
+- The Admin System Overview is private and uses existing admin APIs. Never expose secret values in frontend code.
+- Website changes do not imply Android APK changes or production deployment.
