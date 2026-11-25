@@ -15,6 +15,7 @@ const state = {
   deviceTab: "android", adminOverview: null, adminSources: [], adminRuns: [], adminAudit: []
 };
 const $ = (id) => document.getElementById(id);
+const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 const BRAND_ICON_MAP = {
@@ -323,12 +324,12 @@ function setupUaGenerator() {
   $("chromeCatalogVersion").textContent = chromeVersion ? `Catalog · ${chromeVersion}` : "Version not in catalog";
   $("uaCatalogVersion").textContent = `DATA ${meta().dataVersion || "LOCAL"}`;
   $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS records`;
-  $("uaDataVersion").textContent = meta().dataVersion || "Unversioned";
-  $("uaDataDevices").textContent = allRecords().length;
-  $("uaDataApps").textContent = Object.keys(apps()).length;
-  $("uaDataSource").textContent = state.apiOnline ? "Live API" : "Bundled fallback";
+  setText("uaDataVersion", meta().dataVersion || "Unversioned");
+  setText("uaDataDevices", allRecords().length);
+  setText("uaDataApps", Object.keys(apps()).length);
+  setText("uaDataSource", state.apiOnline ? "Live API" : "Bundled fallback");
   const verified = templateRecords().filter(x => x.status === "verified").length;
-  $("uaDataTemplates").textContent = verified;
+  setText("uaDataTemplates", verified);
   renderUaDevicePicker();
   renderUaApps();
   updateUaTotals();
@@ -503,6 +504,12 @@ function renderSavedBatches() {
 function getSelectedBrowsers(platform) {
   return [...document.querySelectorAll(`[data-browser][data-platform="${platform}"]:checked`)].map(x => x.dataset.browser);
 }
+const BROWSER_LABELS = { chrome:"Chrome", safari:"Safari", firefox:"Firefox", edge:"Edge", opera:"Opera", webview:"Android WebView" };
+function browserUsable(platform, browser) {
+  if (browserVersion(platform, browser)) return true;
+  if (platform === "android" && (browser === "chrome" || browser === "webview")) return Boolean(versions().chrome);
+  return false;
+}
 function browserVersion(platform, browser) {
   const ids = {
     android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion", webview:"uaChromiumEngineVersion" },
@@ -599,14 +606,22 @@ function generateUaBatch() {
   const locale = localeMeta();
   const dedupe = $("uaDeduplicate").checked;
   const output = [], seen = new Set();
+  const warnings = [];
   let duplicatesBlocked = 0;
   for (const platform of ["android","ios"]) {
     if (!qty[platform]) continue;
-    const browsers = getSelectedBrowsers(platform);
+    const selectedBrowsers = getSelectedBrowsers(platform);
+    const browsers = selectedBrowsers.filter(b => browserUsable(platform, b));
+    const skippedBrowsers = selectedBrowsers.filter(b => !browserUsable(platform, b));
     const selectedAppIds = $("uaIncludeApps").checked
       ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform))
       : [];
-    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose a compatible ${platform.toUpperCase()} browser or an in-app app.`);
+    if (!browsers.length && !selectedAppIds.length) {
+      if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} ${platform === "ios" ? "iOS" : "Android"} version is required. Open Advanced options.`));
+      else warnings.push(`Choose a compatible ${platform.toUpperCase()} browser or an in-app app.`);
+      continue;
+    }
+    if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} skipped — no version set in Advanced options.`));
     const schedule = deviceSchedule(platform, qty[platform], mode);
     for (let i=0;i<schedule.length;i++) {
       const device = schedule[i];
@@ -644,6 +659,8 @@ function generateUaBatch() {
     }
   }
   state.duplicatesBlocked = duplicatesBlocked;
+  state.uaWarnings = warnings;
+  if (!output.length && warnings.length) throw new Error(warnings.join(" "));
   return output;
 }
 
@@ -696,7 +713,7 @@ function renderUaResultsView() {
   }
   document.querySelectorAll("[data-result-filter]").forEach(button => button.classList.toggle("active", button.dataset.resultFilter === state.resultFilter));
   $("exportActions").classList.remove("hidden");
-  $("uaDataVersion").textContent = meta().dataVersion || "Unversioned";
+  setText("uaDataVersion", meta().dataVersion || "Unversioned");
 }
 
 function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
@@ -1084,9 +1101,9 @@ function bindEvents() {
       if (!state.dataset.length) showToast("No unique User-Agent strings matched this configuration.", "error");
       else {
         const requested = Number($("uaAndroidQty").value) + Number($("uaIosQty").value);
-        showToast(state.duplicatesBlocked
+        showToast((state.duplicatesBlocked
           ? `Generated ${state.dataset.length} of ${requested}; ${state.duplicatesBlocked} duplicates skipped.`
-          : `Generated ${state.dataset.length} User-Agents.`);
+          : `Generated ${state.dataset.length} User-Agents.`) + (state.uaWarnings?.length ? " " + state.uaWarnings.join(" ") : ""));
         playUiSound("success");
       }
     } catch (error) { showToast(error.message, "error"); playUiSound("error"); }
