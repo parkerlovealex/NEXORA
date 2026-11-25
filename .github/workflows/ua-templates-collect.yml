@@ -1,0 +1,126 @@
+name: NEXORA In-App UA Template Collection
+
+on:
+  workflow_dispatch:
+    inputs:
+      decoded_rows_path:
+        description: "Optional path to decoded useragent.in rows JSON (created after inspecting the downloaded list.js decoder)"
+        required: false
+        type: string
+  schedule:
+    - cron: "30 5 1 1,4,7,10 *" # Quarterly; source formats change less often than app versions.
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: nexora-ua-template-collection
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout database repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch useragent.in index, decoder and in-app corpus
+        id: fetch
+        continue-on-error: true
+        run: |
+          python tools/fetch_useragent_in.py \
+            --out-dir data/evidence/ua_templates/useragent.in \
+            --attempts 4 --timeout 30
+
+      - name: AI-normalize decoded rows (optional until decoder is reviewed)
+        id: normalize
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.decoded_rows_path != '' }}
+        continue-on-error: true
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          DECODED_ROWS_PATH: ${{ inputs.decoded_rows_path }}
+        run: |
+          set -euo pipefail
+          test -s "$DECODED_ROWS_PATH"
+          python tools/normalize_ua_templates_ai.py \
+            --input "$DECODED_ROWS_PATH" \
+            --devices web/devices.json \
+            --out output/ua_templates.ai-findings.json \
+            --summary output/ua_templates.ai-summary.json
+
+      - name: Build candidate proposal and validate
+        run: |
+          set -euo pipefail
+          if [ -s output/ua_templates.ai-findings.json ]; then
+            python tools/collect_ua_templates.py \
+              --devices web/devices.json \
+              --existing data/ua_templates.proposed.json \
+              --findings output/ua_templates.ai-findings.json \
+              --out output/ua_templates.proposed.json \
+              --report output/ua_templates.collection-report.md \
+              --report-json output/ua_templates.collection-report.json
+          else
+            python tools/collect_ua_templates.py \
+              --devices web/devices.json \
+              --existing data/ua_templates.proposed.json \
+              --findings data/ua_templates.findings.json \
+              --out output/ua_templates.proposed.json \
+              --report output/ua_templates.collection-report.md \
+              --report-json output/ua_templates.collection-report.json
+          fi
+          python tools/validate_ua_templates.py \
+            output/ua_templates.proposed.json \
+            --devices web/devices.json \
+            --report output/ua_templates.validation-report.md
+          cp output/ua_templates.proposed.json data/ua_templates.proposed.json
+          cp output/ua_templates.collection-report.md reports/ua_templates/latest.md
+          cp output/ua_templates.validation-report.md reports/ua_templates/validation-latest.md
+
+      - name: Upload collection artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-ua-template-collection-${{ github.run_id }}
+          path: |
+            data/evidence/ua_templates/useragent.in/
+            output/ua_templates.*
+            reports/ua_templates/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Open draft collection PR (never auto-publish runtime catalog)
+        if: steps.fetch.outcome == 'success' || steps.normalize.outcome == 'success'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/nexora-ua-template-collection
+          delete-branch: true
+          draft: true
+          title: "data: collect in-app User-Agent templates"
+          body: |
+            ## NEXORA Workstream B — draft evidence collection
+
+            This PR preserves source evidence and a candidate proposal. It is not
+            auto-merged and does not publish `web/ua_templates.json`.
+
+            Review:
+            - `data/evidence/ua_templates/useragent.in/` — raw index, decoder and source corpus
+            - `data/ua_templates.proposed.json` — candidate/pending/verified states
+            - `reports/ua_templates/latest.md`
+            - `reports/ua_templates/validation-latest.md`
+
+            AI normalization is candidate/pending only. Verified records still
+            require two independent sources, exact app version/build consistency,
+            deterministic validation and owner review.
+          commit-message: "data: collect in-app UA template evidence"
+          add-paths: |
+            data/evidence/ua_templates/useragent.in/
+            data/ua_templates.proposed.json
+            reports/ua_templates/
