@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101316">
-  <meta name="description" content="Generate database-backed Android and iOS User-Agent compatibility datasets with NEXORA.">
-  <title>NEXORA Next — User-Agent Studio</title>
+  <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
+  <title>NEXORA — User-Agent Generator</title>
+  <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
   <link rel="stylesheet" href="./styles.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
@@ -24,8 +25,8 @@
     <nav class="nav" aria-label="Main navigation">
       <div class="nav-label">GENERATION</div>
       <button class="nav-item active" data-view="generator"><span class="nav-icon">✳</span>User-Agent Studio</button>
-      <button class="nav-item" data-view="devices"><span class="nav-icon">▯</span>Device Catalog</button>
-      <button class="nav-item" data-view="applications"><span class="nav-icon">▣</span>App Versions</button>
+      <button class="nav-item admin-only hidden" data-view="devices"><span class="nav-icon">▯</span>Device Catalog</button>
+      <button class="nav-item admin-only hidden" data-view="applications"><span class="nav-icon">▣</span>App Versions</button>
       <div class="nav-label admin-nav-label admin-only hidden">SYSTEM ADMIN</div>
       <button class="nav-item admin-only hidden" data-view="overview"><span class="nav-icon">◫</span>System Overview</button>
       <button class="nav-item admin-only hidden" data-view="compatibility"><span class="nav-icon">⌘</span>Compatibility</button>
@@ -37,7 +38,7 @@
     </nav>
     <div class="sidebar-bottom">
       <div class="api-health"><span class="health-dot" id="healthDot"></span><span><strong id="healthText">Checking API</strong><small id="healthSub">Connecting to data service</small></span></div>
-      <button class="sidebar-help" data-view="about"><span>ⓘ</span>Platform information <kbd>INFO</kbd></button>
+      <button class="sidebar-help admin-only hidden" data-view="about"><span>ⓘ</span>Platform information <kbd>INFO</kbd></button>
       <div class="sidebar-foot">NEXORA NEXT <span>v1.0.0</span></div>
     </div>
   </aside>
@@ -45,12 +46,15 @@
   <main class="main-column">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open administrator navigation">☰</button>
+        <a class="topbar-brand" href="./" aria-label="NEXORA User-Agent Studio home">
+          <span class="topbar-brand-mark">N</span>
+          <span><strong>NEXORA</strong><small>USER-AGENT STUDIO</small></span>
+        </a>
         <div class="breadcrumbs"><span>NEXORA</span><b>/</b><strong id="breadcrumbCurrent">User-Agent Studio</strong></div>
       </div>
       <div class="topbar-actions">
         <div class="data-status"><span class="status-dot" id="topStatusDot"></span><span id="topStatusText">DATA READY</span></div>
-        <button class="icon-button" id="themeToggle" aria-label="Toggle appearance" title="Toggle appearance">◐</button>
         <div class="admin-chip" id="adminChip"><span class="avatar" id="adminAvatar">G</span><span id="adminLabel">Guest access</span><button id="authButton">Sign in</button></div>
       </div>
     </header>
@@ -107,163 +111,317 @@
       </section>
 
       <section class="view active" id="view-generator">
-        <div class="ua-hero">
-          <div class="ua-hero-copy">
-            <div class="eyebrow"><span class="eyebrow-pulse"></span>NEXORA / GENERATION STUDIO</div>
-            <h1>Build your next<br><em>User-Agent set.</em></h1>
-            <p>Generate structured Android and iOS browser profiles from the live NEXORA device catalog. Precise controls, clean exports, no invented device records.</p>
-            <div class="ua-hero-meta">
-              <span class="catalog-pill"><i></i><b id="uaCatalogVersion">Connecting catalog</b></span>
-              <span class="hero-meta-copy" id="uaDeviceMeta">59 device records expected</span>
-            </div>
+        <div class="generator-heading">
+          <div>
+            <div class="eyebrow">NEXORA / GENERATOR</div>
+            <h1>User-Agent generator</h1>
+            <p>Build clean browser and in-app batches from the NEXORA catalog.</p>
           </div>
-          <div class="ua-hero-art" aria-hidden="true">
-            <div class="orb orb-one"></div><div class="orb orb-two"></div>
-            <div class="ua-art-card"><span class="art-kicker">NEXORA / UA ENGINE</span><div class="art-lines"><i></i><i></i><i></i><i></i></div><div class="art-chip">CATALOG · VERIFIED FIELDS</div></div>
-            <div class="art-orbit orbit-a"></div><div class="art-orbit orbit-b"></div>
+          <div class="catalog-status">
+            <span class="status-dot" id="catalogStatusDot"></span>
+            <span><strong id="uaCatalogVersion">Connecting catalog</strong><small id="uaDeviceMeta">59 device records expected</small></span>
           </div>
         </div>
 
         <div class="ua-workspace" id="uaGenerator">
           <div class="ua-config-column">
             <section class="ua-card">
-              <div class="ua-section-head"><div><span class="ua-step">01</span><div><div class="eyebrow">PLATFORM MIX</div><h2>How many do you need?</h2><p>Generate Android and iOS in one batch.</p></div></div><span class="ua-section-mark">01 / 05</span></div>
+              <div class="ua-section-head">
+                <div class="ua-section-title"><span class="ua-step">01</span><div><h2>Platform & batch</h2><p>Choose one platform or generate both together.</p></div></div>
+                <span class="step-note">MAX 500</span>
+              </div>
+              <div class="platform-switch" role="group" aria-label="Platform selection">
+                <button type="button" class="platform-mode active" data-platform-mode="android"><img src="https://cdn.simpleicons.org/android/3DDC84" alt="" loading="lazy"><span>Android</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="ios"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="" loading="lazy"><span>iOS</span></button>
+                <button type="button" class="platform-mode" data-platform-mode="mixed"><span class="dual-platform-icons"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><span>Both</span></button>
+              </div>
               <div class="ua-platform-grid">
-                <article class="ua-platform-card android-card">
-                  <div class="platform-top"><span class="platform-symbol android-symbol">A</span><span class="platform-live">CATALOG READY</span></div>
-                  <label for="uaAndroidQty">Android User-Agents</label>
-                  <div class="qty-control"><button type="button" data-qty-step="android" data-step="-1" aria-label="Decrease Android quantity">−</button><input id="uaAndroidQty" type="number" min="0" max="500" value="10" inputmode="numeric"><button type="button" data-qty-step="android" data-step="1" aria-label="Increase Android quantity">+</button></div>
-                  <div class="qty-range"><span>0</span><input id="uaAndroidRange" type="range" min="0" max="500" value="10"><span>500</span></div>
-                  <small>Android devices from the published catalog</small>
+                <article class="ua-platform-card android-card" data-platform-card="android">
+                  <div class="platform-card-head"><span class="platform-symbol android-symbol"><img src="https://cdn.simpleicons.org/android/3DDC84" alt="Android"></span><span class="platform-name">ANDROID</span><span class="platform-live">CATALOG</span></div>
+                  <div class="qty-control"><button type="button" data-qty-step="android" data-step="-1" aria-label="Decrease Android quantity">−</button><input id="uaAndroidQty" type="number" min="0" max="500" value="10" inputmode="numeric" aria-label="Android quantity"><button type="button" data-qty-step="android" data-step="1" aria-label="Increase Android quantity">+</button></div>
+                  <input class="qty-range" id="uaAndroidRange" type="range" min="0" max="500" value="10" aria-label="Android batch size">
+                  <small>Android device records</small>
                 </article>
-                <article class="ua-platform-card ios-card">
-                  <div class="platform-top"><span class="platform-symbol ios-symbol">●</span><span class="platform-live">REFERENCE CATALOG</span></div>
-                  <label for="uaIosQty">iOS User-Agents</label>
-                  <div class="qty-control"><button type="button" data-qty-step="ios" data-step="-1" aria-label="Decrease iOS quantity">−</button><input id="uaIosQty" type="number" min="0" max="500" value="0" inputmode="numeric"><button type="button" data-qty-step="ios" data-step="1" aria-label="Increase iOS quantity">+</button></div>
-                  <div class="qty-range"><span>0</span><input id="uaIosRange" type="range" min="0" max="500" value="0"><span>500</span></div>
-                  <small>iOS reference templates; not native iOS execution</small>
+                <article class="ua-platform-card ios-card hidden" data-platform-card="ios">
+                  <div class="platform-card-head"><span class="platform-symbol ios-symbol"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="Apple"></span><span class="platform-name">APPLE / iOS</span><span class="platform-live">REFERENCE</span></div>
+                  <div class="qty-control"><button type="button" data-qty-step="ios" data-step="-1" aria-label="Decrease iOS quantity">−</button><input id="uaIosQty" type="number" min="0" max="500" value="0" inputmode="numeric" aria-label="iOS quantity"><button type="button" data-qty-step="ios" data-step="1" aria-label="Increase iOS quantity">+</button></div>
+                  <input class="qty-range" id="uaIosRange" type="range" min="0" max="500" value="0" aria-label="iOS batch size">
+                  <small>iPhone/iOS reference records</small>
                 </article>
               </div>
-              <div class="ua-total-row"><div><span class="total-label">TOTAL GENERATION</span><strong id="uaTotal">10</strong><span class="total-unit">records · max 500 per batch</span></div><span class="total-icon">↗</span></div>
+              <div class="batch-presets"><span>QUICK BATCH</span><div>
+                <button type="button" data-batch-preset="10" class="active">10</button><button type="button" data-batch-preset="25">25</button><button type="button" data-batch-preset="50">50</button><button type="button" data-batch-preset="100">100</button><button type="button" data-batch-preset="250">250</button><button type="button" data-batch-preset="500">500</button>
+              </div></div>
+              <div class="ua-total-row"><div><span class="total-label">TOTAL</span><strong id="uaTotal">10</strong><span class="total-unit">User-Agents</span></div><span id="uaBatchSummary">10 Android · 0 iOS</span></div>
+              <p class="batch-limit-note" id="batchLimitNote">One batch can contain up to 500 records.</p>
             </section>
 
             <section class="ua-card">
-              <div class="ua-section-head"><div><span class="ua-step">02</span><div><div class="eyebrow">DEVICE DISTRIBUTION</div><h2>Choose your device pool.</h2><p>Use the full catalog or restrict output to exact models.</p></div></div><span class="ua-section-mark">02 / 05</span></div>
+              <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">02</span><div><h2>Device selection</h2><p>Randomize, balance or choose exact models.</p></div></div></div>
               <div class="distribution-grid" role="radiogroup" aria-label="Device distribution">
-                <label class="distribution-option selected"><input type="radio" name="uaDistribution" value="random" checked><span class="distribution-icon">✳</span><strong>Random</strong><small>Pick from all eligible devices</small></label>
-                <label class="distribution-option"><input type="radio" name="uaDistribution" value="specific"><span class="distribution-icon">⌕</span><strong>Selected pool</strong><small>Only the models you choose</small></label>
-                <label class="distribution-option"><input type="radio" name="uaDistribution" value="balanced"><span class="distribution-icon">⇄</span><strong>Balanced</strong><small>Spread evenly across models</small></label>
-                <label class="distribution-option"><input type="radio" name="uaDistribution" value="custom"><span class="distribution-icon">≡</span><strong>Custom</strong><small>Set quantity per device</small></label>
+                <label class="distribution-option selected"><input type="radio" name="uaDistribution" value="random" checked><span class="distribution-icon">↝</span><strong>Random</strong><small>Use all eligible models</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="specific"><span class="distribution-icon">⌕</span><strong>Selected</strong><small>Choose exact devices</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="balanced"><span class="distribution-icon">⇄</span><strong>Balanced</strong><small>Spread evenly</small></label>
+                <label class="distribution-option"><input type="radio" name="uaDistribution" value="custom"><span class="distribution-icon">≡</span><strong>Custom</strong><small>Set each quantity</small></label>
               </div>
               <div class="ua-device-picker hidden" id="uaDevicePicker">
-                <div class="device-picker-head"><div><strong>Selected device pool</strong><small id="uaSelectedCount">0 devices selected</small></div><div class="device-search"><span>⌕</span><input id="uaDeviceSearch" placeholder="Search Pixel, Galaxy, iPhone…" autocomplete="off"></div></div>
-                <div class="device-platform-tabs"><button type="button" class="device-tab active" data-device-tab="android">Android <span id="uaAndroidDeviceCount">0</span></button><button type="button" class="device-tab" data-device-tab="ios">iOS <span id="uaIosDeviceCount">0</span></button></div>
-                <div id="uaAndroidDeviceList" class="ua-device-list"></div>
-                <div id="uaIosDeviceList" class="ua-device-list hidden"></div>
-                <p class="field-hint" id="uaDistributionHint">Select one or more models. iOS User-Agent strings do not expose the exact iPhone model; model selection is retained as output metadata.</p>
+                <div class="device-picker-head"><div><strong>Choose devices</strong><small id="uaSelectedCount">0 selected</small></div><div class="device-picker-actions"><button type="button" data-device-action="select-visible">Select visible</button><button type="button" data-device-action="clear-visible">Clear</button></div></div>
+                <div class="device-search"><span>⌕</span><input id="uaDeviceSearch" placeholder="Search model or brand…" autocomplete="off"></div>
+                <div class="device-platform-tabs">
+                  <button type="button" class="device-tab active" data-device-tab="android"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""> Android <span id="uaAndroidDeviceCount">0</span></button>
+                  <button type="button" class="device-tab" data-device-tab="ios"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""> iOS <span id="uaIosDeviceCount">0</span></button>
+                </div>
+                <div id="uaAndroidDeviceList" class="ua-device-list"></div><div id="uaIosDeviceList" class="ua-device-list hidden"></div>
+                <p class="field-hint" id="uaDistributionHint">Select the models you want included.</p>
               </div>
               <div class="ua-os-grid">
-                <div class="field"><label for="uaAndroidOs">ANDROID VERSION</label><select class="form-control" id="uaAndroidOs"><option value="latest">Latest supported per device</option><option value="random">Random supported version</option></select></div>
-                <div class="field"><label for="uaIosOs">IOS VERSION</label><select class="form-control" id="uaIosOs"><option value="latest">Latest supported per device</option><option value="random">Random supported version</option></select></div>
+                <div class="field"><label for="uaAndroidOs">ANDROID VERSION</label><select class="form-control" id="uaAndroidOs"><option value="latest">Latest per device</option><option value="random">Random supported</option></select></div>
+                <div class="field"><label for="uaIosOs">iOS VERSION</label><select class="form-control" id="uaIosOs"><option value="latest">Latest per device</option><option value="random">Random supported</option></select></div>
               </div>
             </section>
 
             <section class="ua-card">
-              <div class="ua-section-head"><div><span class="ua-step">03</span><div><div class="eyebrow">BROWSER FAMILIES</div><h2>Choose browser types.</h2><p>Only compatible browser families are used for each platform.</p></div></div><span class="ua-section-mark">03 / 05</span></div>
+              <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">03</span><div><h2>Browser & apps</h2><p>Choose browser engines. Add app UAs only when wanted.</p></div></div></div>
               <div class="browser-platform-block">
-                <div class="browser-platform-title"><span class="mini-platform android-mini">A</span><strong>Android browsers</strong><small>Choose one or more</small></div>
+                <div class="browser-platform-title"><span class="mini-platform android-mini"><img src="https://cdn.simpleicons.org/android/3DDC84" alt=""></span><strong>Android browsers</strong><small>Choose one or more</small></div>
                 <div class="browser-choice-grid">
-                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="android" checked><span class="browser-logo chrome-logo">C</span><span><b>Chrome</b><small id="chromeCatalogVersion">Catalog version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo firefox-logo">F</span><span><b>Firefox</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo edge-logo">E</span><span><b>Edge</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo opera-logo">O</span><span><b>Opera</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="android" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small id="chromeCatalogVersion">Database version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge"></span><span><b>Edge</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="webview" data-platform="android"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="WebView"></span><span><b>Android WebView</b><small>Chrome engine</small></span></label>
                 </div>
               </div>
               <div class="browser-platform-block">
-                <div class="browser-platform-title"><span class="mini-platform ios-mini">●</span><strong>iOS browsers</strong><small>All use the platform's WebKit engine</small></div>
+                <div class="browser-platform-title"><span class="mini-platform ios-mini"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt=""></span><strong>iOS browsers</strong><small>WebKit-based</small></div>
                 <div class="browser-choice-grid">
-                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo safari-logo">S</span><span><b>Safari</b><small>Manual version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo chrome-logo">C</span><span><b>Chrome</b><small>Manual iOS version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo firefox-logo">F</span><span><b>Firefox</b><small>Manual iOS version</small></span></label>
-                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo edge-logo">E</span><span><b>Edge</b><small>Manual iOS version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="ios" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="chrome" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/googlechrome/4285F4" alt="Chrome"></span><span><b>Chrome</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="firefox" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/firefoxbrowser/FF7139" alt="Firefox"></span><span><b>Firefox</b><small>Manual version</small></span></label>
+                  <label class="browser-choice"><input type="checkbox" data-browser="edge" data-platform="ios"><span class="browser-logo"><img src="https://cdn.simpleicons.org/microsoftedge/0A84FF" alt="Edge"></span><span><b>Edge</b><small>Manual version</small></span></label>
                 </div>
               </div>
-              <details class="ua-advanced">
-                <summary><span><b>Advanced browser versions</b><small>Use catalog values or enter exact versions</small></span><span class="details-plus">+</span></summary>
-                <div class="advanced-version-grid">
-                  <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
-                  <div class="field"><label for="uaChromeIosVersion">CHROME IOS</label><input id="uaChromeIosVersion" class="form-control" placeholder="Enter iOS app version" autocomplete="off"></div>
-                  <div class="field"><label for="uaSafariVersion">SAFARI IOS</label><input id="uaSafariVersion" class="form-control" placeholder="Required · e.g. 26.1" autocomplete="off"></div>
-                  <div class="field"><label for="uaFirefoxAndroidVersion">FIREFOX ANDROID</label><input id="uaFirefoxAndroidVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
-                  <div class="field"><label for="uaFirefoxIosVersion">FIREFOX IOS</label><input id="uaFirefoxIosVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
-                  <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
-                  <div class="field"><label for="uaEdgeIosVersion">EDGE IOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
-                  <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Enter version" autocomplete="off"></div>
-                  <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
+              <label class="include-apps-toggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
+              <div class="in-app-panel hidden" id="uaInAppPanel">
+                <div class="app-template-toolbar"><span id="uaTemplateSummary">Checking app template catalog…</span><input id="uaAppSearch" class="form-control" placeholder="Search apps…" autocomplete="off"></div>
+                <div class="app-template-grid" id="uaAppGrid"></div>
+              </div>
+            </section>
+
+            <details class="ua-card advanced-card">
+              <summary><span class="ua-step">04</span><span><strong>Advanced options</strong><small>Browser versions · country · language · output</small></span><b class="advanced-chevron">+</b></summary>
+              <div class="advanced-content">
+                <div class="advanced-block">
+                  <div class="advanced-block-title">Browser versions</div>
+                  <div class="advanced-version-grid">
+                    <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
+                    <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
+                    <div class="field"><label for="uaSafariVersion">SAFARI iOS</label><input id="uaSafariVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaChromeIosVersion">CHROME iOS</label><input id="uaChromeIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxAndroidVersion">FIREFOX ANDROID</label><input id="uaFirefoxAndroidVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaFirefoxIosVersion">FIREFOX iOS</label><input id="uaFirefoxIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeAndroidVersion">EDGE ANDROID</label><input id="uaEdgeAndroidVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaEdgeIosVersion">EDGE iOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                    <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Enter exact version" autocomplete="off"></div>
+                  </div>
+                  <p class="field-hint">Chrome Android uses the catalog version. Other browser versions must be entered explicitly.</p>
                 </div>
-                <p class="field-hint">Only Chrome Android is prefilled from the current database. Other browser versions must be entered or added to a verified browser-version catalog.</p>
-              </details>
-            </section>
-
-            <section class="ua-card">
-              <div class="ua-section-head"><div><span class="ua-step">04</span><div><div class="eyebrow">IN-APP BROWSERS</div><h2>Embedded app templates.</h2><p>Optional. Nothing is included unless you explicitly select it.</p></div></div><span class="ua-section-mark">04 / 05</span></div>
-              <div class="app-template-notice"><span class="notice-mark">i</span><div><strong>App versions are not User-Agent templates.</strong><p>Only apps with verified records in the separate UA template catalog can be generated. Pending apps remain unavailable.</p></div></div>
-              <div class="app-template-toolbar"><span id="uaTemplateSummary">Checking template catalog…</span><input id="uaAppSearch" class="form-control" placeholder="Search applications…" autocomplete="off"></div>
-              <div class="app-template-grid" id="uaAppGrid"></div>
-              <div class="field-hint">No app is selected by default. If you leave this section untouched, output contains standalone browser User-Agents only.</div>
-            </section>
-
-            <section class="ua-card">
-              <div class="ua-section-head"><div><span class="ua-step">05</span><div><div class="eyebrow">LOCALE & OUTPUT</div><h2>Set regional metadata.</h2><p>Country filters the catalog by supported market. Language is output metadata; neither is inserted into a standard browser UA string.</p></div></div><span class="ua-section-mark">05 / 05</span></div>
-              <div class="locale-grid">
-                <div class="field"><label for="uaCountry">COUNTRY</label><select class="form-control" id="uaCountry"><option value="">All countries / automatic</option></select></div>
-                <div class="field"><label for="uaLanguage">LANGUAGE</label><select class="form-control" id="uaLanguage"><option value="auto">Automatic from country</option><option value="en-US">English (United States)</option><option value="en-GB">English (United Kingdom)</option><option value="bn-BD">Bangla (Bangladesh)</option><option value="en-IN">English (India)</option><option value="ur-PK">Urdu (Pakistan)</option><option value="de-DE">German</option><option value="fr-FR">French</option><option value="es-ES">Spanish</option><option value="ja-JP">Japanese</option><option value="ko-KR">Korean</option><option value="zh-CN">Chinese (Simplified)</option></select></div>
+                <div class="advanced-block">
+                  <div class="advanced-block-title">Locale</div>
+                  <div class="locale-grid">
+                    <div class="field"><label for="uaCountry">COUNTRY / MARKET</label><select class="form-control" id="uaCountry"><option value="">All countries</option></select></div>
+                    <div class="field"><label for="uaLanguage">LANGUAGE / ACCEPT-LANGUAGE</label><select class="form-control" id="uaLanguage"><option value="auto">Automatic from country</option>
+<option value="af-ZA">Afrikaans (South Africa) — af-ZA</option>
+<option value="sq-AL">Shqip / Albanian — sq-AL</option>
+<option value="am-ET">Amharic — am-ET</option>
+<option value="ar-SA">العربية (Saudi Arabia) — ar-SA</option>
+<option value="ar-AE">العربية (UAE) — ar-AE</option>
+<option value="ar-EG">العربية (Egypt) — ar-EG</option>
+<option value="hy-AM">Armenian — hy-AM</option>
+<option value="az-AZ">Azerbaijani — az-AZ</option>
+<option value="eu-ES">Basque — eu-ES</option>
+<option value="be-BY">Belarusian — be-BY</option>
+<option value="bn-BD">বাংলা (বাংলাদেশ) — bn-BD</option>
+<option value="bn-IN">বাংলা (ভারত) — bn-IN</option>
+<option value="bs-BA">Bosnian — bs-BA</option>
+<option value="bg-BG">Bulgarian — bg-BG</option>
+<option value="my-MM">Burmese — my-MM</option>
+<option value="ca-ES">Catalan — ca-ES</option>
+<option value="zh-CN">中文 (简体) — zh-CN</option>
+<option value="zh-TW">中文 (繁體) — zh-TW</option>
+<option value="zh-HK">中文 (香港) — zh-HK</option>
+<option value="hr-HR">Croatian — hr-HR</option>
+<option value="cs-CZ">Czech — cs-CZ</option>
+<option value="da-DK">Danish — da-DK</option>
+<option value="nl-NL">Dutch — nl-NL</option>
+<option value="nl-BE">Dutch (Belgium) — nl-BE</option>
+<option value="en-US">English (United States) — en-US</option>
+<option value="en-GB">English (United Kingdom) — en-GB</option>
+<option value="en-CA">English (Canada) — en-CA</option>
+<option value="en-AU">English (Australia) — en-AU</option>
+<option value="en-NZ">English (New Zealand) — en-NZ</option>
+<option value="en-IN">English (India) — en-IN</option>
+<option value="en-SG">English (Singapore) — en-SG</option>
+<option value="en-ZA">English (South Africa) — en-ZA</option>
+<option value="et-EE">Estonian — et-EE</option>
+<option value="fa-IR">فارسی / Persian — fa-IR</option>
+<option value="fil-PH">Filipino — fil-PH</option>
+<option value="fi-FI">Finnish — fi-FI</option>
+<option value="fr-FR">French (France) — fr-FR</option>
+<option value="fr-CA">French (Canada) — fr-CA</option>
+<option value="fr-BE">French (Belgium) — fr-BE</option>
+<option value="gl-ES">Galician — gl-ES</option>
+<option value="ka-GE">Georgian — ka-GE</option>
+<option value="de-DE">German (Germany) — de-DE</option>
+<option value="de-AT">German (Austria) — de-AT</option>
+<option value="de-CH">German (Switzerland) — de-CH</option>
+<option value="el-GR">Greek — el-GR</option>
+<option value="gu-IN">Gujarati — gu-IN</option>
+<option value="he-IL">עברית / Hebrew — he-IL</option>
+<option value="hi-IN">हिन्दी / Hindi — hi-IN</option>
+<option value="hu-HU">Hungarian — hu-HU</option>
+<option value="is-IS">Icelandic — is-IS</option>
+<option value="id-ID">Bahasa Indonesia — id-ID</option>
+<option value="ga-IE">Irish — ga-IE</option>
+<option value="it-IT">Italian — it-IT</option>
+<option value="ja-JP">日本語 / Japanese — ja-JP</option>
+<option value="kn-IN">Kannada — kn-IN</option>
+<option value="kk-KZ">Kazakh — kk-KZ</option>
+<option value="km-KH">Khmer — km-KH</option>
+<option value="ko-KR">한국어 / Korean — ko-KR</option>
+<option value="lo-LA">Lao — lo-LA</option>
+<option value="lv-LV">Latvian — lv-LV</option>
+<option value="lt-LT">Lithuanian — lt-LT</option>
+<option value="mk-MK">Macedonian — mk-MK</option>
+<option value="ms-MY">Bahasa Melayu — ms-MY</option>
+<option value="ml-IN">Malayalam — ml-IN</option>
+<option value="mr-IN">Marathi — mr-IN</option>
+<option value="mn-MN">Mongolian — mn-MN</option>
+<option value="ne-NP">Nepali — ne-NP</option>
+<option value="no-NO">Norwegian — no-NO</option>
+<option value="ps-AF">Pashto — ps-AF</option>
+<option value="pl-PL">Polish — pl-PL</option>
+<option value="pt-BR">Português (Brasil) — pt-BR</option>
+<option value="pt-PT">Português (Portugal) — pt-PT</option>
+<option value="pa-IN">Punjabi (India) — pa-IN</option>
+<option value="pa-PK">Punjabi (Pakistan) — pa-PK</option>
+<option value="ro-RO">Romanian — ro-RO</option>
+<option value="ru-RU">Русский / Russian — ru-RU</option>
+<option value="sr-RS">Serbian — sr-RS</option>
+<option value="si-LK">Sinhala — si-LK</option>
+<option value="sk-SK">Slovak — sk-SK</option>
+<option value="sl-SI">Slovenian — sl-SI</option>
+<option value="es-ES">Español (España) — es-ES</option>
+<option value="es-MX">Español (México) — es-MX</option>
+<option value="es-AR">Español (Argentina) — es-AR</option>
+<option value="es-CO">Español (Colombia) — es-CO</option>
+<option value="es-CL">Español (Chile) — es-CL</option>
+<option value="es-PE">Español (Peru) — es-PE</option>
+<option value="sw-KE">Swahili — sw-KE</option>
+<option value="sv-SE">Swedish — sv-SE</option>
+<option value="ta-IN">தமிழ் / Tamil — ta-IN</option>
+<option value="ta-LK">Tamil (Sri Lanka) — ta-LK</option>
+<option value="te-IN">Telugu — te-IN</option>
+<option value="th-TH">ไทย / Thai — th-TH</option>
+<option value="tr-TR">Türkçe / Turkish — tr-TR</option>
+<option value="uk-UA">Ukrainian — uk-UA</option>
+<option value="ur-PK">اردو / Urdu — ur-PK</option>
+<option value="ur-IN">Urdu (India) — ur-IN</option>
+<option value="uz-UZ">Uzbek — uz-UZ</option>
+<option value="vi-VN">Tiếng Việt / Vietnamese — vi-VN</option>
+<option value="cy-GB">Welsh — cy-GB</option>
+<option value="zu-ZA">Zulu — zu-ZA</option>
+<option value="es-US">Spanish (United States) — es-US</option>
+<option value="fr-CH">French (Switzerland) — fr-CH</option>
+<option value="it-CH">Italian (Switzerland) — it-CH</option>
+<option value="ar-QA">Arabic (Qatar) — ar-QA</option>
+<option value="ar-KW">Arabic (Kuwait) — ar-KW</option>
+<option value="ar-BH">Arabic (Bahrain) — ar-BH</option>
+<option value="ar-OM">Arabic (Oman) — ar-OM</option>
+<option value="ar-JO">Arabic (Jordan) — ar-JO</option>
+<option value="ar-LB">Arabic (Lebanon) — ar-LB</option>
+<option value="ar-MA">Arabic (Morocco) — ar-MA</option>
+<option value="ar-DZ">Arabic (Algeria) — ar-DZ</option>
+<option value="ar-TN">Arabic (Tunisia) — ar-TN</option>
+<option value="en-IE">English (Ireland) — en-IE</option>
+<option value="en-PH">English (Philippines) — en-PH</option>
+<option value="en-MY">English (Malaysia) — en-MY</option>
+<option value="en-HK">English (Hong Kong) — en-HK</option>
+<option value="en-AE">English (UAE) — en-AE</option>
+<option value="en-PK">English (Pakistan) — en-PK</option>
+<option value="en-BD">English (Bangladesh) — en-BD</option>
+<option value="fr-MA">French (Morocco) — fr-MA</option>
+<option value="fr-DZ">French (Algeria) — fr-DZ</option>
+<option value="pt-AO">Portuguese (Angola) — pt-AO</option>
+<option value="pt-MZ">Portuguese (Mozambique) — pt-MZ</option>
+<option value="es-VE">Spanish (Venezuela) — es-VE</option>
+<option value="es-EC">Spanish (Ecuador) — es-EC</option>
+<option value="es-UY">Spanish (Uruguay) — es-UY</option>
+<option value="es-PY">Spanish (Paraguay) — es-PY</option>
+<option value="es-BO">Spanish (Bolivia) — es-BO</option>
+<option value="es-CR">Spanish (Costa Rica) — es-CR</option>
+<option value="es-PA">Spanish (Panama) — es-PA</option>
+<option value="es-GT">Spanish (Guatemala) — es-GT</option>
+<option value="es-DO">Spanish (Dominican Republic) — es-DO</option>
+<option value="es-PR">Spanish (Puerto Rico) — es-PR</option>
+<option value="es-CU">Spanish (Cuba) — es-CU</option>
+<option value="zh-SG">Chinese (Singapore) — zh-SG</option>
+<option value="yue-HK">Cantonese (Hong Kong) — yue-HK</option>
+<option value="hak-TW">Hakka — hak-TW</option>
+<option value="jv-ID">Javanese — jv-ID</option>
+<option value="su-ID">Sundanese — su-ID</option>
+<option value="ceb-PH">Cebuano — ceb-PH</option>
+<option value="ha-NG">Hausa — ha-NG</option>
+<option value="yo-NG">Yoruba — yo-NG</option>
+<option value="ig-NG">Igbo — ig-NG</option>
+<option value="so-SO">Somali — so-SO</option>
+<option value="rw-RW">Kinyarwanda — rw-RW</option>
+<option value="mg-MG">Malagasy — mg-MG</option>
+<option value="st-ZA">Sesotho — st-ZA</option>
+<option value="xh-ZA">Xhosa — xh-ZA</option></select></div>
+                  </div>
+                  <p class="field-hint">Locale is exported as Accept-Language metadata. It is not inserted into standard browser User-Agent strings.</p>
+                </div>
+                <div class="advanced-block output-options">
+                  <label class="toggle-line"><span><b>Remove duplicate strings</b><small>Return only unique User-Agent strings.</small></span><input id="uaDeduplicate" type="checkbox"><i></i></label>
+                  <label class="toggle-line"><span><b>Interface sounds</b><small>Subtle click and completion feedback.</small></span><input id="uaSound" type="checkbox"><i></i></label>
+                </div>
               </div>
-              <div class="ua-output-options">
-                <label class="toggle-line"><span><b>Remove duplicate strings</b><small>Keep unique User-Agent values in the final batch.</small></span><input id="uaDeduplicate" type="checkbox"><i></i></label>
-                <label class="toggle-line"><span><b>Enable subtle interface sounds</b><small>Optional feedback for selection and generation.</small></span><input id="uaSound" type="checkbox"><i></i></label>
-              </div>
-            </section>
+            </details>
 
             <div class="ua-generate-bar">
-              <div><span class="eyebrow">READY TO BUILD</span><strong id="uaReadySummary">10 Android · add iOS when ready</strong></div>
-              <button class="button button-primary ua-generate-button" id="generateButton"><span>Generate User-Agents</span><b>↗</b></button>
+              <div><span class="eyebrow">BATCH READY</span><strong id="uaReadySummary">10 Android · 0 iOS</strong></div>
+              <button class="button button-primary ua-generate-button" id="generateButton"><span>Generate <b id="generateButtonCount">10</b></span><span class="generate-arrow">↗</span></button>
             </div>
-            <p class="ua-disclaimer">Output is a compatibility/testing template based on catalog data and selected browser versions. A User-Agent string does not change the actual device, operating system, hardware, browser engine or network identity.</p>
+            <p class="ua-disclaimer">Generated strings are compatibility templates. They do not change the real device, browser engine, hardware or network identity.</p>
           </div>
 
           <aside class="ua-results-column">
             <div class="ua-results-card">
-              <div class="results-heading"><div><div class="eyebrow">LIVE OUTPUT</div><h2>Your generated set</h2><p id="uaResultSubtitle">Your results will appear here.</p></div><span class="results-spark">✳</span></div>
-              <div class="results-summary">
-                <div><span>TOTAL</span><strong id="uaResultTotal">0</strong></div>
-                <div><span>ANDROID</span><strong id="uaResultAndroid">0</strong></div>
-                <div><span>IOS</span><strong id="uaResultIos">0</strong></div>
-              </div>
-              <div class="ua-results-empty" id="generatorPreview"><div class="empty-orbit"><span>NX</span></div><strong>Nothing generated yet</strong><p>Configure your device pool and browser families, then generate your first set.</p></div>
+              <div class="results-heading"><div><div class="eyebrow">OUTPUT</div><h2>Generated User-Agents</h2><p id="uaResultSubtitle">Your batch will appear here.</p></div><span class="results-spark">✳</span></div>
+              <div class="results-summary"><div><span>TOTAL</span><strong id="uaResultTotal">0</strong></div><div><span>ANDROID</span><strong id="uaResultAndroid">0</strong></div><div><span>iOS</span><strong id="uaResultIos">0</strong></div></div>
+              <div class="result-filters"><button type="button" class="active" data-result-filter="all">All</button><button type="button" data-result-filter="android">Android</button><button type="button" data-result-filter="ios">iOS</button><button type="button" data-result-filter="apps">In-app</button></div>
+              <div class="ua-results-empty" id="generatorPreview"><div class="empty-orbit"><span>NX</span></div><strong>Ready when you are</strong><p>Choose a platform, device pool and browser, then generate your batch.</p></div>
               <div class="ua-results-list hidden" id="uaResultsList"></div>
               <div class="ua-result-actions hidden" id="exportActions">
-                <button class="button button-primary" id="copyDataset">Copy all UAs</button>
-                <div class="export-row"><select class="form-control" id="uaExportFormat"><option value="txt">TXT</option><option value="json">JSON</option><option value="csv">CSV</option></select><button class="button button-secondary" id="downloadDataset">Export</button><button class="button button-quiet" id="saveUaBatch">Save set</button></div>
+                <button class="button button-primary copy-all-button" id="copyDataset">Copy all User-Agents</button>
+                <div class="export-row"><select class="form-control" id="uaExportFormat"><option value="txt">TXT · one UA per line</option><option value="json">JSON · full metadata</option><option value="csv">CSV · spreadsheet</option></select><button class="button button-secondary" id="downloadDataset">Download</button></div>
+                <button class="button button-quiet save-set-button" id="saveUaBatch">Save this set on this device</button>
               </div>
-              <div class="saved-batches">
-                <div class="saved-batches-head"><span>LOCAL SAVED SETS</span><small id="savedBatchCount">0 saved</small></div>
-                <select class="form-control" id="uaSavedBatches"><option value="">No saved sets yet</option></select>
-              </div>
+              <div class="saved-batches"><div class="saved-batches-head"><span>SAVED SETS</span><small id="savedBatchCount">0 saved</small></div><select class="form-control" id="uaSavedBatches"><option value="">No saved sets yet</option></select></div>
             </div>
             <div class="ua-data-card">
-              <div class="eyebrow">DATABASE SOURCE</div><div class="ua-data-version" id="uaDataVersion">—</div>
-              <div class="ua-data-line"><span>Device records</span><b id="uaDataDevices">—</b></div>
-              <div class="ua-data-line"><span>Application records</span><b id="uaDataApps">—</b></div>
-              <div class="ua-data-line"><span>Verified app UA templates</span><b id="uaDataTemplates">0</b></div>
-              <div class="ua-data-line"><span>Data source</span><b id="uaDataSource">Checking</b></div>
-              <p>Generated sets stay in this browser unless you export them. No customer account is required.</p>
+              <div class="ua-data-top"><span class="eyebrow">DATABASE</span><strong id="uaDataVersion">—</strong></div>
+              <div class="ua-data-line"><span>Devices</span><b id="uaDataDevices">—</b></div>
+              <div class="ua-data-line"><span>Apps</span><b id="uaDataApps">—</b></div>
+              <div class="ua-data-line"><span>Verified app templates</span><b id="uaDataTemplates">0</b></div>
+              <div class="ua-data-line"><span>Source</span><b id="uaDataSource">Checking</b></div>
             </div>
           </aside>
         </div>
       </section>
 
-      <section class="view" id="view-devices">
+      <section class="view admin-only hidden" id="view-devices">
         <div class="page-intro intro-row"><div><div class="eyebrow">WORKSPACE / DEVICE LIBRARY</div><h1>Device records</h1><p>Browse the shared catalog. Full editing is available to authorized administrators.</p></div><div class="intro-actions"><button class="button button-secondary" id="exportDevices">Export catalog</button><button class="button button-primary admin-only hidden" id="addDevice">+ Add device</button></div></div>
         <div class="panel table-panel">
           <div class="toolbar"><div class="search-wrap"><span>⌕</span><input id="deviceSearch" type="search" placeholder="Search model, brand or identifier"></div><select class="select-control" id="devicePlatform"><option value="all">All platforms</option><option value="android">Android</option><option value="ios_emulation">iOS</option></select><select class="select-control" id="deviceBrand"><option value="all">All manufacturers</option></select><div class="toolbar-spacer"></div><span class="tag neutral" id="deviceCount">0 records</span></div>
@@ -272,7 +430,7 @@
         </div>
       </section>
 
-      <section class="view" id="view-applications">
+      <section class="view admin-only hidden" id="view-applications">
         <div class="page-intro"><div class="eyebrow">WORKSPACE / APPLICATION LIBRARY</div><h1>Application versions</h1><p>Track known version metadata and distinguish verified values from missing information. NEXORA never fills unknown versions with guesses.</p></div>
         <div class="application-toolbar"><div class="filter-pills" id="appFilters"><button class="filter-pill active" data-app-filter="all">All applications</button><button class="filter-pill" data-app-filter="known">Version known</button><button class="filter-pill" data-app-filter="missing">Needs verification</button></div><button class="button button-secondary admin-only hidden" id="editAppVersions">Edit version metadata</button></div>
         <div class="application-grid" id="applicationGrid"></div>
@@ -313,7 +471,7 @@
         <div class="panel update-note-panel"><div class="eyebrow">DEPLOYMENT SAFETY</div><h2 style="margin-top:7px">Before going public</h2><p class="muted">Configure admin credentials, a secret key, PostgreSQL, restricted CORS origins, HTTPS and backups. Public generation endpoints should also be protected by hosting-level rate limits before high-traffic launch.</p></div>
       </section>
 
-      <section class="view" id="view-about">
+      <section class="view admin-only hidden" id="view-about">
         <div class="page-intro"><div class="eyebrow">NEXORA / PLATFORM INFORMATION</div><h1>Built for reliable data operations.</h1><p>NEXORA Next separates public data access from private data administration.</p></div>
         <div class="panel"><div class="policy-grid"><div><span class="policy-number">01 / PUBLIC</span><strong>Explore and generate</strong><p>Visitors can browse device data and generate QA compatibility fixtures.</p></div><div><span class="policy-number">02 / ADMIN</span><strong>Human-controlled editing</strong><p>Only authenticated administrators can change shared data or approve proposals.</p></div><div><span class="policy-number">03 / AI</span><strong>Assisted, not unchecked</strong><p>AI can research and prepare proposals. It cannot directly publish untrusted information.</p></div></div></div>
         <div class="panel update-note-panel"><div class="eyebrow">LEGACY FEATURE</div><h2 style="margin-top:7px">Original User-Agent generator</h2><p class="muted">The original generator has been preserved in a separate page so the redesign does not discard the existing workflow.</p><a class="button button-secondary" href="./generator-legacy.html">Open legacy generator ↗</a></div>

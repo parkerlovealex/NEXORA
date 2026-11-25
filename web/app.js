@@ -11,12 +11,58 @@ const APP_NAMES = {
 const state = {
   data: null, devices: [], apiOnline: false, apiError: "", token: sessionStorage.getItem("nexora_admin_token") || "",
   isAdmin: false, dataset: [], appFilter: "all", uaTemplates: null, uaTemplateError: "",
-  uaResults: [], selectedDevices: { android: [], ios: [] }, customQuantities: {}, selectedApps: [],
-  deviceTab: "android", adminOverview: null, adminSources: [], adminRuns: [], adminAudit: [],
-  theme: localStorage.getItem("nexora_theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+  uaResults: [], selectedDevices: { android: [], ios: [] }, customQuantities: {}, selectedApps: [], platformMode: "android", appMode: false, resultFilter: "all", showAllResults: false, duplicatesBlocked: 0,
+  deviceTab: "android", adminOverview: null, adminSources: [], adminRuns: [], adminAudit: []
 };
 const $ = (id) => document.getElementById(id);
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const BRAND_ICON_MAP = {
+  android:["android","3DDC84"], apple:["apple","FFFFFF"],
+  chrome:["googlechrome","4285F4"], webview:["googlechrome","4285F4"],
+  safari:["safari","0A84FF"], firefox:["firefoxbrowser","FF7139"],
+  edge:["microsoftedge","0A84FF"], opera:["opera","FF1B2D"],
+  facebook:["facebook","0866FF"], fb_lite:["facebook","0866FF"],
+  instagram:["instagram","E4405F"], tiktok:["tiktok","FFFFFF"], x:["x","FFFFFF"],
+  threads:["threads","FFFFFF"], linkedin:["linkedin","0A66C2"], pinterest:["pinterest","E60023"],
+  reddit:["reddit","FF4500"], snapchat:["snapchat","FFFC00"], weibo:["sinaweibo","E6162D"],
+  telegram:["telegram","26A5E4"], messenger:["facebookmessenger","0866FF"],
+  wechat:["wechat","07C160"], line:["line","06C755"], kik:["kik","82BC23"],
+  discord:["discord","5865F2"], viber:["viber","7360F2"],
+  google:["google","4285F4"], samsung:["samsung","1428A0"], xiaomi:["xiaomi","FF6900"],
+  motorola:["motorola","E60000"], oneplus:["oneplus","F5010C"], oppo:["oppo","00A862"],
+  vivo:["vivo","415FFF"], realme:["realme","FFC915"], nothing:["nothing","FFFFFF"],
+  honor:["honor","FFFFFF"], huawei:["huawei","FF0000"], sony:["sony","FFFFFF"], asus:["asus","00539B"]
+};
+const BRAND_ALIASES = {
+  "google pixel":"google", "samsung":"samsung", "apple":"apple", "xiaomi":"xiaomi",
+  "redmi":"xiaomi", "poco":"xiaomi", "motorola":"motorola", "oneplus":"oneplus",
+  "oppo":"oppo", "vivo":"vivo", "iqoo":"vivo", "realme":"realme", "nothing":"nothing",
+  "honor":"honor", "huawei":"huawei", "sony":"sony", "asus":"asus", "hmd":"google"
+};
+function brandKey(value) {
+  const key = String(value || "").toLowerCase();
+  return BRAND_ALIASES[key] || key.replace(/[^a-z0-9_]/g, "");
+}
+function brandLogo(name, label, extraClass = "") {
+  const key = String(name || "").toLowerCase();
+  const brand = BRAND_ICON_MAP[key] || BRAND_ICON_MAP[brandKey(label)] || null;
+  const fallback = String(label || name || "N").trim().slice(0,1).toUpperCase();
+  if (!brand) return `<span class="brand-logo ${extraClass}"><span>${esc(fallback)}</span></span>`;
+  return `<span class="brand-logo ${extraClass}"><img src="https://cdn.simpleicons.org/${brand[0]}/${brand[1]}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>${esc(fallback)}</span></span>`;
+}
+const UA_CANDIDATE_FORMATS = {
+  facebook: {
+    android: "Mozilla/5.0 (Linux; Android {osVersion}; {model} Build/{buildId}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
+    ios: "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersion} like Mac OS X) AppleWebKit/{webkitVersion} (KHTML, like Gecko) Mobile/{iosBuild} Safari/604.1 [FBAN/FBIOS;FBAV/{appVersion};FBBV/{appBuild};FBDV/{deviceModel};FBMD/iPhone;FBSN/iOS;FBSV/{iosVersion};FBSS/{scale};FBID/phone;FBLC/{locale};FBOP/5;FBRV/{runtimeVersion};IABMV/1]"
+  },
+  instagram: {
+    androidSamsung: "Mozilla/5.0 (Linux; {androidFull}; {model} Build/{buildId}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 Instagram {appVersion} Android ({sdkVersion}/{osVersion}; {density}; {resolution}; {brand}; {model}; {codename}; {chipset}; {locale}; {appBuildId}; IABMV/1)",
+    androidMotorola: "Mozilla/5.0 (Linux; Android {osVersion}; {model} Build/{buildId}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 Instagram {appVersion} Android ({sdkVersion}/{osVersion}; {density}; {resolution}; motorola; {model}; {chipset}; {locale}; {appBuildId}; IABMV/1)",
+    ios: "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersion} like Mac OS X) AppleWebKit/{webkitVersion} (KHTML, like Gecko) Mobile/{iosBuild} Instagram {appVersion} ({deviceModel}; iOS {iosVersion}; {locale}; scale={scale}; {resolution}; IABMV/1 {appBuildId})"
+  }
+};
+
 const dateText = (value) => value ? new Date(value).toLocaleString() : "Not checked";
 const numberText = (value) => Number(value || 0).toLocaleString();
 
@@ -75,6 +121,7 @@ function updateHealth() {
     $("healthText").textContent = "Offline fallback"; $("healthSub").textContent = "Using bundled read-only data";
     $("topStatusText").textContent = "BUNDLED DATA";
   }
+  $("catalogStatusDot")?.classList.toggle("good", Boolean(state.data));
   $("activityHealth").textContent = state.apiOnline ? "Central data service connected" : "Local catalog loaded";
   $("activityHealthDetail").textContent = state.apiOnline ? "API is responding normally" : "Admin editing and source automation require the API";
 }
@@ -237,8 +284,7 @@ function setupUaGenerator() {
 }
 function renderUaDevicePicker() {
   const mode = document.querySelector('input[name="uaDistribution"]:checked')?.value || "random";
-  const picker = $("uaDevicePicker");
-  picker.classList.toggle("hidden", mode === "random");
+  $("uaDevicePicker").classList.toggle("hidden", mode === "random");
   document.querySelectorAll(".distribution-option").forEach(label => {
     const input = label.querySelector("input");
     label.classList.toggle("selected", Boolean(input?.checked));
@@ -250,43 +296,128 @@ function renderUaDevicePicker() {
     const selected = state.selectedDevices[platform] || [];
     target.innerHTML = records.map(d => {
       const checked = selected.includes(d.id);
+      const checkId = `ua-device-${platform}-${d.id}`;
       const custom = mode === "custom" && checked
-        ? `<input class="device-quantity" type="number" min="0" max="500" value="${esc(state.customQuantities[d.id] ?? 0)}" data-custom-qty="${esc(d.id)}" aria-label="Quantity for ${esc(d.model)}">` : "";
-      return `<label class="device-option"><input type="checkbox" data-device-id="${esc(d.id)}" data-device-platform="${platform}" ${checked ? "checked" : ""}><span class="device-option-copy"><b>${esc(d.brand)} ${esc(d.model)}</b><small>${esc(d.uaModel || d.id)} · ${(d.osVersions || []).length} OS versions</small></span>${custom}<span class="device-checkmark">✓</span></label>`;
-    }).join("") || '<div class="device-list-empty">No devices match this search.</div>';
+        ? `<input class="device-quantity" type="number" min="0" max="500" value="${esc(state.customQuantities[d.id] ?? 1)}" data-custom-qty="${esc(d.id)}" aria-label="Quantity for ${esc(d.model)}">`
+        : "";
+      return `<div class="device-option">
+        <input id="${esc(checkId)}" type="checkbox" data-device-id="${esc(d.id)}" data-device-platform="${platform}" ${checked ? "checked" : ""}>
+        <label for="${esc(checkId)}" class="device-option-label">
+          ${brandLogo(brandKey(d.brand), d.brand, "device-logo")}
+          <span class="device-option-copy"><b>${esc(d.brand)} ${esc(d.model)}</b><small>${esc(d.uaModel || d.id)} · ${(d.osVersions || []).length} OS versions</small></span>
+        </label>${custom}
+      </div>`;
+    }).join("") || '<div class="device-list-empty">No matching devices.</div>';
   };
   renderList("android"); renderList("ios");
   $("uaAndroidDeviceList").classList.toggle("hidden", state.deviceTab !== "android");
   $("uaIosDeviceList").classList.toggle("hidden", state.deviceTab !== "ios");
+  document.querySelectorAll("[data-device-tab]").forEach(button => button.classList.toggle("active", button.dataset.deviceTab === state.deviceTab));
   $("uaAndroidDeviceCount").textContent = platformDevices("android").length;
   $("uaIosDeviceCount").textContent = platformDevices("ios").length;
   const totalSelected = state.selectedDevices.android.length + state.selectedDevices.ios.length;
-  $("uaSelectedCount").textContent = `${totalSelected} device${totalSelected === 1 ? "" : "s"} selected`;
-  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS records in selected market`;
+  $("uaSelectedCount").textContent = `${totalSelected} selected`;
+  $("uaDeviceMeta").textContent = `${platformDevices("android").length} Android · ${platformDevices("ios").length} iOS`;
   $("uaDistributionHint").textContent = mode === "custom"
-    ? "Enter an exact quantity for each selected device. Per-platform totals must match the requested quantities."
+    ? "Set quantities beside selected models. Their sum must equal that platform's batch quantity."
     : mode === "balanced"
-      ? "Selected models receive an even distribution. Any remainder is assigned from the start of the selected list."
-      : "Only selected models are eligible. iOS model identity is retained as metadata because standard iPhone User-Agent strings do not expose the exact model.";
+      ? "Selected models receive an even distribution. Any remainder starts from the first selected model."
+      : "Only selected models are used. Standard iPhone User-Agent strings do not expose the exact iPhone model.";
 }
+
 function renderUaApps() {
-  const records = Object.entries(apps());
+  const records = Object.entries(apps()).sort((a,b) => (UA_APP_NAMES[a[0]] || a[0]).localeCompare(UA_APP_NAMES[b[0]] || b[0]));
   const verified = templateRecords().filter(x => x.status === "verified");
-  $("uaTemplateSummary").textContent = state.uaTemplates
-    ? `${verified.length} verified templates · ${records.length} applications`
-    : `0 verified templates · ${records.length} apps have version/build data`;
+  const candidateCount = Object.values(UA_CANDIDATE_FORMATS).reduce((n, formats) => n + Object.keys(formats).length, 0);
+  $("uaTemplateSummary").textContent = `${verified.length} verified · ${candidateCount} script candidates · ${records.length} apps`;
   const q = ($("uaAppSearch")?.value || "").trim().toLowerCase();
   $("uaAppGrid").innerHTML = records.map(([id, raw]) => {
     const label = UA_APP_NAMES[id] || id;
     const version = typeof raw === "string" ? raw : raw?.version || "Version unavailable";
+    const build = typeof raw === "object" ? raw?.build : "";
     const readyRows = verifiedTemplates(id, "android").concat(verifiedTemplates(id, "ios"));
     const ready = readyRows.length > 0;
+    const candidate = UA_CANDIDATE_FORMATS[id] || null;
     const checked = state.selectedApps.includes(id);
-    const status = ready ? "VERIFIED TEMPLATE" : "TEMPLATE PENDING";
+    const status = ready ? "READY" : candidate ? "SCRIPT CANDIDATE" : "TEMPLATE PENDING";
     if (q && !(label + " " + id).toLowerCase().includes(q)) return "";
-    return `<label class="app-template-option ${ready ? "ready" : "pending"}"><input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready ? "" : "disabled"}><span class="app-template-logo">${esc(label.slice(0,2).toUpperCase())}</span><span class="app-template-copy"><b>${esc(label)}</b><small>App ${esc(version)}</small></span><span class="app-template-status">${status}</span></label>`;
-  }).join("") || '<div class="device-list-empty">No application matches your search.</div>';
+    const previews = candidate ? Object.entries(candidate).map(([platform, pattern]) =>
+      `<div class="candidate-format"><strong>${platform === "androidSamsung" ? "Android · Samsung script" : platform === "androidMotorola" ? "Android · Motorola script" : platform === "android" ? "Android" : "iOS"}</strong><pre>${esc(pattern)}</pre></div>`
+    ).join("") : "";
+    return `<article class="app-template-option ${ready ? "ready" : "pending"}">
+      <label class="app-template-select">
+        <input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready ? "" : "disabled"}>
+        ${brandLogo(id, label, "app-logo")}
+        <span class="app-template-copy"><b>${esc(label)}</b><small>${esc(version)}${build ? ` · build ${esc(build)}` : ""}</small></span>
+        <span class="app-template-status ${ready ? "ready" : candidate ? "candidate" : "pending"}">${status}</span>
+      </label>
+      ${candidate ? `<details class="app-format-preview"><summary>View supplied format</summary><div class="candidate-format-list">${previews}</div><p>Candidate source only. Not verified and not selectable until the collection pipeline approves it.</p></details>` : ""}
+    </article>`;
+  }).join("") || '<div class="device-list-empty">No matching applications.</div>';
 }
+
+
+
+function wireLogoFallbacks() {
+  document.querySelectorAll('img[src*="cdn.simpleicons.org"]:not([onerror])').forEach(img => {
+    const showFallback = () => {
+      if (img.dataset.fallbackDone) return;
+      img.dataset.fallbackDone = "1";
+      img.hidden = true;
+      const fallback = document.createElement("span");
+      fallback.className = "logo-fallback";
+      fallback.textContent = (img.alt || "•").trim().slice(0,1).toUpperCase();
+      img.parentElement?.appendChild(fallback);
+    };
+    img.addEventListener("error", showFallback, { once: true });
+    if (img.complete && img.naturalWidth === 0) showFallback();
+  });
+}
+
+function updatePlatformCards() {
+  document.querySelectorAll("[data-platform-mode]").forEach(button => {
+    button.classList.toggle("active", button.dataset.platformMode === state.platformMode);
+    button.setAttribute("aria-pressed", button.dataset.platformMode === state.platformMode ? "true" : "false");
+  });
+  document.querySelectorAll("[data-platform-card]").forEach(card => {
+    const show = state.platformMode === "mixed" || state.platformMode === card.dataset.platformCard;
+    card.classList.toggle("hidden", !show);
+  });
+}
+function setPlatformMode(mode) {
+  const old = state.platformMode;
+  let android = Number($("uaAndroidQty").value) || 0;
+  let ios = Number($("uaIosQty").value) || 0;
+  if (mode === "android") { if (!android) android = 10; ios = 0; }
+  else if (mode === "ios") { if (!ios) ios = 10; android = 0; }
+  else {
+    if (old === "android" && android && !ios) ios = android;
+    else if (old === "ios" && ios && !android) android = ios;
+    else if (!android && !ios) { android = 5; ios = 5; }
+  }
+  state.platformMode = mode;
+  $("uaAndroidQty").value = android; $("uaIosQty").value = ios;
+  updateUaTotals(); playUiSound("tap");
+}
+function applyBatchPreset(total) {
+  if (state.platformMode === "android") { $("uaAndroidQty").value = total; $("uaIosQty").value = 0; }
+  else if (state.platformMode === "ios") { $("uaAndroidQty").value = 0; $("uaIosQty").value = total; }
+  else {
+    $("uaAndroidQty").value = Math.ceil(total / 2);
+    $("uaIosQty").value = Math.floor(total / 2);
+  }
+  document.querySelectorAll("[data-batch-preset]").forEach(button => button.classList.toggle("active", Number(button.dataset.batchPreset) === total));
+  updateUaTotals(); playUiSound("tap");
+}
+function syncPlatformModeFromQuantities() {
+  const android = Number($("uaAndroidQty").value) || 0;
+  const ios = Number($("uaIosQty").value) || 0;
+  if (android > 0 && ios > 0) state.platformMode = "mixed";
+  else if (android > 0) state.platformMode = "android";
+  else if (ios > 0) state.platformMode = "ios";
+  updatePlatformCards();
+}
+
 function updateUaTotals() {
   const android = Math.max(0, Math.min(500, Number($("uaAndroidQty").value) || 0));
   const ios = Math.max(0, Math.min(500, Number($("uaIosQty").value) || 0));
@@ -294,17 +425,23 @@ function updateUaTotals() {
   $("uaAndroidRange").value = android; $("uaIosRange").value = ios;
   const total = android + ios;
   $("uaTotal").textContent = total;
-  $("uaReadySummary").textContent = `${android} Android + ${ios} iOS · ${total} total`;
-  $("uaAndroidRange").setAttribute("aria-valuenow", android);
-  $("uaIosRange").setAttribute("aria-valuenow", ios);
+  $("uaReadySummary").textContent = `${android} Android · ${ios} iOS`;
+  if ($("uaBatchSummary")) $("uaBatchSummary").textContent = `${android} Android · ${ios} iOS`;
+  $("generateButtonCount").textContent = total;
   $("generateButton").disabled = total < 1 || total > 500;
+  $("batchLimitNote").textContent = total > 500 ? "Batch limit is 500. Reduce one platform quantity." : `${500 - total} slots remaining in this batch.`;
+  document.querySelectorAll("[data-batch-preset]").forEach(button => button.classList.toggle("active", Number(button.dataset.batchPreset) === total));
+  updatePlatformCards();
 }
+
 function localeMeta() {
   const code = $("uaCountry").value;
   const entry = UA_COUNTRIES.find(x => x[0] === code);
-  const language = $("uaLanguage").value === "auto" ? (entry?.[2] || "en-US") : $("uaLanguage").value;
+  const automaticLanguage = entry?.[2] && entry[2] !== "auto" ? entry[2] : "en-US";
+  const language = $("uaLanguage").value === "auto" ? automaticLanguage : $("uaLanguage").value;
   return { country: code || null, language, acceptLanguage: `${language},${language.split("-")[0]};q=0.9` };
 }
+
 function renderSavedBatches() {
   let batches = [];
   try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
@@ -316,12 +453,13 @@ function getSelectedBrowsers(platform) {
 }
 function browserVersion(platform, browser) {
   const ids = {
-    android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion" },
+    android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion", webview:"uaChromiumEngineVersion" },
     ios: { safari:"uaSafariVersion", chrome:"uaChromeIosVersion", firefox:"uaFirefoxIosVersion", edge:"uaEdgeIosVersion" }
   };
   const id = ids[platform]?.[browser];
   return id ? $(id).value.trim() : "";
 }
+
 function buildBrowserUa(platform, device, osVersion, browser) {
   const model = device.uaModel || device.id;
   const build = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || "";
@@ -333,7 +471,11 @@ function buildBrowserUa(platform, device, osVersion, browser) {
       if (!v) throw new Error("Chrome version is missing from the database.");
       return `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${v} Mobile Safari/537.36`;
     }
-    if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} Android version is required. Open Advanced browser versions.`);
+    if (browser === "webview") {
+      if (!engineVersion) throw new Error("Chromium engine version is missing from the database.");
+      return `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/${engineVersion} Mobile Safari/537.36`;
+    }
+    if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} Android version is required. Open Advanced options.`);
     if (browser === "firefox") return `Mozilla/5.0 (Android ${osVersion}; Mobile; rv:${version}) Gecko/${version} Firefox/${version}`;
     if (!engineVersion) throw new Error("Chromium engine version is required for Edge and Opera.");
     const base = `Mozilla/5.0 (Linux; Android ${osVersion}; ${model}${build ? ` Build/${build}` : ""}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${engineVersion} Mobile Safari/537.36`;
@@ -341,14 +483,16 @@ function buildBrowserUa(platform, device, osVersion, browser) {
     if (browser === "opera") return `${base} OPR/${version}`;
   }
   const ios = String(osVersion).replace(/\./g, "_");
+  const mobileBuild = build || "15E148";
   const head = `Mozilla/5.0 (iPhone; CPU iPhone OS ${ios} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) `;
-  if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} iOS version is required. Open Advanced browser versions.`);
-  if (browser === "safari") return `${head}Version/${version} Mobile/15E148 Safari/604.1`;
-  if (browser === "chrome") return `${head}CriOS/${version} Mobile/15E148 Safari/604.1`;
-  if (browser === "firefox") return `${head}FxiOS/${version} Mobile/15E148 Safari/605.1.15`;
-  if (browser === "edge") return `${head}EdgiOS/${version} Mobile/15E148 Safari/605.1.15`;
+  if (!version) throw new Error(`${browser[0].toUpperCase()+browser.slice(1)} iOS version is required. Open Advanced options.`);
+  if (browser === "safari") return `${head}Version/${version} Mobile/${mobileBuild} Safari/604.1`;
+  if (browser === "chrome") return `${head}CriOS/${version} Mobile/${mobileBuild} Safari/604.1`;
+  if (browser === "firefox") return `${head}FxiOS/${version} Mobile/${mobileBuild} Safari/605.1.15`;
+  if (browser === "edge") return `${head}EdgiOS/${version} Mobile/${mobileBuild} Safari/605.1.15`;
   throw new Error(`Unsupported ${platform} browser: ${browser}`);
 }
+
 function buildVerifiedAppUa(appId, platform, device, osVersion) {
   const row = verifiedTemplates(appId, platform)[0];
   if (!row) throw new Error(`${UA_APP_NAMES[appId] || appId} has no verified ${platform} template.`);
@@ -382,28 +526,41 @@ function chooseOsVersion(device, platform) {
   const select = $(platform === "android" ? "uaAndroidOs" : "uaIosOs");
   const value = select.value;
   const supported = device.osVersions || [];
+  if (!supported.length) throw new Error(`${device.model} has no supported OS versions in the catalog.`);
   if (value === "latest") return numericVersionSort(supported).at(-1);
   if (value === "random") return supported[Math.floor(Math.random() * supported.length)];
   if (!supported.includes(value)) throw new Error(`${device.model} does not support selected OS ${value}.`);
   return value;
 }
+
 function deviceSchedule(platform, quantity, mode) {
   const all = platformDevices(platform);
   const chosenIds = state.selectedDevices[platform] || [];
   let pool = mode === "random" ? all : all.filter(d => chosenIds.includes(d.id));
-  if (!pool.length && quantity) throw new Error(`Select at least one ${platform} device or choose Random.`);
-  const custom = [];
+  const osSelect = $(platform === "android" ? "uaAndroidOs" : "uaIosOs");
+  const requestedOs = osSelect?.value || "latest";
+  if (requestedOs !== "latest" && requestedOs !== "random") {
+    if (mode === "custom") {
+      const invalid = pool.filter(d => Number(state.customQuantities[d.id] || 0) > 0 && !(d.osVersions || []).includes(requestedOs));
+      if (invalid.length) throw new Error(`${invalid.map(d => d.model).join(", ")} do not support OS ${requestedOs}.`);
+    } else {
+      pool = pool.filter(d => (d.osVersions || []).includes(requestedOs));
+    }
+  }
+  if (!pool.length && quantity) throw new Error(`No eligible ${platform} devices match this selection and OS version.`);
   if (mode === "custom") {
+    const custom = [];
     for (const d of pool) {
       const count = Math.max(0, Number(state.customQuantities[d.id]) || 0);
       for (let i=0;i<count;i++) custom.push(d);
     }
-    if (custom.length !== quantity) throw new Error(`${platform.toUpperCase()} custom device quantities total ${custom.length}; expected ${quantity}.`);
+    if (custom.length !== quantity) throw new Error(`${platform.toUpperCase()} custom quantities total ${custom.length}; expected ${quantity}.`);
     return custom;
   }
   if (mode === "balanced") return Array.from({length:quantity}, (_,i)=>pool[i % pool.length]);
   return Array.from({length:quantity}, () => pool[Math.floor(Math.random()*pool.length)]);
 }
+
 function generateUaBatch() {
   const qty = { android: Number($("uaAndroidQty").value)||0, ios: Number($("uaIosQty").value)||0 };
   const total = qty.android + qty.ios;
@@ -412,11 +569,14 @@ function generateUaBatch() {
   const locale = localeMeta();
   const dedupe = $("uaDeduplicate").checked;
   const output = [], seen = new Set();
+  let duplicatesBlocked = 0;
   for (const platform of ["android","ios"]) {
     if (!qty[platform]) continue;
     const browsers = getSelectedBrowsers(platform);
-    const selectedAppIds = state.selectedApps.filter(id => verifiedTemplates(id, platform).length);
-    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose at least one compatible ${platform.toUpperCase()} browser or verified in-app template.`);
+    const selectedAppIds = $("uaIncludeApps").checked
+      ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length)
+      : [];
+    if (!browsers.length && !selectedAppIds.length) throw new Error(`Choose a compatible ${platform.toUpperCase()} browser or a verified in-app template.`);
     const schedule = deviceSchedule(platform, qty[platform], mode);
     for (let i=0;i<schedule.length;i++) {
       const device = schedule[i];
@@ -431,32 +591,38 @@ function generateUaBatch() {
         browser = browsers[i % browsers.length];
         ua = buildBrowserUa(platform, device, osVersion, browser);
       }
-      if (dedupe && seen.has(ua)) continue;
+      if (dedupe && seen.has(ua)) { duplicatesBlocked++; continue; }
       seen.add(ua);
       const buildId = device.builds?.[osVersion] || device.buildsRecent?.find(x => String(x.version) === String(osVersion))?.build || null;
+      const browserVersionValue = appId ? null : browserVersion(platform, browser) || (platform === "android" && browser === "chrome" ? versions().chrome : browser === "webview" ? $("uaChromiumEngineVersion").value.trim() || versions().chrome : null);
+      const versionInputId = browser === "webview" ? "uaChromiumEngineVersion" : "uaChromeVersion";
       output.push({
         id: `nexora-ua-${String(output.length+1).padStart(4,"0")}`,
         platform: platform === "android" ? "Android" : "iOS",
         deviceId: device.id, brand: device.brand, deviceModel: device.model,
         modelIdentifier: device.uaModel || null, osVersion, buildId,
-        browser, browserVersion: appId ? null : browserVersion(platform, browser) || (platform === "android" && browser === "chrome" ? versions().chrome : null),
-        browserVersionSource: appId ? "verified-template" : (platform === "android" && browser === "chrome" && !$("uaChromeVersion").dataset.manual ? "database" : "manual"),
+        browser, browserVersion: browserVersionValue,
+        browserVersionSource: appId ? "verified-template" : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId).dataset.manual ? "database" : "manual"),
         appId, appVersion, appBuild, templateId, templateEvidence, userAgent: ua,
         country: locale.country, language: locale.language, acceptLanguage: locale.acceptLanguage,
         catalogDataVersion: meta().dataVersion || null,
         sourceType: appId ? "verified-app-template" : "browser-template",
-        note: platform === "ios" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
+        note: platform === "iOS" ? "iOS device identity is retained as metadata; standard iPhone UAs do not expose the exact model." : "Generated compatibility UA; this does not alter the real runtime device."
       });
     }
   }
+  state.duplicatesBlocked = duplicatesBlocked;
   return output;
 }
+
 function renderUaResultsView() {
   const rows = state.dataset || [];
   $("uaResultTotal").textContent = rows.length;
   $("uaResultAndroid").textContent = rows.filter(x => x.platform === "Android").length;
   $("uaResultIos").textContent = rows.filter(x => x.platform === "iOS").length;
-  $("uaResultSubtitle").textContent = rows.length ? `${rows.length} records · data ${meta().dataVersion || "local"}` : "Your results will appear here.";
+  $("uaResultSubtitle").textContent = rows.length
+    ? `${rows.length} generated · ${meta().dataVersion || "local catalog"}${state.duplicatesBlocked ? ` · ${state.duplicatesBlocked} duplicates skipped` : ""}`
+    : "Your batch will appear here.";
   if (!rows.length) {
     $("generatorPreview").classList.remove("hidden");
     $("uaResultsList").classList.add("hidden");
@@ -465,12 +631,40 @@ function renderUaResultsView() {
   }
   $("generatorPreview").classList.add("hidden");
   $("uaResultsList").classList.remove("hidden");
-  $("uaResultsList").innerHTML = rows.slice(0,20).map((r,i) =>
-    `<article class="ua-result-item"><div class="ua-result-index">${String(i+1).padStart(2,"0")}</div><div class="ua-result-main"><div class="ua-result-tags"><span>${esc(r.platform)}</span><span>${esc(r.browser)}</span><span>${esc(r.osVersion)}</span></div><strong>${esc(r.brand)} ${esc(r.deviceModel)}</strong><code>${esc(r.userAgent)}</code></div><button class="copy-one" type="button" data-copy-ua="${i}" aria-label="Copy User-Agent ${i+1}">Copy</button></article>`
-  ).join("") + (rows.length > 20 ? `<div class="more-results">Showing 20 of ${rows.length} results. Export or copy all to access the complete batch.</div>` : "");
+  const filtered = rows.map((record,index)=>({record,index})).filter(({record}) => {
+    if (state.resultFilter === "android") return record.platform === "Android";
+    if (state.resultFilter === "ios") return record.platform === "iOS";
+    if (state.resultFilter === "apps") return Boolean(record.appId);
+    return true;
+  });
+  const visible = state.showAllResults ? filtered : filtered.slice(0,30);
+  $("uaResultsList").innerHTML = visible.map(({record:r,index:i}) => {
+    const title = r.appId ? (UA_APP_NAMES[r.appId] || r.appId) : ({chrome:"Chrome",safari:"Safari",firefox:"Firefox",edge:"Edge",opera:"Opera",webview:"Android WebView"}[r.browser] || r.browser);
+    const iconKey = r.appId || r.browser;
+    const platformLogo = r.platform === "Android" ? brandLogo("android","Android","result-platform-logo") : brandLogo("apple","Apple","result-platform-logo");
+    const versionLine = r.appId
+      ? `App ${esc(r.appVersion || "—")}${r.appBuild ? ` · build ${esc(r.appBuild)}` : ""}`
+      : `${esc(r.browserVersion || "Version not recorded")}`;
+    return `<article class="ua-result-item">
+      <div class="ua-result-head">
+        ${brandLogo(iconKey,title,"result-brand-logo")}
+        <div class="ua-result-title"><strong>${esc(title)}</strong><small>${platformLogo}<span>${esc(r.platform)} · ${esc(r.deviceModel)} · ${esc(r.osVersion)}</span></small></div>
+        <button class="copy-one" type="button" data-copy-ua="${i}" aria-label="Copy User-Agent ${i+1}">Copy</button>
+      </div>
+      <pre class="ua-result-string">${esc(r.userAgent)}</pre>
+      <div class="ua-result-foot"><span>${esc(r.brand || "")}</span><span>${esc(versionLine)}</span></div>
+    </article>`;
+  }).join("") || '<div class="device-list-empty">No results match this filter.</div>';
+  if (filtered.length > visible.length) {
+    $("uaResultsList").insertAdjacentHTML("beforeend", `<button class="show-more-results" type="button" data-show-all-results>Show all ${filtered.length} results</button>`);
+  } else if (state.showAllResults && filtered.length > 30) {
+    $("uaResultsList").insertAdjacentHTML("beforeend", `<button class="show-more-results" type="button" data-show-all-results>Show first 30</button>`);
+  }
+  document.querySelectorAll("[data-result-filter]").forEach(button => button.classList.toggle("active", button.dataset.resultFilter === state.resultFilter));
   $("exportActions").classList.remove("hidden");
   $("uaDataVersion").textContent = meta().dataVersion || "Unversioned";
 }
+
 function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
 function exportDataset() {
   if (!state.dataset.length) return;
@@ -489,15 +683,21 @@ function downloadText(name, content, type = "text/plain") {
   URL.revokeObjectURL(url);
 }
 function playUiSound(kind = "tap") {
-  if (!$("uaSound")?.checked || !window.AudioContext) return;
+  if (!$("uaSound")?.checked) return;
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
   try {
-    const ctx = new AudioContext(), osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = "sine"; osc.frequency.value = kind === "success" ? 660 : 420;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = kind === "success" ? 740 : kind === "error" ? 240 : 480;
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
-    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.13);
-    osc.onended = () => ctx.close();
+    gain.gain.exponentialRampToValueAtTime(0.025, ctx.currentTime + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.14);
+    osc.connect(gain); gain.connect(ctx.destination);
+    ctx.resume().catch(()=>{});
+    osc.start(); osc.stop(ctx.currentTime + 0.15);
+    osc.onended = () => ctx.close().catch(()=>{});
   } catch {}
 }
 
@@ -507,11 +707,15 @@ function makeDataset() { return generateUaBatch(); }
 
 function renderDatasetPreview() { renderUaResultsView(); }
 
-function downloadText(filename, text, mime) {
-  const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob); const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+function downloadText(name, content, type = "text/plain;charset=utf-8") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = name; link.style.display = "none";
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1200);
 }
+
 function csvValue(value) { const text = typeof value === "object" ? JSON.stringify(value) : String(value ?? ""); return `"${text.replace(/"/g, '""')}"`; }
 function exportDataset() { if (!state.dataset.length) return; const format = $("uaExportFormat").value; if (format === "json") downloadText("nexora-user-agents.json", JSON.stringify({meta:{dataVersion:meta().dataVersion,generatedAt:new Date().toISOString(),count:state.dataset.length},records:state.dataset},null,2), "application/json"); else if (format === "csv") { const keys=Object.keys(state.dataset[0]); const csv=[keys.map(csvValue).join(","),...state.dataset.map(row=>keys.map(key=>csvValue(row[key])).join(","))].join("\n"); downloadText("nexora-user-agents.csv",csv,"text/csv;charset=utf-8"); } else downloadText("nexora-user-agents.txt",state.dataset.map(row=>row.userAgent).join("\n"),"text/plain;charset=utf-8"); }
 
@@ -520,7 +724,7 @@ function showToast(message, type = "") {
   $("toastRegion").appendChild(toast); setTimeout(() => toast.remove(), 3800);
 }
 function go(view) {
-  const adminViews = ["overview","compatibility","automation","review","assistant","audit","settings"];
+  const adminViews = ["devices","applications","overview","compatibility","automation","review","assistant","audit","settings","about"];
   if (adminViews.includes(view) && !state.isAdmin) { showToast("Sign in to access the system control center.", "error"); openModal("loginModal"); return; }
   document.querySelectorAll(".view").forEach(el => el.classList.toggle("active", el.id === `view-${view}`));
   document.querySelectorAll(".nav-item[data-view]").forEach(el => el.classList.toggle("active", el.dataset.view === view));
@@ -545,7 +749,7 @@ function clearAdmin() {
   state.token = ""; state.isAdmin = false; sessionStorage.removeItem("nexora_admin_token");
   document.body.classList.remove("is-admin"); document.querySelectorAll(".admin-only").forEach(el => el.classList.add("hidden"));
   $("adminLabel").textContent = "Guest access"; $("adminAvatar").textContent = "G"; $("authButton").textContent = "Sign in";
-  if (["overview","compatibility","automation","review","assistant","audit","settings"].includes(currentView())) go("generator");
+  if (["devices","applications","overview","compatibility","automation","review","assistant","audit","settings","about"].includes(currentView())) go("generator");
   renderDevices(); renderApplications(); renderOverview();
 }
 
@@ -740,9 +944,9 @@ function bindEvents() {
   document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => go(button.dataset.view)));
   document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => go(button.dataset.go)));
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
-  $("mobileMenu").addEventListener("click", () => $("sidebar").classList.toggle("open"));
-  $("authButton").addEventListener("click", () => state.isAdmin ? (clearAdmin(), showToast("Signed out.")) : openModal("loginModal"));
-  $("loginForm").addEventListener("submit", async event => {
+  $("mobileMenu")?.addEventListener("click", () => $("sidebar")?.classList.toggle("open"));
+  $("authButton")?.addEventListener("click", () => state.isAdmin ? (clearAdmin(), showToast("Signed out.")) : openModal("loginModal"));
+  $("loginForm")?.addEventListener("submit", async event => {
     event.preventDefault(); $("loginError").classList.add("hidden");
     try {
       const result = await api("/api/v1/admin/login", { method: "POST", body: JSON.stringify({ password: $("adminPassword").value }) });
@@ -750,103 +954,140 @@ function bindEvents() {
       go("overview"); showToast("Administrator session started.");
     } catch (error) { $("loginError").textContent = error.message; $("loginError").classList.remove("hidden"); }
   });
-  $("deviceSearch").addEventListener("input", renderDevices); $("devicePlatform").addEventListener("change", renderDevices); $("deviceBrand").addEventListener("change", renderDevices);
-  $("addDevice").addEventListener("click", () => openDeviceEditor()); $("deviceForm").addEventListener("submit", saveDevice);
-  $("exportDevices").addEventListener("click", () => downloadText("nexora-device-catalog.json", JSON.stringify(state.data, null, 2), "application/json"));
-  $("appFilters").querySelectorAll("[data-app-filter]").forEach(button => button.addEventListener("click", () => { state.appFilter = button.dataset.appFilter; $("appFilters").querySelectorAll(".filter-pill").forEach(b => b.classList.toggle("active", b === button)); renderApplications(); }));
-  $("editAppVersions").addEventListener("click", () => openAppEditor()); $("appVersionForm").addEventListener("submit", saveAppVersion);
+  $("deviceSearch")?.addEventListener("input", renderDevices);
+  $("devicePlatform")?.addEventListener("change", renderDevices);
+  $("deviceBrand")?.addEventListener("change", renderDevices);
+  $("addDevice")?.addEventListener("click", () => openDeviceEditor());
+  $("deviceForm")?.addEventListener("submit", saveDevice);
+  $("exportDevices")?.addEventListener("click", () => downloadText("nexora-device-catalog.json", JSON.stringify(state.data, null, 2), "application/json"));
+  $("appFilters")?.querySelectorAll("[data-app-filter]").forEach(button => button.addEventListener("click", () => { state.appFilter = button.dataset.appFilter; $("appFilters").querySelectorAll(".filter-pill").forEach(b => b.classList.toggle("active", b === button)); renderApplications(); }));
+  $("editAppVersions")?.addEventListener("click", () => openAppEditor());
+  $("appVersionForm")?.addEventListener("submit", saveAppVersion);
 
   const uaRoot = $("uaGenerator");
-  uaRoot.addEventListener("input", event => {
-    const t = event.target;
-    if (t.id === "uaAndroidQty" || t.id === "uaIosQty") updateUaTotals();
-    if (t.id === "uaAndroidRange") { $("uaAndroidQty").value = t.value; updateUaTotals(); }
-    if (t.id === "uaIosRange") { $("uaIosQty").value = t.value; updateUaTotals(); }
-    if (t.id === "uaDeviceSearch") renderUaDevicePicker();
-    if (t.id === "uaAppSearch") renderUaApps();
-    if (t.id === "uaChromeVersion") t.dataset.manual = "1";
-    if (t.hasAttribute("data-custom-qty")) state.customQuantities[t.dataset.customQty] = Math.max(0, Math.min(500, Number(t.value) || 0));
-  });
-  uaRoot.addEventListener("change", event => {
-    const t = event.target;
-    if (t.name === "uaDistribution") renderUaDevicePicker();
-    if (t.hasAttribute("data-device-id")) {
-      const platform = t.dataset.devicePlatform, id = t.dataset.deviceId;
-      const list = new Set(state.selectedDevices[platform] || []);
-      if (t.checked) list.add(id); else list.delete(id);
-      state.selectedDevices[platform] = [...list];
-      renderUaDevicePicker();
-    }
-    if (t.hasAttribute("data-app-template")) {
-      const id = t.dataset.appTemplate;
-      const list = new Set(state.selectedApps);
-      if (t.checked) list.add(id); else list.delete(id);
-      state.selectedApps = [...list];
-      renderUaApps();
-    }
-    if (t.id === "uaCountry") {
-      $("uaLanguage").value = "auto";
-      renderGeneratorFilters();
-    }
-    if (t.id === "uaSound") playUiSound("tap");
-  });
-  uaRoot.addEventListener("click", event => {
-    const qtyButton = event.target.closest("[data-qty-step]");
-    if (qtyButton) {
-      const platform = qtyButton.dataset.qtyStep, input = $(platform === "android" ? "uaAndroidQty" : "uaIosQty");
-      input.value = Math.max(0, Math.min(500, Number(input.value || 0) + Number(qtyButton.dataset.step)));
-      updateUaTotals(); playUiSound("tap");
-    }
-    const tab = event.target.closest("[data-device-tab]");
-    if (tab) {
-      state.deviceTab = tab.dataset.deviceTab;
-      document.querySelectorAll("[data-device-tab]").forEach(x => x.classList.toggle("active", x === tab));
-      renderUaDevicePicker();
-    }
-    const copy = event.target.closest("[data-copy-ua]");
-    if (copy) {
-      const record = state.dataset[Number(copy.dataset.copyUa)];
-      if (record) navigator.clipboard.writeText(record.userAgent).then(() => showToast("User-Agent copied."), () => showToast("Clipboard unavailable.", "error"));
-    }
-  });
-  $("generateButton").addEventListener("click", () => {
+  if (uaRoot) {
+    uaRoot.addEventListener("input", event => {
+      const t = event.target;
+      if (t.id === "uaAndroidQty" || t.id === "uaIosQty") { syncPlatformModeFromQuantities(); updateUaTotals(); }
+      if (t.id === "uaAndroidRange") { $("uaAndroidQty").value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
+      if (t.id === "uaIosRange") { $("uaIosQty").value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
+      if (t.id === "uaDeviceSearch") renderUaDevicePicker();
+      if (t.id === "uaAppSearch") renderUaApps();
+      if (t.id === "uaChromeVersion" || t.id === "uaChromiumEngineVersion") t.dataset.manual = "1";
+      if (t.hasAttribute("data-custom-qty")) state.customQuantities[t.dataset.customQty] = Math.max(0, Math.min(500, Number(t.value) || 0));
+    });
+    uaRoot.addEventListener("change", event => {
+      const t = event.target;
+      if (t.name === "uaDistribution") {
+        if (t.value === "custom") {
+          for (const platform of ["android","ios"]) for (const id of state.selectedDevices[platform]) {
+            if (!state.customQuantities[id]) state.customQuantities[id] = 1;
+          }
+        }
+        renderUaDevicePicker();
+      }
+      if (t.hasAttribute("data-device-id")) {
+        const platform = t.dataset.devicePlatform, id = t.dataset.deviceId;
+        const list = new Set(state.selectedDevices[platform] || []);
+        if (t.checked) { list.add(id); if (!state.customQuantities[id]) state.customQuantities[id] = 1; }
+        else list.delete(id);
+        state.selectedDevices[platform] = [...list];
+        renderUaDevicePicker();
+      }
+      if (t.hasAttribute("data-app-template")) {
+        const id = t.dataset.appTemplate, list = new Set(state.selectedApps);
+        if (t.checked) list.add(id); else list.delete(id);
+        state.selectedApps = [...list]; renderUaApps();
+      }
+      if (t.id === "uaIncludeApps") $("uaInAppPanel").classList.toggle("hidden", !t.checked);
+      if (t.id === "uaCountry") { $("uaLanguage").value = "auto"; renderGeneratorFilters(); }
+      if (t.id === "uaSound") playUiSound("tap");
+    });
+    uaRoot.addEventListener("click", event => {
+      const platformButton = event.target.closest("[data-platform-mode]");
+      if (platformButton) { setPlatformMode(platformButton.dataset.platformMode); return; }
+      const preset = event.target.closest("[data-batch-preset]");
+      if (preset) { applyBatchPreset(Number(preset.dataset.batchPreset)); return; }
+      const qtyButton = event.target.closest("[data-qty-step]");
+      if (qtyButton) {
+        const input = $(qtyButton.dataset.qtyStep === "android" ? "uaAndroidQty" : "uaIosQty");
+        input.value = Math.max(0, Math.min(500, Number(input.value || 0) + Number(qtyButton.dataset.step)));
+        syncPlatformModeFromQuantities(); updateUaTotals(); playUiSound("tap"); return;
+      }
+      const deviceAction = event.target.closest("[data-device-action]");
+      if (deviceAction) {
+        const platform = state.deviceTab, query = ($("uaDeviceSearch").value || "").trim().toLowerCase();
+        const visible = platformDevices(platform).filter(d => !query || [d.brand,d.model,d.id,d.uaModel].join(" ").toLowerCase().includes(query)).map(d => d.id);
+        const selected = new Set(state.selectedDevices[platform] || []);
+        if (deviceAction.dataset.deviceAction === "select-visible") visible.forEach(id => selected.add(id));
+        else visible.forEach(id => selected.delete(id));
+        state.selectedDevices[platform] = [...selected];
+        renderUaDevicePicker(); playUiSound("tap"); return;
+      }
+      const tab = event.target.closest("[data-device-tab]");
+      if (tab) { state.deviceTab = tab.dataset.deviceTab; renderUaDevicePicker(); playUiSound("tap"); return; }
+      const filter = event.target.closest("[data-result-filter]");
+      if (filter) { state.resultFilter = filter.dataset.resultFilter; state.showAllResults = false; renderUaResultsView(); return; }
+      if (event.target.closest("[data-show-all-results]")) { state.showAllResults = !state.showAllResults; renderUaResultsView(); return; }
+      const copy = event.target.closest("[data-copy-ua]");
+      if (copy) {
+        const record = state.dataset[Number(copy.dataset.copyUa)];
+        if (record) navigator.clipboard.writeText(record.userAgent).then(() => { showToast("User-Agent copied."); playUiSound("success"); }, () => showToast("Clipboard unavailable.", "error"));
+      }
+    });
+  }
+
+  $("generateButton")?.addEventListener("click", async () => {
+    const button = $("generateButton");
+    button.disabled = true; button.classList.add("is-loading");
+    const original = button.innerHTML;
+    button.innerHTML = '<span class="button-spinner"></span><span>Generating…</span>';
     try {
+      await new Promise(resolve => requestAnimationFrame(() => resolve()));
       state.dataset = generateUaBatch();
+      state.resultFilter = "all"; state.showAllResults = false;
       renderDatasetPreview();
       if (!state.dataset.length) showToast("No unique User-Agent strings matched this configuration.", "error");
-      else { showToast(`Generated ${state.dataset.length} User-Agent records.`); playUiSound("success"); }
-    } catch (error) { showToast(error.message, "error"); }
+      else {
+        const requested = Number($("uaAndroidQty").value) + Number($("uaIosQty").value);
+        showToast(state.duplicatesBlocked
+          ? `Generated ${state.dataset.length} of ${requested}; ${state.duplicatesBlocked} duplicates skipped.`
+          : `Generated ${state.dataset.length} User-Agents.`);
+        playUiSound("success");
+      }
+    } catch (error) { showToast(error.message, "error"); playUiSound("error"); }
+    finally { button.innerHTML = original; button.classList.remove("is-loading"); updateUaTotals(); }
   });
-  $("downloadDataset").addEventListener("click", exportDataset);
-  $("copyDataset").addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(state.dataset.map(x => x.userAgent).join("\n")); showToast("All User-Agent strings copied."); }
+  $("downloadDataset")?.addEventListener("click", exportDataset);
+  $("copyDataset")?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(state.dataset.map(x => x.userAgent).join("\n")); showToast("All User-Agents copied."); playUiSound("success"); }
     catch { showToast("Clipboard access is unavailable in this browser.", "error"); }
   });
-  $("saveUaBatch").addEventListener("click", () => {
+  $("saveUaBatch")?.addEventListener("click", () => {
     if (!state.dataset.length) return;
     let batches = []; try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
     const id = `ua-${Date.now()}`;
     batches.unshift({ id, name: `UA set ${new Date().toLocaleString()}`, records: state.dataset, savedAt: new Date().toISOString() });
     localStorage.setItem("nexora_ua_batches", JSON.stringify(batches.slice(0,20)));
-    renderSavedBatches(); $("uaSavedBatches").value = id; showToast("User-Agent set saved on this device.");
+    renderSavedBatches(); $("uaSavedBatches").value = id; showToast("User-Agent set saved on this device."); playUiSound("success");
   });
-  $("uaSavedBatches").addEventListener("change", () => {
+  $("uaSavedBatches")?.addEventListener("change", () => {
     const id = $("uaSavedBatches").value; if (!id) return;
     let batches = []; try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
     const batch = batches.find(x => x.id === id);
-    if (batch) { state.dataset = batch.records || []; renderDatasetPreview(); showToast("Saved User-Agent set loaded."); }
+    if (batch) { state.dataset = batch.records || []; state.duplicatesBlocked = 0; state.resultFilter = "all"; renderDatasetPreview(); showToast("Saved User-Agent set loaded."); }
   });
-  $("runRefresh").addEventListener("click", runRefresh); $("reloadRuns").addEventListener("click", reloadRuns); $("reloadAudit").addEventListener("click", loadAudit);
-  $("assistantForm").addEventListener("submit", askAssistant);
+  $("runRefresh")?.addEventListener("click", runRefresh);
+  $("reloadRuns")?.addEventListener("click", reloadRuns);
+  $("reloadAudit")?.addEventListener("click", loadAudit);
+  $("assistantForm")?.addEventListener("submit", askAssistant);
   document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => { $("assistantPrompt").value = button.dataset.prompt; $("assistantPrompt").focus(); }));
-  $("themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; document.body.classList.toggle("light", state.theme === "light"); localStorage.setItem("nexora_theme", state.theme); });
 }
 
 async function init() {
-  document.body.classList.toggle("light", state.theme === "light");
   bindEvents();
+  wireLogoFallbacks();
   await loadData();
   await verifyAdmin();
 }
 
-document.addEventListener("DOMContentLoaded", init);
