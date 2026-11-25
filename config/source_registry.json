@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "primary": {
+    "google_pixel_support": {
+      "domains": [
+        "support.google.com"
+      ],
+      "categories": [
+        "device_specs",
+        "ppi"
+      ]
+    },
+    "google_aosp_pixel_docs": {
+      "domains": [
+        "source.android.com",
+        "android.googlesource.com"
+      ],
+      "categories": [
+        "pixel_codename",
+        "pixel_build_reference"
+      ]
+    },
+    "xiaomi_official_specs": {
+      "domains": [
+        "mi.com",
+        "www.mi.com"
+      ],
+      "categories": [
+        "device_specs",
+        "ppi"
+      ]
+    },
+    "honor_official_specs": {
+      "domains": [
+        "honor.com",
+        "www.honor.com"
+      ],
+      "categories": [
+        "device_specs",
+        "ppi"
+      ]
+    },
+    "manufacturer_product_pages": {
+      "domains": [
+        "samsung.com",
+        "store.google.com",
+        "apple.com",
+        "oneplus.com",
+        "vivo.com",
+        "oppo.com",
+        "realme.com",
+        "motorola.com",
+        "honor.com",
+        "tecno-mobile.com",
+        "infinixmobility.com",
+        "nothing.tech"
+      ],
+      "categories": [
+        "device_specs",
+        "markets",
+        "os_support"
+      ]
+    }
+  },
+  "secondary_discovery_only": {
+    "devicespecifications": {
+      "domains": [
+        "devicespecifications.com"
+      ],
+      "allowed_for": [
+        "candidate_discovery",
+        "cross_check"
+      ]
+    },
+    "phonedb": {
+      "domains": [
+        "phonedb.net"
+      ],
+      "allowed_for": [
+        "candidate_discovery",
+        "codename_lead"
+      ]
+    },
+    "gsmarena": {
+      "domains": [
+        "gsmarena.com"
+      ],
+      "allowed_for": [
+        "candidate_discovery",
+        "cross_check"
+      ]
+    }
+  },
+  "publication_rule": "Only primary official evidence may populate canonical device fields. Secondary-only observations remain candidates and must not be published."
+}
