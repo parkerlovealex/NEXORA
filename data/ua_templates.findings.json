@@ -45,10 +45,11 @@
       "sourceId": "deviceatlas-mobile-ua-reference",
       "name": "DeviceAtlas — mobile browser user-agent strings",
       "sourceUrl": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
-      "category": "technical-reference",
-      "retrievalStatus": "indexed-search-snippet-only",
+      "category": "observed-ua",
+      "retrievalStatus": "opened-webpage",
       "sourceNotes": [
-        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews."
+        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews.",
+        "Contains a raw Facebook iOS in-app UA from DeviceAtlas traffic; the article identifies it as the Facebook in-app browser and describes its September 2026 traffic analysis."
       ]
     },
     {
@@ -59,6 +60,62 @@
       "retrievalStatus": "indexed-search-result",
       "sourceNotes": [
         "Describes in-app browser behavior and an Instagram sample shape; corroboration is still required for any verified NEXORA template."
+      ]
+    },
+    {
+      "sourceId": "avidtrak-cid5791-2026-11-24",
+      "name": "AvidTrak Wazalyzer access log — 24 Nov 2026",
+      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+      "category": "observed-ua",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Public access-log rows expose Facebook Android and Facebook iOS User-Agent observations dated 2026-11-24.",
+        "Only UA evidence and row timestamps are retained; IP addresses, referrers and unrelated request data are omitted."
+      ]
+    },
+    {
+      "sourceId": "avidtrak-cid8590-2026-11-19",
+      "name": "AvidTrak Wazalyzer access log — 19 Nov 2026",
+      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
+      "category": "observed-ua",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Public access-log rows expose an Instagram iOS User-Agent observation dated 2026-11-19.",
+        "Only UA evidence and row timestamp are retained; IP addresses and referrers are omitted."
+      ]
+    },
+    {
+      "sourceId": "user-agents-net-current-app-ua-rows",
+      "name": "User-Agents.net — Facebook and Instagram mobile app UA entries",
+      "sourceUrl": "https://user-agents.net/",
+      "category": "published-dataset-entry",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Published UA rows corroborate Facebook iOS and Instagram iOS app-token order and sample versions.",
+        "No per-row observation date is disclosed; these rows are not classified as raw telemetry."
+      ]
+    },
+    {
+      "sourceId": "user-agents-net-facebook-android-588",
+      "name": "User-Agents.net — Facebook Android 588.0.0.42.55 sample",
+      "sourceUrl": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
+      "category": "published-dataset-entry",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Shows FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1 on Android without a wv marker.",
+        "Published dataset entry; no observation date is disclosed."
+      ]
+    },
+    {
+      "sourceId": "hackernoon-inapp-detection-2026-11-25",
+      "name": "HackerNoon — How to Detect Instagram, Facebook, and TikTok In-App Browsers",
+      "sourceUrl": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+      "category": "technical-reference",
+      "retrievalStatus": "opened-webpage",
+      "sourceNotes": [
+        "Published 2026-11-25; author says example strings were collected in October 2026.",
+        "Confirms current Facebook Android FB_IAB/FB4A token and that current Facebook Android builds no longer send wv.",
+        "Messenger, Threads, LinkedIn, Snapchat and X entries are explicitly attributed to inapp-spy rules and marked not tested in the article; treat them as token leads only."
       ]
     }
   ],
@@ -406,6 +463,208 @@
       ],
       "review_notes": [
         "Candidate from app implementation only; needs observed Messenger Android UA and independent corroboration."
+      ]
+    },
+    {
+      "id": "facebook-android-fb4a-observed-2026-v1",
+      "app": "facebook",
+      "platform": "android",
+      "status": "pending",
+      "template": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
+      "source_format": null,
+      "slots": {
+        "appVersion": "meta.apps.facebook.version"
+      },
+      "unresolved_slots": [],
+      "compatibility": {
+        "minOS": null,
+        "maxOS": null,
+        "notes": "One observed reduced-UA variant. Android 10; K is a literal reduced-UA token, not the handset's actual OS/model. Chrome/158.0.0.0 is held literal; do not replace it with the catalog's Chrome 159 value without a matching observation."
+      },
+      "evidence": [
+        {
+          "source_id": "avidtrak-cid5791-2026-11-24",
+          "source_url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+          "source_ref": "log-row-2026-11-24T00:26:37Z",
+          "observed": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
+          "quoted_text": "24/Nov/2026 log row; FB_IAB/FB4A; FBAV/588.0.0.42.55; IABMV/1.",
+          "app_version": "588.0.0.42.55",
+          "app_build": "707615019",
+          "observed_at": "2026-11-24",
+          "fetched_at": "2026-11-25",
+          "kind": "observed-ua"
+        },
+        {
+          "source_id": "user-agents-net-facebook-android-588",
+          "source_url": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
+          "source_ref": "facebook-android-row-cph2895",
+          "observed": "Mozilla/5.0 (Linux; Android 16; CPH2895 Build/BP2A.250605.031.A3) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.8127.62 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
+          "quoted_text": "FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1.",
+          "app_version": "588.0.0.42.55",
+          "app_build": "707615019",
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "published-dataset-entry"
+        },
+        {
+          "source_id": "hackernoon-inapp-detection-2026-11-25",
+          "source_url": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+          "source_ref": "lines-82-100-and-117-120",
+          "observed": null,
+          "quoted_text": "Current Facebook Android uses FB_IAB/FB4A and no longer sends wv.",
+          "app_version": null,
+          "app_build": null,
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "technical-reference"
+        }
+      ],
+      "review_notes": [
+        "Pending official collector/validator run; this record is not added to the proposal or runtime catalog.",
+        "The app version/build pair 588.0.0.42.55 / 707615019 exists together in the attached devices-2026.11.25.7.json current values. The UA emits FBAV but not FBBV; the build is joined from the exact catalog version record, not copied from the UA.",
+        "This is a distinct no-wv reduced-UA variant. Do not merge it with the older Motorola candidate containing '; wv)' or the Samsung device/build candidate.",
+        "Only appVersion is dynamic. The Android 10; K and Chrome/158.0.0.0 base is preserved literally from the observed variant. The current meta.versions.chrome is 159.0.8154.33, so a dynamic Chrome slot is not supported by this observation.",
+        "The spec says the published device baseline is 2026.11.25.6, while PROJECT_CONTEXT.md and the attached device file identify 2026.11.25.7. The version/build match is provisional until that baseline discrepancy is resolved."
+      ]
+    },
+    {
+      "id": "facebook-ios-fban-fbios-observed-2026-v1",
+      "app": "facebook",
+      "platform": "ios",
+      "status": "pending",
+      "template": null,
+      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersion} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/{iosBuild} Safari/604.1 [FBAN/FBIOS;FBAV/{appVersion};FBBV/{appBuild};FBDV/{uaModel};FBMD/iPhone;FBSN/iOS;FBSV/{iosVersion};FBSS/{dpr};FBID/phone;FBLC/{locale};FBOP/5;FBRV/{fbRuntime};IABMV/1];FBNV/1",
+      "slots": {
+        "iosVersion": "device.osVersions[]",
+        "iosBuild": "device.builds[osVersion]",
+        "uaModel": "device.uaModel",
+        "dpr": "device.display.dpr"
+      },
+      "unresolved_slots": [
+        "appVersion",
+        "appBuild",
+        "locale",
+        "fbRuntime"
+      ],
+      "compatibility": {
+        "minOS": null,
+        "maxOS": null,
+        "notes": "Observed iOS Safari/604.1 + FBAN/FBIOS variant. Device/OS fields can map to ios_emulation; app version/build and FBRV/locale cannot currently be resolved."
+      },
+      "evidence": [
+        {
+          "source_id": "avidtrak-cid5791-2026-11-24",
+          "source_url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+          "source_ref": "log-row-2026-11-24T02:27:07Z",
+          "observed": null,
+          "quoted_text": "FBAN/FBIOS;FBAV/588.1.0.66.71;FBBV/1119078847;FBDV/iPhone17,3;IABMV/1.",
+          "app_version": "588.1.0.66.71",
+          "app_build": "1119078847",
+          "observed_at": "2026-11-24",
+          "fetched_at": "2026-11-25",
+          "kind": "observed-ua"
+        },
+        {
+          "source_id": "deviceatlas-mobile-ua-reference",
+          "source_url": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
+          "source_ref": "article-line-327-facebook-ios-in-app-sample",
+          "observed": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/23G83 Safari/604.1 [FBAN/FBIOS;FBAV/577.1.0.69.74;FBBV/1058113930;FBDV/iPhone18,2;FBMD/iPhone;FBSN/iOS;FBSV/26.6.1;FBSS/3;FBID/phone;FBLC/en_US;FBOP/5;FBRV/1062855898;IABMV/1]",
+          "quoted_text": "Facebook's in-app browser; FBAV/577.1.0.69.74; FBBV/1058113930; Safari/604.1.",
+          "app_version": "577.1.0.69.74",
+          "app_build": "1058113930",
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "observed-ua"
+        },
+        {
+          "source_id": "user-agents-net-current-app-ua-rows",
+          "source_url": "https://user-agents.net/",
+          "source_ref": "latest-user-agents-facebook-ios-row",
+          "observed": null,
+          "quoted_text": "FBAN/FBIOS;FBAV/588.1.0.66.71;FBBV/1119078847;IABMV/1.",
+          "app_version": "588.1.0.66.71",
+          "app_build": "1119078847",
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "published-dataset-entry"
+        }
+      ],
+      "review_notes": [
+        "Pending. The observed app version/build pair 588.1.0.66.71 / 1119078847 is not present in the attached devices-2026.11.25.7.json meta.apps.facebook current values or version history.",
+        "Do not borrow Messenger's 588.1.0.66.98 / 347617572 pair; the observed marker is FBAN/FBIOS and belongs to Facebook iOS.",
+        "The iOS device/OS values in the 24 Nov observation (iPhone17,3, iOS 26.6.2, build 23G90, DPR 3) are represented in the supplied ios_emulation catalog.",
+        "FBRV changes between observations and has no allowlisted catalog path; FBLC is also not represented by an allowlisted locale field. Keep template null."
+      ]
+    },
+    {
+      "id": "instagram-ios-observed-2026-v1",
+      "app": "instagram",
+      "platform": "ios",
+      "status": "pending",
+      "template": null,
+      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersion} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/{iosBuild} Instagram {appVersion} ({uaModel}; iOS {iosVersion}; {locale}; {language}; scale={dpr}; {width}x{height}; IABMV/1; {runtimeId}) Safari/604.1",
+      "slots": {
+        "iosVersion": "device.osVersions[]",
+        "iosBuild": "device.builds[osVersion]",
+        "uaModel": "device.uaModel",
+        "dpr": "device.display.dpr",
+        "width": "device.display.w",
+        "height": "device.display.h"
+      },
+      "unresolved_slots": [
+        "appVersion",
+        "locale",
+        "language",
+        "runtimeId"
+      ],
+      "compatibility": {
+        "minOS": null,
+        "maxOS": null,
+        "notes": "Observed iOS Instagram app-token variant. The device/OS/display values match iPhone17,3 on iOS 27.0.1; app version and trailing runtime identifier remain unresolved."
+      },
+      "evidence": [
+        {
+          "source_id": "avidtrak-cid8590-2026-11-19",
+          "source_url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
+          "source_ref": "log-row-2026-11-19T03:49:59Z",
+          "observed": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/24A446 Instagram 456.0.0.36.62 (iPhone17,3; iOS 27_0_1; en_US; en; scale=3.00; 1179x2556; IABMV/1; 1114925422) Safari/604.1",
+          "quoted_text": "Instagram 456.0.0.36.62; iPhone17,3; iOS 27_0_1; IABMV/1; 1114925422.",
+          "app_version": "456.0.0.36.62",
+          "app_build": null,
+          "observed_at": "2026-11-19",
+          "fetched_at": "2026-11-25",
+          "kind": "observed-ua"
+        },
+        {
+          "source_id": "user-agents-net-current-app-ua-rows",
+          "source_url": "https://user-agents.net/",
+          "source_ref": "latest-user-agents-instagram-ios-row",
+          "observed": null,
+          "quoted_text": "Instagram 455.0.0.35.67; IABMV/1; 1109782713.",
+          "app_version": "455.0.0.35.67",
+          "app_build": null,
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "published-dataset-entry"
+        },
+        {
+          "source_id": "hackernoon-inapp-detection-2026-11-25",
+          "source_url": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+          "source_ref": "lines-82-86-and-100",
+          "observed": null,
+          "quoted_text": "Instagram iOS app token follows Mobile/ and can still end with Safari/604.1.",
+          "app_version": null,
+          "app_build": null,
+          "observed_at": null,
+          "fetched_at": "2026-11-25",
+          "kind": "technical-reference"
+        }
+      ],
+      "review_notes": [
+        "Pending. The observed app version 456.0.0.36.62 is not present in the supplied devices-2026.11.25.7.json Instagram current values or version history; the trailing 1114925422 is not proven to be an app build and is not assigned as one.",
+        "The 19 Nov device tuple iPhone17,3 / iOS 27.0.1 / build 24A446 / DPR 3 / 1179x2556 matches the supplied iPhone 16 ios_emulation record.",
+        "Locale, language and the trailing runtime identifier have no allowlisted catalog paths. Keep template null.",
+        "This is a distinct observed iOS format; do not merge it with the existing AppUa.kt candidate, which places Version/17.5 and Safari/604.1 before the Instagram app token."
       ]
     }
   ],
