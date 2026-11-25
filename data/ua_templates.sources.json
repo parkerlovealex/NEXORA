@@ -53,10 +53,11 @@
       "sourceId": "deviceatlas-mobile-ua-reference",
       "name": "DeviceAtlas — mobile browser user-agent strings",
       "sourceUrl": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
-      "category": "technical-reference",
-      "retrievalStatus": "indexed-search-snippet-only",
+      "category": "observed-ua",
+      "retrievalStatus": "opened-webpage",
       "sourceNotes": [
-        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews."
+        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews.",
+        "Contains a raw Facebook iOS in-app UA from DeviceAtlas traffic; the article identifies it as the Facebook in-app browser and describes its September 2026 traffic analysis."
       ]
     },
     {
@@ -67,6 +68,62 @@
       "retrievalStatus": "indexed-search-result",
       "sourceNotes": [
         "Describes in-app browser behavior and an Instagram sample shape; corroboration is still required for any verified NEXORA template."
+      ]
+    },
+    {
+      "sourceId": "avidtrak-cid5791-2026-11-24",
+      "name": "AvidTrak Wazalyzer access log — 24 Nov 2026",
+      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+      "category": "observed-ua",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Public access-log rows expose Facebook Android and Facebook iOS User-Agent observations dated 2026-11-24.",
+        "Only UA evidence and row timestamps are retained; IP addresses, referrers and unrelated request data are omitted."
+      ]
+    },
+    {
+      "sourceId": "avidtrak-cid8590-2026-11-19",
+      "name": "AvidTrak Wazalyzer access log — 19 Nov 2026",
+      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
+      "category": "observed-ua",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Public access-log rows expose an Instagram iOS User-Agent observation dated 2026-11-19.",
+        "Only UA evidence and row timestamp are retained; IP addresses and referrers are omitted."
+      ]
+    },
+    {
+      "sourceId": "user-agents-net-current-app-ua-rows",
+      "name": "User-Agents.net — Facebook and Instagram mobile app UA entries",
+      "sourceUrl": "https://user-agents.net/",
+      "category": "published-dataset-entry",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Published UA rows corroborate Facebook iOS and Instagram iOS app-token order and sample versions.",
+        "No per-row observation date is disclosed; these rows are not classified as raw telemetry."
+      ]
+    },
+    {
+      "sourceId": "user-agents-net-facebook-android-588",
+      "name": "User-Agents.net — Facebook Android 588.0.0.42.55 sample",
+      "sourceUrl": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
+      "category": "published-dataset-entry",
+      "retrievalStatus": "indexed-search-result-only",
+      "sourceNotes": [
+        "Shows FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1 on Android without a wv marker.",
+        "Published dataset entry; no observation date is disclosed."
+      ]
+    },
+    {
+      "sourceId": "hackernoon-inapp-detection-2026-11-25",
+      "name": "HackerNoon — How to Detect Instagram, Facebook, and TikTok In-App Browsers",
+      "sourceUrl": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+      "category": "technical-reference",
+      "retrievalStatus": "opened-webpage",
+      "sourceNotes": [
+        "Published 2026-11-25; author says example strings were collected in October 2026.",
+        "Confirms current Facebook Android FB_IAB/FB4A token and that current Facebook Android builds no longer send wv.",
+        "Messenger, Threads, LinkedIn, Snapchat and X entries are explicitly attributed to inapp-spy rules and marked not tested in the article; treat them as token leads only."
       ]
     }
   ]
