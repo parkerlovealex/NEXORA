@@ -1,0 +1,70 @@
+{
+  "collected": "2026-11-25",
+  "purpose": "Last 5 stable versions per browser for the generator's version pickers (meta.browserVersions). One entry per release train, newest first, in the exact string format used inside user-agent tokens.",
+  "sources": {
+    "chromeAndroid/chromeIos": "Google Chrome Version History API (versionhistory.googleapis.com), stable channel, newest build of each of the last 5 milestones, fetched 2026-11-25.",
+    "firefoxAndroid": "Mozilla product-details (product-details.mozilla.org): mobile_versions.json version=161.0 (2026-11-24) + firefox_history_stability_releases.json latest patch per train (160.0.1, 159.0.1, 158.0.1, 157.0.1).",
+    "firefoxIos": "Mozilla Firefox for iOS release notes (mozilla.org/firefox/ios): 161.0 (2026-11-23), 159.0 (2026-10-25), 158.0 (2026-10-11) verified on official notes pages; 160.1 / 160.0 from the App Store listing mirror (fileion, 2026-11-17).",
+    "edgeAndroid/edgeIos": "Microsoft Edge security release notes (learn.microsoft.com/deployedge/microsoft-edge-relnotes-security): entries titled 'for Android' / 'for Android and iOS' - 158.0.4370.33 (Nov 23), 157.0.4341.53 Android (Nov 11) / 157.0.4341.42 Android+iOS (Nov 9), 156.0.4314.56 (Nov 2), 155.0.4283.61 (Oct 19), 154.0.4258.38 (Sep 29). iOS 155/154 builds follow Microsoft's combined Android+iOS release pattern.",
+    "operaAndroid": "APKMirror latest Opera uploads (Opera Software ASA), Opera Browser Android stable: 104.1.5262.91393 (2026-11-18), 104.1.5262.91343, 104.0.5262.91259, 104.0.5258.91004, 103.3.5234.91185.",
+    "safariIos": "Apple Safari Release Notes index: 27.2 (2026-10-26), 27.1 (2026-10-23), 27.0 (2026-09-14), 26.6 (2026-07-27), 26.5 (2026-05-11)."
+  },
+  "browserVersions": {
+    "chromeAndroid": [
+      "159.0.8154.33",
+      "158.0.8127.93",
+      "157.0.8103.80",
+      "156.0.8078.81",
+      "155.0.8059.88"
+    ],
+    "chromeIos": [
+      "158.0.8127.86",
+      "157.0.8103.37",
+      "156.0.8078.54",
+      "155.0.8059.37",
+      "154.0.8037.55"
+    ],
+    "firefoxAndroid": [
+      "161.0",
+      "160.0.1",
+      "159.0.1",
+      "158.0.1",
+      "157.0.1"
+    ],
+    "firefoxIos": [
+      "161.0",
+      "160.1",
+      "160.0",
+      "159.0",
+      "158.0"
+    ],
+    "edgeAndroid": [
+      "158.0.4370.33",
+      "157.0.4341.53",
+      "156.0.4314.56",
+      "155.0.4283.61",
+      "154.0.4258.38"
+    ],
+    "edgeIos": [
+      "158.0.4370.33",
+      "157.0.4341.42",
+      "156.0.4314.56",
+      "155.0.4283.61",
+      "154.0.4258.38"
+    ],
+    "operaAndroid": [
+      "104.1.5262.91393",
+      "104.1.5262.91343",
+      "104.0.5262.91259",
+      "104.0.5258.91004",
+      "103.3.5234.91185"
+    ],
+    "safariIos": [
+      "27.2",
+      "27.1",
+      "27.0",
+      "26.6",
+      "26.5"
+    ]
+  }
+}
