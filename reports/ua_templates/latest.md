@@ -1,13 +1,13 @@
 # NEXORA UA template collection report
 
 - Status: proposal_ready
-- Proposal version: 2026.11.25.4
+- Proposal version: 2026.11.25.5
 - Device catalog version: 2026.11.25.7
 - Apps in source catalog: 18
-- Template records: 11
-- Status counts: candidate=11
-- Coverage cells: verified=0, pending=0, candidate=5, outdated=0, not-collected=31
-- Rejected findings: 0
+- Template records: 12
+- Status counts: candidate=11, pending=1
+- Coverage cells: verified=0, pending=1, candidate=4, outdated=0, not-collected=31
+- Rejected findings: 2
 
 ## Collection gaps
 - useragent.in category file not retrieved in this run: browser fetch returned HTTP 429 and Python urllib could not resolve the host. The exact dataset filename must be discovered from index.json on the GitHub Actions collection runner.
