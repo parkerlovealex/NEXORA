@@ -49,3 +49,8 @@ The dashboard never displays secret environment-variable values. It uses the exi
 - When the API is unavailable, the site uses the bundled `web/devices.json` in read-only mode.
 - Static Vercel hosting cannot provide admin operations by itself; configure `NEXORA_CONFIG.apiBase` to the deployed FastAPI service for authentication and control-center APIs.
 - This package changes website files only; it does not build or modify the Android APK.
+
+
+## Superseded by UX v2
+
+The current public layout and interaction design are documented in `docs/WEBSITE_UX_REDESIGN_V2.md`. UX v2 replaces the earlier five-card-heavy layout with a compact platform/batch, device, browser/app and advanced-options flow. It keeps all prior data-integrity boundaries.
