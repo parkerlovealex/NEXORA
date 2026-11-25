@@ -1127,3 +1127,9 @@ async function init() {
 
 
 init();
+
+// Admin entry: the sign-in chip stays hidden on public pages; it appears on
+// /admin (and for a browser that already holds an admin session).
+const adminPath = /\/admin\/?$/.test(location.pathname);
+if (adminPath || sessionStorage.getItem("nexora_admin_token")) document.body.classList.add("show-admin-chip");
+if (adminPath) setTimeout(() => { if (!state.isAdmin) openModal("loginModal"); }, 900);

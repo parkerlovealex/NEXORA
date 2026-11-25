@@ -7,14 +7,14 @@
   <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
   <title>NEXORA — User-Agent Generator</title>
   <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261125-3">
+  <link rel="stylesheet" href="./styles.css?v=20261125-4">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="brand-mark">N</div>
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="M12,2 C7,2 4,6 4,10 L4,21 L7,19 L9.5,21 L12,19 L14.5,21 L17,19 L20,21 L20,10 C20,6 17,2 12,2 Z M7.7,10 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0 Z M13.7,10 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0 Z"/></svg></div>
       <div class="brand-copy"><strong>NEXORA</strong><small>NEXT / USER-AGENT STUDIO</small></div>
     </div>
     <div class="workspace-switcher">
@@ -48,12 +48,16 @@
       <div class="topbar-left">
         <button class="icon-button mobile-menu" id="mobileMenu" aria-label="Open administrator navigation">☰</button>
         <a class="topbar-brand" href="./" aria-label="NEXORA User-Agent Studio home">
-          <span class="topbar-brand-mark">N</span>
+          <span class="topbar-brand-mark"><svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="M12,2 C7,2 4,6 4,10 L4,21 L7,19 L9.5,21 L12,19 L14.5,21 L17,19 L20,21 L20,10 C20,6 17,2 12,2 Z M7.7,10 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0 Z M13.7,10 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0 Z"/></svg></span>
           <span><strong>NEXORA</strong><small>USER-AGENT STUDIO</small></span>
         </a>
         <div class="breadcrumbs"><span>NEXORA</span><b>/</b><strong id="breadcrumbCurrent">User-Agent Studio</strong></div>
       </div>
       <div class="topbar-actions">
+        <div class="catalog-status topbar-status">
+          <span class="status-dot" id="catalogStatusDot"></span>
+          <span><strong id="uaCatalogVersion">Connecting catalog</strong><small id="uaDeviceMeta">59 device records expected</small></span>
+        </div>
         <div class="data-status"><span class="status-dot" id="topStatusDot"></span><span id="topStatusText">DATA READY</span></div>
         <div class="admin-chip" id="adminChip"><span class="avatar" id="adminAvatar">G</span><span id="adminLabel">Guest access</span><button id="authButton">Sign in</button></div>
       </div>
@@ -111,20 +115,6 @@
       </section>
 
       <section class="view active" id="view-generator">
-        <div class="generator-heading">
-          <div class="gen-title">
-            <span class="brand-mark gen-brand">N</span>
-            <div>
-              <h1>Nexora</h1>
-              <p>User-Agent Generator</p>
-            </div>
-          </div>
-          <div class="catalog-status">
-            <span class="status-dot" id="catalogStatusDot"></span>
-            <span><strong id="uaCatalogVersion">Connecting catalog</strong><small id="uaDeviceMeta">59 device records expected</small></span>
-          </div>
-        </div>
-
         <div class="ua-workspace" id="uaGenerator">
           <div class="ua-config-column">
             <section class="ua-card">
@@ -508,6 +498,6 @@
 
 <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 <script src="./config.js"></script>
-<script src="./app.js?v=20261125-3"></script>
+<script src="./app.js?v=20261125-4"></script>
 </body>
 </html>
