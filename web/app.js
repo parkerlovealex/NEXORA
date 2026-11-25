@@ -1091,3 +1091,5 @@ async function init() {
   await verifyAdmin();
 }
 
+
+init();
