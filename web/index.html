@@ -7,7 +7,7 @@
   <meta name="description" content="Generate Android, iOS, browser and verified in-app User-Agent batches with NEXORA.">
   <title>NEXORA — User-Agent Generator</title>
   <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin>
-  <link rel="stylesheet" href="./styles.css?v=20261125-6">
+  <link rel="stylesheet" href="./styles.css?v=20261125-7">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='10' fill='%23202b28' stroke='%23657b73'/%3E%3Ctext x='20' y='27' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='22' fill='%23c4ddd4'%3EN%3C/text%3E%3C/svg%3E">
 </head>
 <body>
@@ -205,6 +205,7 @@
               <div class="advanced-content">
                 <div class="advanced-block">
                   <div class="advanced-block-title">Browser versions</div>
+                  <div class="field version-mode-field"><label for="uaVersionMode">VERSION MODE</label><select id="uaVersionMode" class="form-control"><option value="latest">Latest version (default)</option><option value="random3">Random · last 3 versions</option></select></div>
                   <div class="advanced-version-grid">
                     <div class="field"><label for="uaChromeVersion">CHROME ANDROID</label><input id="uaChromeVersion" class="form-control" placeholder="From database" autocomplete="off"></div>
                     <div class="field"><label for="uaChromiumEngineVersion">CHROMIUM ENGINE</label><input id="uaChromiumEngineVersion" class="form-control" placeholder="From Chrome catalog"></div>
@@ -216,7 +217,7 @@
                     <div class="field"><label for="uaEdgeIosVersion">EDGE iOS</label><input id="uaEdgeIosVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
                     <div class="field"><label for="uaOperaVersion">OPERA ANDROID</label><input id="uaOperaVersion" class="form-control" placeholder="Pick or enter exact version" autocomplete="off"></div>
                   </div>
-                  <p class="field-hint">Chrome Android uses the catalog version. Other browser versions must be entered explicitly.</p>
+                  <p class="field-hint">Every browser defaults to its latest catalog version. Pick another from a field's list, type an exact version, or use Random mode to vary each result across the last 3 versions.</p>
                 </div>
                 <div class="advanced-block">
                   <div class="advanced-block-title">Locale</div>
@@ -491,6 +492,6 @@
 
 <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 <script src="./config.js"></script>
-<script src="./app.js?v=20261125-6"></script>
+<script src="./app.js?v=20261125-7"></script>
 </body>
 </html>

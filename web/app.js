@@ -329,6 +329,7 @@ function setupUaGenerator() {
     if (!dl) { dl = document.createElement("datalist"); dl.id = `${inputId}List`; input.after(dl); }
     input.setAttribute("list", dl.id);
     dl.innerHTML = list.map(v => `<option value="${esc(v)}"></option>`).join("");
+    if (!input.value) input.value = list[0];
   }
   if ($("uaChromiumEngineVersion") && !$("uaChromiumEngineVersion").value) $("uaChromiumEngineVersion").value = chromeVersion;
   $("chromeCatalogVersion").textContent = chromeVersion ? `Catalog · ${chromeVersion}` : "Version not in catalog";
@@ -521,6 +522,11 @@ function browserUsable(platform, browser) {
   return false;
 }
 function browserVersion(platform, browser) {
+  if (browser !== "webview" && $("uaVersionMode")?.value === "random3") {
+    const key = { android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid" }, ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" } }[platform]?.[browser];
+    const list = key ? (meta().browserVersions || {})[key] || [] : [];
+    if (list.length) return list[Math.floor(Math.random() * Math.min(3, list.length))];
+  }
   const ids = {
     android: { chrome:"uaChromeVersion", firefox:"uaFirefoxAndroidVersion", edge:"uaEdgeAndroidVersion", opera:"uaOperaVersion", webview:"uaChromiumEngineVersion" },
     ios: { safari:"uaSafariVersion", chrome:"uaChromeIosVersion", firefox:"uaFirefoxIosVersion", edge:"uaEdgeIosVersion" }
