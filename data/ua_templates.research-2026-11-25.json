@@ -1,0 +1,599 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-25",
+  "workstream": "B",
+  "scope": {
+    "appKeys": [
+      "discord",
+      "facebook",
+      "fb_lite",
+      "instagram",
+      "kik",
+      "line",
+      "linkedin",
+      "messenger",
+      "pinterest",
+      "reddit",
+      "snapchat",
+      "telegram",
+      "threads",
+      "tiktok",
+      "viber",
+      "wechat",
+      "weibo",
+      "x"
+    ],
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "appCount": 18,
+    "platformCellsReviewed": 36
+  },
+  "catalogSnapshot": {
+    "file": "data/devices-2026.11.25.7.json",
+    "dataVersion": "2026.11.25.7",
+    "specPublishedBaseline": "2026.11.25.6",
+    "projectContextPublishedBaseline": "2026.11.25.7",
+    "baselineConflict": true,
+    "metaVersionsChrome": "159.0.8154.33",
+    "facebookCurrentPair": {
+      "version": "588.0.0.42.55",
+      "build": "707615019",
+      "pairExistsInAttachedCatalog": true
+    }
+  },
+  "sourceState": {
+    "useragentIn": {
+      "categoryUrl": "https://useragent.in/user-agents",
+      "indexUrl": "https://useragent.in/assets/data/index.json",
+      "reportedCategoryRows": 108,
+      "retrievalStatus": "blocked-429",
+      "datasetFilename": null,
+      "filenameWasGuessed": false,
+      "rawRowsPreserved": false
+    },
+    "repository": {
+      "handoffPackContainsCollectorValidatorTestsWorkflow": false,
+      "projectContextListsThoseFilesAsInstalled": true,
+      "officialCollectorRun": false,
+      "officialValidatorRun": false,
+      "githubActionTriggered": false,
+      "remoteCommitOrPullRequestChanged": false,
+      "runtimeFileIncludedInHandoffPack": false,
+      "proposalFileInHandoffPack": "data/ua_templates.proposed.json"
+    }
+  },
+  "priorityFindings": [
+    {
+      "id": "facebook-android-fb4a-observed-2026-v1",
+      "status": "pending",
+      "observedAt": "2026-11-24",
+      "appVersion": "588.0.0.42.55",
+      "catalogAppBuild": "707615019",
+      "catalogPairMatchAgainstAttached2026_11_25_7": true,
+      "appTokenBlock": "FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;",
+      "wvMarker": false,
+      "proposedTemplate": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
+      "slots": {
+        "appVersion": "meta.apps.facebook.version"
+      },
+      "gateReview": {
+        "observedUaSource": true,
+        "independentAppTokenSource": true,
+        "appVersionBuildPairInAttachedCatalog": true,
+        "dynamicSlotsMapped": true,
+        "platformMarkerConsistent": true,
+        "observationDatePresent": true,
+        "officialValidatorRun": false,
+        "catalogBaselineResolved": false,
+        "decision": "pending"
+      },
+      "blockingReasons": [
+        "The handoff spec and project context disagree on whether the published device baseline is .6 or .7.",
+        "The official collector and validator were not included in the uploaded handoff pack, so the project validator could not be run.",
+        "Chrome/158.0.0.0 is retained as a literal observed WebView token; meta.versions.chrome is 159.0.8154.33 and must not be substituted without a matching observation."
+      ],
+      "evidenceSources": [
+        "avidtrak-cid5791-2026-11-24",
+        "user-agents-net-facebook-android-588",
+        "hackernoon-inapp-detection-2026-11-25"
+      ]
+    },
+    {
+      "id": "facebook-ios-fban-fbios-observed-2026-v1",
+      "status": "pending",
+      "observedAt": "2026-11-24",
+      "appVersion": "588.1.0.66.71",
+      "appBuild": "1119078847",
+      "catalogPairMatchAgainstAttached2026_11_25_7": false,
+      "appTokenBlock": "FBAN/FBIOS;FBAV/...;FBBV/...;...;IABMV/1",
+      "gateReview": {
+        "observedUaSource": true,
+        "independentAppTokenSource": true,
+        "appVersionBuildPairInAttachedCatalog": false,
+        "dynamicSlotsMapped": false,
+        "platformMarkerConsistent": true,
+        "observationDatePresent": true,
+        "decision": "pending"
+      },
+      "blockingReasons": [
+        "The iOS Facebook app version/build pair is absent from the supplied meta.apps.facebook current values and version history.",
+        "FBRV varies across observations and has no allowlisted catalog path; FBLC is not represented by an allowlisted locale field."
+      ],
+      "evidenceSources": [
+        "avidtrak-cid5791-2026-11-24",
+        "deviceatlas-mobile-ua-reference",
+        "user-agents-net-current-app-ua-rows"
+      ]
+    },
+    {
+      "id": "instagram-ios-observed-2026-v1",
+      "status": "pending",
+      "observedAt": "2026-11-19",
+      "appVersion": "456.0.0.36.62",
+      "appBuild": null,
+      "catalogPairMatchAgainstAttached2026_11_25_7": false,
+      "appTokenBlock": "Instagram <version> (...; IABMV/1; <runtime-id>) Safari/604.1",
+      "gateReview": {
+        "observedUaSource": true,
+        "independentAppTokenSource": true,
+        "appVersionBuildPairInAttachedCatalog": false,
+        "dynamicSlotsMapped": false,
+        "platformMarkerConsistent": true,
+        "observationDatePresent": true,
+        "decision": "pending"
+      },
+      "blockingReasons": [
+        "Observed Instagram version 456.0.0.36.62 is not in the supplied app version history.",
+        "The trailing 1114925422 is not proven to be an app build and is not assigned as one.",
+        "The format carries locale, language and a runtime identifier that are not represented by allowlisted catalog paths."
+      ],
+      "evidenceSources": [
+        "avidtrak-cid8590-2026-11-19",
+        "user-agents-net-current-app-ua-rows",
+        "hackernoon-inapp-detection-2026-11-25"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "avidtrak-cid5791-2026-11-24",
+      "url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+      "kind": "observed-ua",
+      "note": "24 Nov access-log rows; Facebook Android and iOS."
+    },
+    {
+      "source_id": "avidtrak-cid8590-2026-11-19",
+      "url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
+      "kind": "observed-ua",
+      "note": "19 Nov access-log row; Instagram iOS."
+    },
+    {
+      "source_id": "deviceatlas-mobile-ua-reference",
+      "url": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
+      "kind": "observed-ua",
+      "note": "Real traffic sample; Facebook iOS in-app UA at article line 327."
+    },
+    {
+      "source_id": "user-agents-net-current-app-ua-rows",
+      "url": "https://user-agents.net/",
+      "kind": "published-dataset-entry",
+      "note": "Facebook iOS and Instagram iOS app-token examples; no observation date."
+    },
+    {
+      "source_id": "user-agents-net-facebook-android-588",
+      "url": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
+      "kind": "published-dataset-entry",
+      "note": "Facebook Android 588.0.0.42.55 sample."
+    },
+    {
+      "source_id": "hackernoon-inapp-detection-2026-11-25",
+      "url": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+      "kind": "technical-reference",
+      "note": "October 2026 sample fragments for Facebook/Instagram/TikTok; other app tokens are untested leads."
+    },
+    {
+      "source_id": "github-inapp-debugger-issue-16",
+      "url": "https://github.com/shalanah/inapp-debugger/issues/16",
+      "kind": "technical-reference",
+      "note": "User-submitted historical iOS Facebook and Instagram UA examples."
+    },
+    {
+      "source_id": "github-inapp-debugger-issue-25",
+      "url": "https://github.com/shalanah/inapp-debugger/issues/25",
+      "kind": "technical-reference",
+      "note": "Historical Messenger/Orca Android in-app UA example; old app version."
+    },
+    {
+      "source_id": "appy-inapp-checker",
+      "url": "https://appy.to/tools/in-app-browser-checker",
+      "kind": "technical-reference",
+      "note": "Older examples for Instagram, TikTok, Telegram and LINE."
+    },
+    {
+      "source_id": "whatmyuseragent-app-pages",
+      "url": "https://whatmyuseragent.com/apps",
+      "kind": "published-dataset-entry",
+      "note": "App-specific pages surfaced for the social apps in this scope; rows are published examples, not raw telemetry."
+    },
+    {
+      "source_id": "useragents-io-twitter",
+      "url": "https://user-agents.io/",
+      "kind": "published-dataset-entry",
+      "note": "TwitterAndroid examples; historical versions."
+    },
+    {
+      "source_id": "tweasel-kik-native-ua",
+      "url": "https://data.tweasel.org/",
+      "kind": "published-dataset-entry",
+      "note": "Kik CFNetwork native-request sample, not an in-app browser sample."
+    },
+    {
+      "source_id": "xunl-wechat-user-agent",
+      "url": "https://xunl.net/",
+      "kind": "technical-reference",
+      "note": "WeChat MicroMessenger sample; version/build not matched to current app history."
+    }
+  ],
+  "coverage": [
+    {
+      "app": "discord",
+      "android": {
+        "state": "app-ua-only-no-iab-proof",
+        "sample": "Discord/150.0",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "The surfaced row identifies the app but does not establish a dedicated embedded-browser UA."
+      },
+      "ios": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No distinct iOS in-app UA sample found."
+      }
+    },
+    {
+      "app": "facebook",
+      "android": {
+        "state": "observed-and-cross-sourced",
+        "sample": "FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;",
+        "sources": [
+          "avidtrak-cid5791-2026-11-24",
+          "user-agents-net-facebook-android-588",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Pending official validator and .6/.7 device-catalog baseline reconciliation."
+      },
+      "ios": {
+        "state": "observed-and-cross-sourced",
+        "sample": "FBAN/FBIOS;FBAV/588.1.0.66.71;FBBV/1119078847;IABMV/1",
+        "sources": [
+          "avidtrak-cid5791-2026-11-24",
+          "deviceatlas-mobile-ua-reference",
+          "user-agents-net-current-app-ua-rows"
+        ],
+        "blocker": "App version/build pair absent from supplied device catalog; FBRV and locale unresolved."
+      }
+    },
+    {
+      "app": "fb_lite",
+      "android": {
+        "state": "published-sample-old-version",
+        "sample": "FBAN/EMA;FBAV/500.0.0.8.103",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Sample version is older than current catalog history; no current matching app build pair."
+      },
+      "ios": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No iOS in-app UA sample found."
+      }
+    },
+    {
+      "app": "instagram",
+      "android": {
+        "state": "published-sample-and-candidate-scripts",
+        "sample": "Instagram 444.0.0.46.85 Android",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "appy-inapp-checker",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Published app versions do not match current catalog history; no current Android app/build pair."
+      },
+      "ios": {
+        "state": "observed-and-cross-sourced",
+        "sample": "Instagram 456.0.0.36.62; iPhone17,3; iOS 27_0_1; IABMV/1",
+        "sources": [
+          "avidtrak-cid8590-2026-11-19",
+          "user-agents-net-current-app-ua-rows",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "App version/build pair and runtime identifier unresolved; pending."
+      }
+    },
+    {
+      "app": "kik",
+      "android": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No Android in-app browser UA sample found."
+      },
+      "ios": {
+        "state": "native-network-only",
+        "sample": "Kik/16.1.3.88893 CFNetwork/1240.0.4",
+        "sources": [
+          "tweasel-kik-native-ua"
+        ],
+        "blocker": "Native networking UA, not evidence of an embedded browser."
+      }
+    },
+    {
+      "app": "line",
+      "android": {
+        "state": "published-sample-old-version",
+        "sample": "Line/13.20.1/IAB",
+        "sources": [
+          "appy-inapp-checker",
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "Older app version; no current observed app/build pair."
+      },
+      "ios": {
+        "state": "published-sample-old-version",
+        "sample": "Line/13.20.0",
+        "sources": [
+          "appy-inapp-checker",
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "Older app version; official LIFF behavior does not specify the exact UA format."
+      }
+    },
+    {
+      "app": "linkedin",
+      "android": {
+        "state": "published-sample-old-version",
+        "sample": "[LinkedInApp]/2.291.99",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Published app version does not match supplied catalog version/build history."
+      },
+      "ios": {
+        "state": "published-sample-old-version",
+        "sample": "[LinkedInApp]/9.32.4122",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Published app version does not match supplied catalog version/build history."
+      }
+    },
+    {
+      "app": "messenger",
+      "android": {
+        "state": "candidate-plus-legacy-reference",
+        "sample": "FB_IAB/Orca-Android; FBAV/189.0.0.27.99",
+        "sources": [
+          "github-inapp-debugger-issue-25",
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "Historical sample only; current FB.../Messenger token is a rule lead, not tested raw UA. Keep existing candidate separate."
+      },
+      "ios": {
+        "state": "token-lead-only-no-raw-ua",
+        "sample": "FB.../Messenger",
+        "sources": [
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "The article attributes this token to inapp-spy and says it was not tested there."
+      }
+    },
+    {
+      "app": "pinterest",
+      "android": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No Android in-app UA sample found."
+      },
+      "ios": {
+        "state": "published-sample-old-version",
+        "sample": "Pinterest/11.0",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "No current app version/build pair or independent raw observation."
+      }
+    },
+    {
+      "app": "reddit",
+      "android": {
+        "state": "published-sample-version-build-not-in-catalog",
+        "sample": "Reddit/Version 2026.38.0/Build 2638050",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "The 2026.38.0 / 2638050 pair is not in supplied app history."
+      },
+      "ios": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No iOS in-app UA sample found."
+      }
+    },
+    {
+      "app": "snapchat",
+      "android": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No Android in-app UA sample found."
+      },
+      "ios": {
+        "state": "published-sample-old-version",
+        "sample": "Snapchat/14.25.0.48",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Published version is older than current catalog history; article token row is an untested lead."
+      }
+    },
+    {
+      "app": "telegram",
+      "android": {
+        "state": "technical-sample-old-version",
+        "sample": "Telegram-Android/10.6.2",
+        "sources": [
+          "appy-inapp-checker"
+        ],
+        "blocker": "Old sample; current catalog app version/build does not match."
+      },
+      "ios": {
+        "state": "native-network-only-no-iab-token",
+        "sample": "Telegram/34474 CFNetwork/3860.700.1",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "Native CFNetwork UA; the detection article says Telegram is client-side detectable, not UA detectable."
+      }
+    },
+    {
+      "app": "threads",
+      "android": {
+        "state": "published-sample-version-present-no-app-build",
+        "sample": "Barcelona 450.0.0.51.78 Android",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "The app version exists in supplied history, but the UA does not expose app build; no primary observed-UA source."
+      },
+      "ios": {
+        "state": "published-sample-version-mismatch",
+        "sample": "Barcelona 449.0.0.31.70",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "Version/build pair not present; article's Barcelona token is an untested lead."
+      }
+    },
+    {
+      "app": "tiktok",
+      "android": {
+        "state": "published-sample-old-version",
+        "sample": "musical_ly_2024701040 AppName/musical_ly",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "appy-inapp-checker",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "App build/version is older than current catalog history."
+      },
+      "ios": {
+        "state": "published-sample-old-version",
+        "sample": "musical_ly_46.4.0 JsSdk/2.0",
+        "sources": [
+          "appy-inapp-checker",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "App version is older than current catalog history."
+      }
+    },
+    {
+      "app": "viber",
+      "android": {
+        "state": "published-webview-sample-old-version",
+        "sample": "Viber/12.8.0.19",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "Android WebView sample is historical and does not match current app version/build."
+      },
+      "ios": {
+        "state": "native-network-only",
+        "sample": "Viber/28.0.2.6 CFNetwork/3860.300.31",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "CFNetwork native request UA, not evidence of an in-app browser."
+      }
+    },
+    {
+      "app": "wechat",
+      "android": {
+        "state": "published-sample-pair-match-but-fields-unresolved",
+        "sample": "MicroMessenger/8.0.76.3141",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "The 8.0.76 / 3141 pair exists in supplied history, but XWEB/MMWEBSDK/MMWEBID/REV and locale/ABI fields are not mapped by the allowlist; no primary observed-UA source."
+      },
+      "ios": {
+        "state": "published-sample-no-app-build",
+        "sample": "MicroMessenger/8.0.75",
+        "sources": [
+          "whatmyuseragent-app-pages",
+          "xunl-wechat-user-agent"
+        ],
+        "blocker": "No matching app build pair or primary observed-UA source."
+      }
+    },
+    {
+      "app": "weibo",
+      "android": {
+        "state": "native-downloader-only",
+        "sample": "weibo__15.4.2__android__android15_wifi Downloader/2 Cronet",
+        "sources": [
+          "whatmyuseragent-app-pages"
+        ],
+        "blocker": "The surfaced latest sample is a downloader/Cronet native request, not a demonstrated embedded-browser UA."
+      },
+      "ios": {
+        "state": "not-found-in-this-pass",
+        "sample": null,
+        "sources": [],
+        "blocker": "No iOS in-app UA sample found."
+      }
+    },
+    {
+      "app": "x",
+      "android": {
+        "state": "published-sample-old-version",
+        "sample": "TwitterAndroid/12.28.0-alpha.01 (312280201-r-01)",
+        "sources": [
+          "useragents-io-twitter",
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "App version/build pair is older than current catalog history."
+      },
+      "ios": {
+        "state": "inferred-only-no-observed-ua",
+        "sample": "Twitter for iPhone",
+        "sources": [
+          "hackernoon-inapp-detection-2026-11-25"
+        ],
+        "blocker": "The article lists the token from inapp-spy rules and marks it not tested; no raw iOS observation found."
+      }
+    }
+  ],
+  "notes": [
+    "The 18-app coverage matrix is research inventory only; it does not alter template selectability.",
+    "Published dataset entries are not reclassified as raw telemetry.",
+    "HackerNoon explicitly marks Messenger, Threads, LinkedIn, Snapchat and X token entries as not tested in that article; they remain token leads only.",
+    "Telegram is described by the detection article as client-side detectable rather than identifiable from a UA string; do not invent a Telegram UA template.",
+    "The attached device catalog is .7, but UA_TEMPLATES_SPEC.md says the published baseline is .6. Pair checks are provisional until resolved.",
+    "web/ua_templates.json is not included in the uploaded handoff pack; no runtime file was edited or revalidated."
+  ]
+}
