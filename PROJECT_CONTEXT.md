@@ -456,3 +456,7 @@ On the owner's explicit approval, `facebook-android-fb4a-observed-2026-v1` was p
 - The template is the reduced-UA variant: `Android 10; K` and `Chrome/158.0.0.0` are LITERAL observed tokens (only `{appVersion}` is dynamic) — do not "modernize" them to catalog Chrome 159 without a matching observation.
 - The record's stale baseline-discrepancy review note was resolved in the published copy (spec baseline is .7, authoritative).
 - Published to BOTH `web/ua_templates.json` and `web/ua-studio/data/ua_templates.json` (upkeep rule). Effect: the generator may now offer Facebook Android as a real **Verified template** in-app option; the other 11 records stay candidate/pending and locked. Website UI unchanged.
+
+## Addendum — Kotlin UA Studio REMOVED (2026-11-26, owner order)
+
+The owner reviewed the live Advanced UA Studio and ordered it removed ("look not good"). Removed: the whole `web/ua-studio/` directory, the "Advanced UA Studio" sidebar link, its one CSS rule, and `tests/ua-studio-smoke.js`. Main cache-bust token → `20261126-11`. The main generator and the template catalog (2026.11.25.6, incl. the verified Facebook Android record in `web/ua_templates.json`) are untouched. The Studio files remain in git history (added in commits 8db1e8a..111, 2026-11-25) and can be restored from there if the owner ever wants them back. The ua-studio data-copy upkeep rule is retired with the page.
