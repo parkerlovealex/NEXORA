@@ -1,9 +1,18 @@
 package com.nexora.browser.bulk
 
+import com.nexora.browser.data.ProxyEntry
 import org.json.JSONArray
 import org.json.JSONObject
 
 /** In-memory configuration for one bulk-creation session. */
+
+data class BulkProxyAssignmentSummary(
+    val assignedProfiles: Int,
+    val directProfiles: Int,
+    val unsupportedAssignments: Int,
+    val unusedSavedProxies: Int
+)
+
 data class PerProfileDraft(
     var name: String,
     var userAgentMode: String = "AUTO",
@@ -53,6 +62,49 @@ class BulkProfileDraft {
             perProfiles.add(PerProfileDraft("$namePrefix $index"))
         }
         while (perProfiles.size > target) perProfiles.removeAt(perProfiles.lastIndex)
+    }
+
+    /**
+     * Assigns saved proxies in library order, one proxy per profile. Profiles beyond
+     * the available proxy count are explicitly set to direct rather than inheriting
+     * the same global proxy. Unsupported entries remain assigned but are reported;
+     * the validator prevents creating profiles with proxies unsupported by the current NEXORA relay.
+     */
+    fun assignSavedProxiesInOrder(proxies: List<ProxyEntry>): BulkProxyAssignmentSummary {
+        ensureProfiles()
+        val target = count.coerceIn(1, 50)
+        val assigned = minOf(target, proxies.size)
+        for (index in 0 until target) {
+            perProfiles[index].proxySelection = proxies.getOrNull(index)?.id ?: "NONE"
+        }
+        val selected = proxies.take(assigned)
+        return BulkProxyAssignmentSummary(
+            assignedProfiles = assigned,
+            directProfiles = target - assigned,
+            unsupportedAssignments = selected.count { !it.isSupportedByProxyRelay },
+            unusedSavedProxies = (proxies.size - assigned).coerceAtLeast(0)
+        )
+    }
+
+    /** Reset legacy values that were once visible but are not implemented by this WebView build. */
+    fun normalizeUnavailableSelections(): List<String> {
+        val reset = mutableListOf<String>()
+        if (webrtcMode == "PROXY_IP") {
+            webrtcMode = "DISABLED"
+            reset += "WebRTC proxy routing"
+        }
+        if (timezoneMode == "IP") {
+            timezoneMode = "DEVICE"
+            reset += "IP-based timezone"
+        }
+        if (languageMode == "IP") {
+            languageMode = "DEVICE"
+            reset += "IP-based language"
+        }
+        if (mediaDevicesNoise) { mediaDevicesNoise = false; reset += "Media device protection" }
+        if (clientRectsNoise) { clientRectsNoise = false; reset += "Client Rects protection" }
+        if (speechSynthesisNoise) { speechSynthesisNoise = false; reset += "Speech synthesis protection" }
+        return reset
     }
 
     fun toJson(): JSONObject {

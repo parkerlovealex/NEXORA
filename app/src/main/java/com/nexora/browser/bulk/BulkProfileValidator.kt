@@ -71,20 +71,17 @@ object BulkProfileValidator {
         selectedIds.forEach { id ->
             val proxy = proxyById[id]
             if (proxy == null) errors += "A selected proxy no longer exists in the proxy library."
-            else if (!proxy.isSupportedByCurrentWebView) {
-                val reason = when {
-                    proxy.hasCredentials -> "authenticated proxies are not supported by the current WebView adapter"
-                    proxy.type !in ProxyEntry.CURRENT_WEBVIEW_TYPES -> "${proxy.type} is imported but not supported by the current WebView adapter"
-                    else -> "the proxy is not supported"
-                }
-                errors += "${proxy.name}: $reason."
+            else if (!proxy.isSupportedByProxyRelay) {
+                errors += "${proxy.name}: ${proxy.type} is imported but not supported by the current NEXORA proxy relay."
             }
         }
 
-        if (draft.webrtcMode !in setOf("DISABLED", "REAL_IP", "PROXY_IP")) errors += "Choose a valid WebRTC mode."
-        if (draft.webrtcMode == "PROXY_IP") errors += "WebRTC Proxy IP mode is not implemented by the current WebView engine. Choose Disabled or Real IP."
-        if (draft.timezoneMode !in setOf("DEVICE", "IP", "CUSTOM")) errors += "Choose a valid timezone mode."
-        if (draft.languageMode !in setOf("DEVICE", "IP", "CUSTOM")) errors += "Choose a valid language mode."
+        if (draft.webrtcMode !in setOf("DISABLED", "REAL_IP")) errors += "Choose a supported WebRTC API mode."
+        if (draft.timezoneMode !in setOf("DEVICE", "CUSTOM")) errors += "Choose Device or Custom timezone mode."
+        if (draft.languageMode !in setOf("DEVICE", "CUSTOM")) errors += "Choose Device or Custom language mode."
+        if (draft.mediaDevicesNoise || draft.clientRectsNoise || draft.speechSynthesisNoise) {
+            errors += "Roadmap-only fingerprint controls cannot be saved as active protections in this release."
+        }
         if (draft.dntMode !in setOf("DEFAULT", "ENABLE", "DISABLE")) errors += "Choose a valid Do Not Track setting."
         if (draft.timezoneMode == "CUSTOM" && draft.customTimezone !in java.util.TimeZone.getAvailableIDs()) {
             errors += "Enter a valid IANA timezone identifier."
