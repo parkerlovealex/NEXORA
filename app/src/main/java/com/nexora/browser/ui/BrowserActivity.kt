@@ -1,29 +1,37 @@
 package com.nexora.browser.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.Environment
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.URLUtil
 import android.webkit.WebChromeClient
+import android.webkit.PermissionRequest
+import android.webkit.GeolocationPermissions
+import android.webkit.CookieManager
 import android.webkit.WebResourceError
+import android.webkit.WebResourceResponse
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.CheckBox
+import android.widget.Button
 import android.widget.HorizontalScrollView
 import android.widget.SeekBar
 import android.widget.LinearLayout
@@ -31,9 +39,11 @@ import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
 import androidx.webkit.WebSettingsCompat
@@ -41,43 +51,83 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.nexora.browser.NexoraApp
 import com.nexora.browser.R
+import com.nexora.browser.content.ContentBlockerDiagnosticsStore
+import com.nexora.browser.content.ContentBlockerEngine
+import com.nexora.browser.content.ContentBlockerStore
 import com.nexora.browser.data.BrowserDataStore
 import com.nexora.browser.data.BrowserPageRecord
 import com.nexora.browser.data.BrowserSessionTab
+import com.nexora.browser.data.BrowserSessionPolicy
+import com.nexora.browser.data.SessionTabState
 import com.nexora.browser.data.BrowserTabGroup
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DeviceDb
 import com.nexora.browser.data.DevicePreset
 import com.nexora.browser.data.ProfileStore
+import com.nexora.browser.data.ProxyLibraryStore
 import com.nexora.browser.databinding.ActivityBrowserBinding
 import com.nexora.browser.fp.FingerprintScript
+import com.nexora.browser.security.PrivacyPolicy
 import com.nexora.browser.util.UaBuilder
+import com.nexora.browser.util.UiFeedback
+import com.nexora.browser.util.BrowserNotifications
+import com.nexora.browser.util.ProxyRelayConfig
+import com.nexora.browser.util.ProxyRelayServer
+import com.nexora.browser.util.ProxySessionCoordinator
+import com.nexora.browser.util.ProxyTester
+import com.nexora.browser.util.ProfileDownloadClient
+import com.nexora.browser.util.ProfileIsolationGuard
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.Date
+import java.text.DateFormat
 import java.util.UUID
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import org.json.JSONObject
 
 private data class BrowserTab(
     val id: String = UUID.randomUUID().toString(),
     val webView: WebView,
     var title: String = "New tab",
-    var url: String = "",
+    @Volatile var url: String = "",
     var desktopMode: Boolean = false,
-    var groupId: String? = null
+    var groupId: String? = null,
+    var documentStartInstalled: Boolean = false
 )
 
 class BrowserActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBrowserBinding
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) toast("Download alerts are disabled. Downloads will continue normally.")
+        }
     private lateinit var store: ProfileStore
     private lateinit var profile: BrowserProfile
     private lateinit var dataStore: BrowserDataStore
+    private lateinit var contentBlockerStore: ContentBlockerStore
+    private lateinit var contentBlockerDiagnosticsStore: ContentBlockerDiagnosticsStore
+    private val contentBlockerEngine = ContentBlockerEngine()
+    private val blockedResourcesThisSession = AtomicInteger(0)
     private var preset: DevicePreset? = null
     private var fpScript: String = ""
-    private var docStartSupported = false
+    private var docStartWarningShown = false
     private var proxyReady = false
+    private var proxyRoutingActive = false
+    private var proxyRelay: ProxyRelayServer? = null
+    private var proxyLease: ProxySessionCoordinator.Lease? = null
+    private var networkReleaseRequested = false
     private var isClosing = false
     private var clearSessionOnExit = false
+    private var activityResumed = false
+    private val sessionPersistHandler = Handler(Looper.getMainLooper())
+    private val sessionPersistRunnable = Runnable { persistSessionNow() }
 
     private val tabs = mutableListOf<BrowserTab>()
     private var activeTabId: String? = null
@@ -90,6 +140,7 @@ class BrowserActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBrowserBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        UiFeedback.install(binding.root)
 
         store = ProfileStore(this)
         val profileId = intent.getStringExtra(EXTRA_PROFILE_ID).orEmpty()
@@ -100,8 +151,26 @@ class BrowserActivity : AppCompatActivity() {
             return
         }
         profile = loaded
+        val storageKeyOwners = ProfileIsolationGuard.collidingProfiles(profile, store.loadAll())
+        if (storageKeyOwners.size > 1) {
+            AlertDialog.Builder(this)
+                .setTitle("Profile storage collision detected")
+                .setMessage(
+                    "These profiles resolve to the same Android WebView storage key: " +
+                        storageKeyOwners.joinToString { it.name } +
+                        ". Opening them could share cookies and website data. NEXORA has blocked this session. " +
+                        "Export any profile settings you need, then recreate one of the colliding profiles."
+                )
+                .setPositiveButton("OK") { _, _ -> finish() }
+                .setOnCancelListener { finish() }
+                .show()
+            return
+        }
         preset = DeviceDb.find(this, profile.deviceId)
         dataStore = BrowserDataStore(this, profile.id)
+        contentBlockerStore = ContentBlockerStore(this, profile.id)
+        contentBlockerDiagnosticsStore = ContentBlockerDiagnosticsStore(this, profile.id)
+        contentBlockerEngine.update(contentBlockerStore.snapshot())
         binding.tvProfileTitle.text = profile.name
 
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
@@ -118,51 +187,25 @@ class BrowserActivity : AppCompatActivity() {
             return
         }
 
-        resolveIpGeoIfNeeded {
-            if (isFinishing || isDestroyed) return@resolveIpGeoIfNeeded
-            fpScript = preset?.let { FingerprintScript.build(profile, it) }.orEmpty()
-            setupControls()
-            applyProxy {
-                if (!isFinishing && !isDestroyed) {
-                    proxyReady = true
-                    restoreSessionOrStart()
-                }
-            }
-        }
-    }
-
-    /**
-     * IP-based timezone/language: when a profile's modes are "IP" and the
-     * stored values were not resolved for the current connection (proxy or
-     * direct), fetch them through that connection before the fingerprint
-     * script is built. On failure the session falls back to device values.
-     */
-    private fun resolveIpGeoIfNeeded(done: () -> Unit) {
-        val wantsIp = profile.timezoneMode == "IP" || profile.languageMode == "IP"
-        val key = com.nexora.browser.util.IpGeoResolver.connectionKey(profile)
-        if (!wantsIp || profile.ipGeoKey == key) {
-            done()
-            return
-        }
-        toast("Resolving timezone and language from IP...")
-        kotlin.concurrent.thread(name = "ip-geo-resolve") {
-            val geo = com.nexora.browser.util.IpGeoResolver.resolve(profile)
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
-                if (geo != null) {
-                    if (profile.timezoneMode == "IP") profile.timezoneId = geo.timezone
-                    if (profile.languageMode == "IP") profile.language = geo.language
-                    profile.ipGeoKey = key
-                    store.update(profile)
-                } else {
-                    toast("Could not fetch IP location. Using device timezone and language this session.")
-                }
-                done()
+        fpScript = preset?.let { FingerprintScript.build(profile, it) }.orEmpty()
+        setupControls()
+        applyProxy {
+            if (!isFinishing && !isDestroyed) {
+                proxyReady = true
+                restoreSessionOrStart()
             }
         }
     }
 
     private fun setupControls() {
+        // The browser chrome is deliberately brand-free. Profile management
+        // remains available from the overflow menu, not in the address bar.
+        binding.btnExitProfile.setOnClickListener {
+            returnToProfiles()
+        }
+        binding.btnSiteInfo.setOnClickListener {
+            showSiteInfoDialog()
+        }
         binding.btnBack.setOnClickListener {
             activeTab?.webView?.let { if (it.canGoBack()) it.goBack() }
         }
@@ -172,12 +215,24 @@ class BrowserActivity : AppCompatActivity() {
         binding.btnReload.setOnClickListener {
             activeTab?.webView?.reload() ?: createTab(null)
         }
-        binding.btnNewTab.setOnClickListener { createTab(null) }
-        binding.btnHome.setOnClickListener { loadHome() }
-        binding.btnBookmarks.setOnClickListener { showBookmarksDialog() }
-        binding.btnTabs.setOnClickListener { showTabsDialog() }
-        binding.btnDownloads.setOnClickListener { showDownloadsDialog() }
-        binding.btnOverflow.setOnClickListener { showOverflowMenu() }
+        binding.btnNewTab.setOnClickListener {
+            createTab(null)
+        }
+        binding.btnHome.setOnClickListener {
+            loadHome()
+        }
+        binding.btnBookmarks.setOnClickListener {
+            showBookmarksDialog()
+        }
+        binding.btnTabs.setOnClickListener {
+            showTabsDialog()
+        }
+        binding.btnDownloads.setOnClickListener {
+            showDownloadsDialog()
+        }
+        binding.btnOverflow.setOnClickListener {
+            showOverflowMenu()
+        }
 
         binding.etOmnibox.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO ||
@@ -203,6 +258,10 @@ class BrowserActivity : AppCompatActivity() {
         desktopMode: Boolean = false,
         restoredTitle: String? = null
     ) {
+        if (tabs.size >= MAX_LIVE_TABS) {
+            toast("NEXORA supports up to $MAX_LIVE_TABS open tabs in one profile")
+            return
+        }
         if (!proxyReady && profile.proxyType != "NONE") return
         val webView = WebView(this)
         try {
@@ -220,17 +279,27 @@ class BrowserActivity : AppCompatActivity() {
             domStorageEnabled = true
             loadsImagesAutomatically = !profile.blockImages
             blockNetworkImage = profile.blockImages
-            mediaPlaybackRequiresUserGesture = false
+            mediaPlaybackRequiresUserGesture = PrivacyPolicy.MEDIA_PLAYBACK_REQUIRES_GESTURE
             builtInZoomControls = true
             displayZoomControls = false
-            allowFileAccess = false
-            allowContentAccess = false
-            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            javaScriptCanOpenWindowsAutomatically = false
+            allowFileAccess = PrivacyPolicy.FILE_ACCESS_ALLOWED
+            allowContentAccess = PrivacyPolicy.CONTENT_ACCESS_ALLOWED
+            mixedContentMode = if (PrivacyPolicy.BLOCK_MIXED_CONTENT) {
+                WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            } else {
+                WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            }
+            javaScriptCanOpenWindowsAutomatically = PrivacyPolicy.JAVASCRIPT_POPUPS_ALLOWED
             setSupportMultipleWindows(false)
-            safeBrowsingEnabled = true
-            userAgentString = profile.userAgent.ifBlank { WebSettings.getDefaultUserAgent(this@BrowserActivity) }
+            safeBrowsingEnabled = PrivacyPolicy.SAFE_BROWSING_ENABLED
+            userAgentString = resolvedProfileUserAgent()
         }
+        // Android exposes this as a per-WebView policy. Keep first-party cookies
+        // available while blocking third-party cookie access for this profile view.
+        CookieManager.getInstance().setAcceptThirdPartyCookies(
+            webView,
+            PrivacyPolicy.THIRD_PARTY_COOKIES_ALLOWED
+        )
 
         webView.setLayerType(
             if (profile.hardwareAcceleration) View.LAYER_TYPE_HARDWARE else View.LAYER_TYPE_SOFTWARE,
@@ -259,14 +328,17 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun configureWebView(tab: BrowserTab) {
         val webView = tab.webView
+        tab.documentStartInstalled = false
         if (fpScript.isNotBlank() &&
             WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
         ) {
             try {
+                // Register before the WebView loads its first document. AndroidX runs
+                // this in matching frames before page JavaScript begins.
                 WebViewCompat.addDocumentStartJavaScript(webView, fpScript, setOf("*"))
-                docStartSupported = true
+                tab.documentStartInstalled = true
             } catch (_: Exception) {
-                docStartSupported = false
+                tab.documentStartInstalled = false
             }
         }
 
@@ -308,12 +380,51 @@ class BrowserActivity : AppCompatActivity() {
                 return false
             }
 
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+                // Keep top-level navigation intact. This engine filters subresources only.
+                if (request == null || request.isForMainFrame || !contentBlockerEngine.isEnabled()) {
+                    return null
+                }
+                // Use this WebView's top-level URL for the site exception. A Referer
+                // header can describe an embedded iframe rather than the top-level page.
+                val pageUrl = tab.url
+                val decision = contentBlockerEngine.evaluate(request.url.toString(), pageUrl)
+                if (!decision.blocked) return null
+
+                blockedResourcesThisSession.incrementAndGet()
+                decision.matchedRule?.let { rule ->
+                    contentBlockerDiagnosticsStore.recordBlocked(
+                        resourceUrl = request.url.toString(),
+                        pageUrl = pageUrl,
+                        ruleHost = rule.host,
+                        method = request.method
+                    )
+                }
+                return WebResourceResponse(
+                    "text/plain",
+                    "UTF-8",
+                    204,
+                    "No Content",
+                    emptyMap(),
+                    ByteArrayInputStream(ByteArray(0))
+                )
+            }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 val current = tabFor(view) ?: return
                 if (!url.isNullOrBlank()) current.url = url
                 persistSession()
-                if (!docStartSupported && fpScript.isNotBlank()) {
+                if (!current.documentStartInstalled && fpScript.isNotBlank()) {
+                    // Best-effort fallback only: onPageStarted is not equivalent
+                    // to a guaranteed document-start injection before page JS.
+                    if (!docStartWarningShown) {
+                        toast("Document-start protection is unavailable; fingerprint overrides are best-effort on this WebView.")
+                        docStartWarningShown = true
+                    }
                     view?.evaluateJavascript(fpScript, null)
                 }
                 if (current.id == activeTabId) {
@@ -350,12 +461,43 @@ class BrowserActivity : AppCompatActivity() {
             ) {
                 if (request?.isForMainFrame == true && tab.id == activeTabId) {
                     binding.progressBar.visibility = View.GONE
-                    toast("Page failed to load")
+                    val code = error?.errorCode?.toString() ?: "unknown"
+                    val description = error?.description?.toString()?.take(90) ?: "Network error"
+                    toast("Page failed ($code): $description")
+                }
+            }
+
+            override fun onReceivedHttpError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                errorResponse: WebResourceResponse?
+            ) {
+                if (request?.isForMainFrame == true && tab.id == activeTabId) {
+                    binding.progressBar.visibility = View.GONE
+                    toast("Server returned HTTP ${errorResponse?.statusCode ?: "error"}")
                 }
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                // No web-origin camera, microphone, MIDI or other WebView permissions
+                // are granted until a complete in-app + Android runtime permission flow exists.
+                val pending = request ?: return
+                if (PrivacyPolicy.grantWebContentPermission(pending.resources.toList())) {
+                    pending.grant(pending.resources)
+                } else {
+                    pending.deny()
+                }
+            }
+
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String?,
+                callback: GeolocationPermissions.Callback?
+            ) {
+                callback?.invoke(origin.orEmpty(), PrivacyPolicy.grantGeolocation(origin), false)
+            }
+
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 if (tab.id == activeTabId) {
                     binding.progressBar.progress = newProgress
@@ -368,6 +510,7 @@ class BrowserActivity : AppCompatActivity() {
                 if (!title.isNullOrBlank()) {
                     tab.title = title.take(80)
                     updateToolbar()
+                    persistSession()
                 }
             }
         }
@@ -401,7 +544,10 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun switchToTab(id: String) {
         val tab = tabs.firstOrNull { it.id == id } ?: return
+        val previous = activeTab
+        if (previous != null && previous.id != id) previous.webView.onPause()
         activeTabId = id
+        if (activityResumed) tab.webView.onResume() else tab.webView.onPause()
         (tab.webView.parent as? ViewGroup)?.removeView(tab.webView)
         binding.webContainer.removeAllViews()
         binding.webContainer.addView(
@@ -452,7 +598,7 @@ class BrowserActivity : AppCompatActivity() {
         persistSession()
         if (url == HOME_URL) {
             tab.title = "New tab"
-            tab.webView.loadDataWithBaseURL(HOME_BASE, NEW_TAB_HTML, "text/html", "UTF-8", null)
+            loadNewTabPage(tab)
         } else {
             tab.webView.loadUrl(url)
         }
@@ -460,6 +606,41 @@ class BrowserActivity : AppCompatActivity() {
             binding.etOmnibox.setText(if (url == HOME_URL) "" else url)
             updateToolbar()
         }
+    }
+
+    /**
+     * Loads the bundled NEXORA start page under a stable HTTPS origin so that
+     * browser APIs which require a secure context behave consistently.
+     *
+     * The page has no JavaScript bridge into Android. Its optional network
+     * check contacts only the disclosed public-IP endpoint after user consent.
+     */
+    private fun loadNewTabPage(tab: BrowserTab) {
+        val contextJson = preset?.let {
+            FingerprintScript.diagnosticsContextJson(
+                profile, it, tab.webView.settings.userAgentString, tab.documentStartInstalled
+            )
+        } ?: "{}"
+        // This context is inserted only into the bundled local start page. It is
+        // never added to remote navigations or exposed through a JS bridge.
+        val safeContextJson = contextJson
+            .replace("<", "\\u003c")
+            .replace(">", "\\u003e")
+            .replace("&", "\\u0026")
+        val contextTag = "<script id=\"nexoraProfileContext\" type=\"application/json\">$safeContextJson</script>"
+        val html = assets.open("newtab.html").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            .replace("<!-- NEXORA_PROFILE_CONTEXT -->", contextTag)
+        tab.webView.loadDataWithBaseURL(HOME_BASE, html, "text/html", "UTF-8", null)
+    }
+
+    /**
+     * Persist this profile's tab session and return to the NEXORA profile workspace.
+     * onDestroy then closes WebViews and releases the active proxy relay/lease.
+     */
+    private fun returnToProfiles() {
+        if (isFinishing || isDestroyed) return
+        persistSessionNow()
+        finish()
     }
 
     private fun loadHome() {
@@ -498,9 +679,19 @@ class BrowserActivity : AppCompatActivity() {
         val custom = dataStore.siteUserAgent(host)
         tab.webView.settings.userAgentString = when {
             custom != null -> custom
-            tab.desktopMode -> UaBuilder.DESKTOP_UA
-            else -> profile.userAgent.ifBlank { WebSettings.getDefaultUserAgent(this) }
+            tab.desktopMode -> UaBuilder.desktopUserAgent(WebSettings.getDefaultUserAgent(this))
+            else -> resolvedProfileUserAgent()
         }
+    }
+
+    private fun resolvedProfileUserAgent(): String {
+        val native = WebSettings.getDefaultUserAgent(this)
+        if (profile.userAgentMode == "AUTO") {
+            val selectedPreset = preset ?: return native
+            return runCatching { UaBuilder.build(selectedPreset, profile.osVersion, native) }
+                .getOrDefault(native)
+        }
+        return profile.userAgent.ifBlank { native }
     }
 
     private fun applySiteSettings(webView: WebView?, url: String) {
@@ -533,7 +724,7 @@ class BrowserActivity : AppCompatActivity() {
             text = "$current%"
             textSize = 18f
             gravity = Gravity.CENTER
-            setTextColor(getColor(R.color.nexora_text))
+            setTextColor(getColor(R.color.nexora_browser_text))
         }
         val seek = SeekBar(this).apply {
             max = 150
@@ -602,39 +793,163 @@ class BrowserActivity : AppCompatActivity() {
     // Proxy
 
     private fun applyProxy(onReady: () -> Unit) {
-        if (profile.proxyType == "NONE") {
+        // ProxyController is app-wide. Never let two BrowserActivity instances
+        // overwrite each other's network route.
+        val lease = ProxySessionCoordinator.acquire(profile.id)
+        if (lease == null) {
+            toast("Another NEXORA profile session is active. Close it before opening another profile.")
+            finish()
+            return
+        }
+        proxyLease = lease
+
+        val effectiveProfile = if (profile.proxyEntryId.isNotBlank()) {
+            val library = ProxyLibraryStore(this)
+            val entry = library.find(profile.proxyEntryId)
+            if (entry == null) {
+                toast("The saved proxy assigned to this profile no longer exists. Browsing stopped.")
+                finish()
+                return
+            }
+            if (!entry.isSupportedByProxyRelay) {
+                toast("${entry.type} is stored but not supported by the NEXORA proxy relay. Browsing stopped.")
+                finish()
+                return
+            }
+            val credentials = library.credentials(entry)
+            if (entry.hasCredentials && credentials.first.isEmpty() && credentials.second.isEmpty()) {
+                toast("Could not decrypt the saved proxy credentials. Browsing stopped.")
+                finish()
+                return
+            }
+            profile.copy(
+                proxyType = entry.type,
+                proxyHost = entry.host,
+                proxyPort = entry.port,
+                proxyUser = credentials.first,
+                proxyPass = credentials.second
+            )
+        } else profile
+
+        if (effectiveProfile.proxyType == "NONE") {
+            proxyRoutingActive = false
             clearProxy(onReady)
-            return
-        }
-        if (!profile.hasProxy || profile.proxyType !in setOf("HTTP", "SOCKS5")) {
-            toast("Proxy settings are invalid. Browsing stopped.")
-            finish()
-            return
-        }
-        if (profile.proxyUser.isNotEmpty() || profile.proxyPass.isNotEmpty()) {
-            toast("This WebView cannot authenticate to the configured proxy. Browsing stopped.")
-            finish()
             return
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
             !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
         ) {
-            toast("Proxy override is unavailable in this WebView. Browsing stopped.")
+            toast("This WebView does not support proxy routing. Browsing stopped.")
             finish()
             return
         }
-        try {
-            val scheme = if (profile.proxyType == "SOCKS5") "socks://" else "http://"
-            val rule = scheme + profile.proxyHost + ":" + profile.proxyPort
-            val config = ProxyConfig.Builder().addProxyRule(rule).build()
-            ProxyController.getInstance().setProxyOverride(
-                config,
-                ContextCompat.getMainExecutor(this),
-                Runnable { onReady() }
-            )
-        } catch (e: Exception) {
-            toast("Could not apply proxy: ${e.message ?: "unknown error"}")
+        if (!effectiveProfile.hasProxy ||
+            effectiveProfile.proxyType !in ProxyRelayConfig.SUPPORTED_TYPES
+        ) {
+            toast("Proxy settings are invalid or unsupported. Browsing stopped.")
             finish()
+            return
+        }
+
+        val relayConfig = ProxyRelayConfig(
+            type = effectiveProfile.proxyType,
+            host = effectiveProfile.proxyHost,
+            port = effectiveProfile.proxyPort,
+            username = effectiveProfile.proxyUser,
+            password = effectiveProfile.proxyPass
+        )
+        relayConfig.validate()?.let {
+            toast("Proxy settings are invalid: $it. Browsing stopped.")
+            finish()
+            return
+        }
+
+        toast("Verifying proxy connection before opening this profile…")
+        ProxyTester.test(effectiveProfile) { testResult ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (!testResult.startsWith("OK — exit IP ")) {
+                    toast("Proxy verification failed: $testResult. Browsing stopped; no direct fallback was used.")
+                    finish()
+                    return@runOnUiThread
+                }
+                startProxyRelay(relayConfig, lease, testResult, onReady)
+            }
+        }
+    }
+
+    private fun startProxyRelay(
+        relayConfig: ProxyRelayConfig,
+        lease: ProxySessionCoordinator.Lease,
+        verifiedResult: String,
+        onReady: () -> Unit
+    ) {
+        Thread({
+            try {
+                val relay = ProxyRelayServer(relayConfig)
+                val localPort = relay.start()
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) {
+                        relay.close()
+                        clearProxy { releaseProxyLease(lease) }
+                        return@runOnUiThread
+                    }
+                    proxyRelay = relay
+                    try {
+                        // WebView sees only an unauthenticated loopback HTTP proxy.
+                        // The local relay handles upstream protocol/authentication.
+                        val localConfig = ProxyConfig.Builder()
+                            .addProxyRule("http://127.0.0.1:$localPort")
+                            .build()
+                        ProxyController.getInstance().setProxyOverride(
+                            localConfig,
+                            ContextCompat.getMainExecutor(this),
+                            Runnable {
+                                if (isFinishing || isDestroyed) {
+                                    // onDestroy may have raced with setProxyOverride;
+                                    // clear again after the asynchronous apply completes.
+                                    clearProxy { releaseProxyLease(lease) }
+                                } else {
+                                    proxyRoutingActive = true
+                                    val exitIp = verifiedResult
+                                        .removePrefix("OK — exit IP ")
+                                        .substringBefore(" (")
+                                    toast("Proxy verified · exit IP $exitIp")
+                                    onReady()
+                                }
+                            }
+                        )
+                    } catch (error: Exception) {
+                        toast("Could not apply the local proxy route: ${error.message ?: "unknown error"}. Browsing stopped.")
+                        finish()
+                    }
+                }
+            } catch (error: Exception) {
+                runOnUiThread {
+                    toast("Could not start the proxy relay: ${error.message ?: "unknown error"}. Browsing stopped.")
+                    finish()
+                }
+            }
+        }, "NEXORA-ProxyRelay-Start").apply {
+            isDaemon = true
+            start()
+        }
+    }
+
+    private fun releaseProxyLease(lease: ProxySessionCoordinator.Lease) {
+        ProxySessionCoordinator.release(lease)
+        if (proxyLease?.token == lease.token) proxyLease = null
+    }
+
+    private fun releaseNetworkSession() {
+        if (networkReleaseRequested) return
+        networkReleaseRequested = true
+        proxyRelay?.close()
+        proxyRelay = null
+        proxyRoutingActive = false
+        val lease = proxyLease
+        if (lease != null) {
+            clearProxy { releaseProxyLease(lease) }
         }
     }
 
@@ -661,7 +976,9 @@ class BrowserActivity : AppCompatActivity() {
     private fun showOverflowMenu() {
         val popup = PopupMenu(this, binding.btnOverflow)
         val items = listOf(
+            "Back to profiles",
             "New tab",
+            "Anti-detect Center",
             "Tabs",
             "Recently closed tabs",
             "Bookmarks",
@@ -673,9 +990,12 @@ class BrowserActivity : AppCompatActivity() {
             "User-Agent for this site",
             "Toggle site dark theme",
             "Redirect rules",
+            "Content blocker",
             "Share page",
             "Copy URL",
-            "Check fingerprint",
+            "Privacy Center",
+            "Privacy diagnostics",
+            "Compatibility Lab",
             "Profile info",
             "Clear profile data",
             "Close tab"
@@ -683,7 +1003,12 @@ class BrowserActivity : AppCompatActivity() {
         items.forEach { popup.menu.add(it) }
         popup.setOnMenuItemClickListener { item ->
             when (item.title.toString()) {
+                "Back to profiles" -> returnToProfiles()
                 "New tab" -> createTab(null)
+                "Anti-detect Center" -> startActivity(
+                    Intent(this, FeatureCenterActivity::class.java)
+                        .putExtra(FeatureCenterActivity.EXTRA_PROFILE_ID, profile.id)
+                )
                 "Tabs" -> showTabsDialog()
                 "Recently closed tabs" -> showRecentlyClosedDialog()
                 "Bookmarks" -> showBookmarksDialog()
@@ -695,9 +1020,20 @@ class BrowserActivity : AppCompatActivity() {
                 "User-Agent for this site" -> showSiteUserAgentDialog()
                 "Toggle site dark theme" -> toggleSiteDarkMode()
                 "Redirect rules" -> showRedirectRulesDialog()
+                "Content blocker" -> showContentBlockerDialog()
                 "Share page" -> shareUrl(activeTab?.url.orEmpty())
                 "Copy URL" -> copyText(activeTab?.url.orEmpty())
-                "Check fingerprint" -> activeTab?.webView?.loadUrl("file:///android_asset/fp-test.html")
+                "Privacy Center" -> startActivity(
+                    Intent(this, PrivacyCenterActivity::class.java)
+                        .putExtra(PrivacyCenterActivity.EXTRA_PROFILE_ID, profile.id)
+                )
+                "Privacy diagnostics" -> showPrivacyDiagnosticsDialog()
+                "Compatibility Lab" -> {
+                    val intent = Intent(this, CompatibilityLabActivity::class.java)
+                        .putExtra(CompatibilityLabActivity.EXTRA_PROFILE_ID, profile.id)
+                        .putExtra(CompatibilityLabActivity.EXTRA_USER_AGENT, activeTab?.webView?.settings?.userAgentString.orEmpty())
+                    startActivity(intent)
+                }
                 "Profile info" -> showProfileInfo()
                 "Clear profile data" -> confirmClearData()
                 "Close tab" -> activeTab?.let { closeTab(it.id) }
@@ -833,6 +1169,314 @@ class BrowserActivity : AppCompatActivity() {
         return null
     }
 
+    private fun refreshContentBlockerEngine(reloadPage: Boolean = true) {
+        contentBlockerEngine.update(contentBlockerStore.snapshot())
+        if (reloadPage) {
+            activeTab?.let { tab ->
+                if (tab.url.startsWith("http://") || tab.url.startsWith("https://")) {
+                    tab.webView.reload()
+                }
+            }
+        }
+    }
+
+    private fun showContentBlockerDialog() {
+        val host = Uri.parse(activeTab?.url.orEmpty()).host.orEmpty()
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), dp(8))
+        }
+        val enabled = CheckBox(this).apply {
+            text = "Enable content blocking for this profile"
+            setTextColor(getColor(R.color.nexora_browser_text))
+            isChecked = contentBlockerStore.isEnabled()
+        }
+        val diagnosticsEnabled = CheckBox(this).apply {
+            text = "Save redacted request diagnostics"
+            setTextColor(getColor(R.color.nexora_browser_text))
+            isChecked = contentBlockerDiagnosticsStore.isEnabled()
+        }
+        val diagnosticsButton = Button(this).apply {
+            text = "View recent blocked requests"
+            setOnClickListener { showBlockedRequestDiagnosticsDialog() }
+        }
+        val summary = TextView(this).apply {
+            textSize = 13f
+            setTextColor(getColor(R.color.nexora_browser_muted))
+            setPadding(0, dp(10), 0, dp(8))
+        }
+        val scope = TextView(this).apply {
+            text = "NEXORA checks matching host rules for subresource requests. Main-page navigation is not blocked."
+            textSize = 12f
+            setTextColor(getColor(R.color.nexora_browser_muted))
+            setPadding(0, dp(4), 0, dp(8))
+        }
+        val limitation = TextView(this).apply {
+            text = "Supported format: domain rules such as ||ads.example^ and exceptions such as @@||trusted.example^. This WebView-level filter does not cover every request path. Full EasyList syntax, cosmetic rules, service-worker interception and automatic remote updates are not available yet."
+            textSize = 12f
+            setTextColor(getColor(R.color.nexora_browser_muted))
+            setPadding(0, dp(4), 0, 0)
+        }
+
+        fun renderSummary() {
+            summary.text = buildString {
+                append("Supported rules: ").append(contentBlockerEngine.supportedRuleCount())
+                append("  ·  Ignored lines: ").append(contentBlockerEngine.ignoredRuleCount())
+                append("\nBlocked this session: ").append(blockedResourcesThisSession.get())
+                append("\nSaved diagnostics: ").append(contentBlockerDiagnosticsStore.records().size)
+                append("\nCustom lists: ").append(contentBlockerStore.customLists().size)
+                append("\nBuilt-in list: ").append(if (contentBlockerStore.isBuiltInEnabled()) "On" else "Off")
+                if (host.isNotBlank()) {
+                    append("\nCurrent site: ").append(host)
+                    append(if (contentBlockerStore.isSiteAllowed(host)) " · Allowed" else " · Filtering")
+                }
+            }
+        }
+        renderSummary()
+        enabled.setOnCheckedChangeListener { _, checked ->
+            contentBlockerStore.setEnabled(checked)
+            refreshContentBlockerEngine()
+            renderSummary()
+            toast(if (checked) "Content blocking enabled" else "Content blocking disabled")
+        }
+        diagnosticsEnabled.setOnCheckedChangeListener { _, checked ->
+            contentBlockerDiagnosticsStore.setEnabled(checked)
+            renderSummary()
+            toast(
+                if (checked) "Redacted diagnostics enabled for this profile"
+                else "Diagnostic capture paused; saved records remain until cleared"
+            )
+        }
+
+        content.addView(enabled)
+        content.addView(diagnosticsEnabled)
+        content.addView(diagnosticsButton)
+        content.addView(summary)
+        content.addView(scope)
+        content.addView(limitation)
+
+        AlertDialog.Builder(this)
+            .setTitle("NEXORA Content Blocker")
+            .setView(content)
+            .setPositiveButton("Manage lists") { _, _ -> showFilterListsDialog() }
+            .setNeutralButton(
+                if (host.isNotBlank() && contentBlockerStore.isSiteAllowed(host)) {
+                    "Restore site blocking"
+                } else {
+                    "Allow this site"
+                }
+            ) { _, _ ->
+                if (host.isBlank()) {
+                    toast("Open a website before changing its exception")
+                } else {
+                    val allow = !contentBlockerStore.isSiteAllowed(host)
+                    if (contentBlockerStore.setSiteAllowed(host, allow)) {
+                        refreshContentBlockerEngine()
+                        toast(if (allow) "Filtering paused for $host" else "Filtering restored for $host")
+                    } else {
+                        toast("Could not update this site's exception")
+                    }
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showBlockedRequestDiagnosticsDialog() {
+        val records = contentBlockerDiagnosticsStore.records()
+        val body = if (records.isEmpty()) {
+            "No blocked-request diagnostics have been saved. Enable redacted diagnostics in the Content Blocker panel to collect future matches."
+        } else {
+            records.joinToString("\n\n") { record ->
+                val time = DateFormat.getDateTimeInstance().format(Date(record.timestamp))
+                buildString {
+                    append(time)
+                    append("\n").append(record.method).append(" ").append(record.requestHost)
+                    append("\nPage: ").append(record.pageHost.ifBlank { "Unknown" })
+                    append(" · Rule: ").append(record.ruleHost)
+                }
+            }
+        }
+        val text = TextView(this).apply {
+            text = body
+            textSize = 13f
+            setTextColor(getColor(R.color.nexora_browser_text))
+            setPadding(dp(20), dp(12), dp(20), dp(12))
+            setTextIsSelectable(true)
+        }
+        val scroll = ScrollView(this).apply {
+            addView(text)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Blocked requests · ${records.size}")
+            .setView(scroll)
+            .setPositiveButton("Close", null)
+            .setNeutralButton("Clear records") { _, _ ->
+                contentBlockerDiagnosticsStore.clear()
+                toast("Blocked-request diagnostics cleared")
+            }
+            .show()
+    }
+
+    private fun showFilterListsDialog() {
+        val customLists = contentBlockerStore.customLists()
+        val options = buildList {
+            add(
+                "NEXORA Starter Ads · " +
+                    if (contentBlockerStore.isBuiltInEnabled()) "Enabled" else "Disabled"
+            )
+            add("Manage allowed sites…")
+            add("Import / paste a filter list…")
+            customLists.forEach { list ->
+                val report = ContentBlockerEngine.parseRules(list.rawRules.lines())
+                add(
+                    "${if (list.enabled) "ON" else "OFF"} · ${list.name} · " +
+                        "${report.supportedLines} supported rules"
+                )
+            }
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Filter lists")
+            .setItems(options.toTypedArray()) { _, which ->
+                when (which) {
+                    0 -> {
+                        contentBlockerStore.setBuiltInEnabled(!contentBlockerStore.isBuiltInEnabled())
+                        refreshContentBlockerEngine()
+                        showFilterListsDialog()
+                    }
+                    1 -> showAllowedSitesDialog()
+                    2 -> showAddFilterListDialog()
+                    else -> customLists.getOrNull(which - 3)?.let { showCustomFilterListActions(it) }
+                }
+            }
+            .setNegativeButton("Done", null)
+            .show()
+    }
+
+    private fun showAllowedSitesDialog() {
+        val sites = contentBlockerStore.allowedSites().sorted()
+        if (sites.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle("Allowed sites")
+                .setMessage("No site exceptions are saved for this profile.")
+                .setPositiveButton("OK", null)
+                .show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Allowed sites · ${sites.size}")
+            .setItems(sites.toTypedArray()) { _, which ->
+                val host = sites.getOrNull(which) ?: return@setItems
+                AlertDialog.Builder(this)
+                    .setTitle("Restore filtering?")
+                    .setMessage("Remove the exception for $host?")
+                    .setPositiveButton("Restore") { _, _ ->
+                        contentBlockerStore.setSiteAllowed(host, false)
+                        refreshContentBlockerEngine()
+                        showAllowedSitesDialog()
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+            .setNegativeButton("Back") { _, _ -> showFilterListsDialog() }
+            .show()
+    }
+
+    private fun showAddFilterListDialog(existing: com.nexora.browser.content.ContentFilterList? = null) {
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), dp(8))
+        }
+        val nameInput = EditText(this).apply {
+            hint = "List name"
+            setSingleLine(true)
+            setText(existing?.name.orEmpty())
+        }
+        val rulesInput = EditText(this).apply {
+            hint = "||ads.example^\n@@||allowed.example^\n! Comments start with !"
+            setText(existing?.rawRules.orEmpty())
+            minLines = 8
+            maxLines = 14
+            gravity = Gravity.TOP
+        }
+        val helper = TextView(this).apply {
+            text = "Paste a text filter list. NEXORA currently imports supported domain and exception rules; unsupported lines are skipped and counted."
+            textSize = 12f
+            setTextColor(getColor(R.color.nexora_browser_muted))
+            setPadding(0, dp(6), 0, dp(8))
+        }
+        content.addView(nameInput)
+        content.addView(helper)
+        content.addView(rulesInput)
+
+        AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Import filter list" else "Edit filter list")
+            .setView(content)
+            .setPositiveButton(if (existing == null) "Import" else "Save") { _, _ ->
+                val name = nameInput.text?.toString().orEmpty()
+                val rules = rulesInput.text?.toString().orEmpty()
+                val report = ContentBlockerEngine.parseRules(rules.lines())
+                if (report.supportedLines == 0) {
+                    toast("No supported rules found. Use ||domain^ or @@||domain^.")
+                    return@setPositiveButton
+                }
+                val saved = if (existing == null) {
+                    contentBlockerStore.addCustomList(name, rules) != null
+                } else {
+                    contentBlockerStore.updateCustomList(existing.id, name, rules)
+                }
+                if (saved) {
+                    refreshContentBlockerEngine()
+                    toast(
+                        "Filter list saved: ${report.supportedLines} supported, " +
+                            "${report.ignoredLines} ignored"
+                    )
+                } else {
+                    toast("Could not save list. Check its name, size and duplicate names.")
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showCustomFilterListActions(list: com.nexora.browser.content.ContentFilterList) {
+        val actions = arrayOf(
+            if (list.enabled) "Disable list" else "Enable list",
+            "Edit list",
+            "Copy rules",
+            "Remove list"
+        )
+        AlertDialog.Builder(this)
+            .setTitle(list.name)
+            .setItems(actions) { _, which ->
+                when (which) {
+                    0 -> {
+                        contentBlockerStore.setCustomListEnabled(list.id, !list.enabled)
+                        refreshContentBlockerEngine()
+                        showFilterListsDialog()
+                    }
+                    1 -> showAddFilterListDialog(list)
+                    2 -> {
+                        copyText(list.rawRules)
+                        toast("Filter rules copied")
+                    }
+                    3 -> AlertDialog.Builder(this)
+                        .setTitle("Remove filter list?")
+                        .setMessage("Remove \"${list.name}\" from this profile?")
+                        .setPositiveButton("Remove") { _, _ ->
+                            contentBlockerStore.removeCustomList(list.id)
+                            refreshContentBlockerEngine()
+                            showFilterListsDialog()
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
+            .setNegativeButton("Back") { _, _ -> showFilterListsDialog() }
+            .show()
+    }
+
     private fun showFindDialog() {
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -845,16 +1489,16 @@ class BrowserActivity : AppCompatActivity() {
         }
         val caseSensitive = CheckBox(this).apply {
             text = "Match case"
-            setTextColor(getColor(R.color.nexora_text))
+            setTextColor(getColor(R.color.nexora_browser_text))
         }
         val wholeWords = CheckBox(this).apply {
             text = "Whole words"
-            setTextColor(getColor(R.color.nexora_text))
+            setTextColor(getColor(R.color.nexora_browser_text))
         }
         val status = TextView(this).apply {
             text = "Enter text to search this page."
             textSize = 12f
-            setTextColor(getColor(R.color.nexora_muted))
+            setTextColor(getColor(R.color.nexora_browser_muted))
             setPadding(0, dp(8), 0, dp(8))
         }
         content.addView(input)
@@ -923,7 +1567,7 @@ class BrowserActivity : AppCompatActivity() {
             text = label
             textSize = 13f
             gravity = Gravity.CENTER
-            setTextColor(getColor(R.color.nexora_text))
+            setTextColor(getColor(R.color.nexora_browser_text))
             setPadding(dp(12), dp(12), dp(12), dp(12))
             setBackgroundResource(android.R.drawable.list_selector_background)
             setOnClickListener { callback() }
@@ -1023,7 +1667,7 @@ class BrowserActivity : AppCompatActivity() {
             val chip = TextView(this).apply {
                 text = label
                 textSize = 11f
-                setTextColor(getColor(if (selected) R.color.nexora_text else R.color.nexora_muted))
+                setTextColor(getColor(if (selected) R.color.nexora_browser_text else R.color.nexora_browser_muted))
                 setPadding(dp(12), dp(9), dp(12), dp(9))
                 setBackgroundResource(if (selected) R.drawable.omnibox_bg else android.R.drawable.list_selector_background)
                 setOnClickListener {
@@ -1058,7 +1702,7 @@ class BrowserActivity : AppCompatActivity() {
             text = "+"
             textSize = 24f
             gravity = Gravity.CENTER
-            setTextColor(getColor(R.color.nexora_text))
+            setTextColor(getColor(R.color.nexora_browser_text))
             setPadding(dp(10), 0, dp(10), 0)
             setOnClickListener {
                 dialogRef?.dismiss()
@@ -1075,7 +1719,7 @@ class BrowserActivity : AppCompatActivity() {
         val copyAll = TextView(this).apply {
             text = "COPY ALL TAB URLS"
             textSize = 10f
-            setTextColor(getColor(R.color.nexora_muted))
+            setTextColor(getColor(R.color.nexora_browser_muted))
             setPadding(dp(8), dp(10), dp(8), dp(10))
             setOnClickListener {
                 val urls = tabs.map { it.url }.filter { it.startsWith("http://") || it.startsWith("https://") }
@@ -1138,7 +1782,7 @@ class BrowserActivity : AppCompatActivity() {
             val label = TextView(this).apply {
                 text = "${index + 1}. ${tab.title}\n$groupName · ${tab.url.ifBlank { "New tab" }}"
                 textSize = 12f
-                setTextColor(getColor(R.color.nexora_text))
+                setTextColor(getColor(R.color.nexora_browser_text))
                 maxLines = 3
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setOnClickListener {
@@ -1150,7 +1794,7 @@ class BrowserActivity : AppCompatActivity() {
                 text = "×"
                 textSize = 25f
                 gravity = Gravity.CENTER
-                setTextColor(getColor(R.color.nexora_muted))
+                setTextColor(getColor(R.color.nexora_browser_muted))
                 setPadding(dp(14), dp(4), dp(14), dp(4))
                 setOnClickListener {
                     closeTab(tab.id)
@@ -1166,7 +1810,7 @@ class BrowserActivity : AppCompatActivity() {
             val empty = TextView(this).apply {
                 text = "No tabs in this group yet."
                 textSize = 13f
-                setTextColor(getColor(R.color.nexora_muted))
+                setTextColor(getColor(R.color.nexora_browser_muted))
                 gravity = Gravity.CENTER
                 setPadding(dp(12), dp(30), dp(12), dp(30))
             }
@@ -1300,29 +1944,38 @@ class BrowserActivity : AppCompatActivity() {
         toast("Restored ${tabs.size} tabs")
     }
 
+    /** Coalesce rapid navigation/title/tab events into one metadata write. */
     private fun persistSession() {
-        if (!::dataStore.isInitialized || clearSessionOnExit) return
-        if (tabs.isEmpty()) return
-        val activeIndex = tabs.indexOfFirst { it.id == activeTabId }.coerceAtLeast(0)
-        val selectedTabs = if (tabs.size <= MAX_RESTORED_TABS || activeIndex < MAX_RESTORED_TABS) {
-            tabs.take(MAX_RESTORED_TABS)
-        } else {
-            tabs.take(MAX_RESTORED_TABS - 1) + tabs[activeIndex]
-        }
-        val savedActiveIndex = if (activeIndex < MAX_RESTORED_TABS) {
-            activeIndex.coerceAtMost(selectedTabs.lastIndex)
-        } else {
-            MAX_RESTORED_TABS - 1
-        }
-        val snapshot = selectedTabs.map { tab ->
+        if (!::dataStore.isInitialized || clearSessionOnExit || tabs.isEmpty()) return
+        sessionPersistHandler.removeCallbacks(sessionPersistRunnable)
+        sessionPersistHandler.postDelayed(sessionPersistRunnable, SESSION_PERSIST_DEBOUNCE_MS)
+    }
+
+    /** Flush synchronously at lifecycle boundaries so process recreation keeps the latest session. */
+    private fun persistSessionNow() {
+        sessionPersistHandler.removeCallbacks(sessionPersistRunnable)
+        if (!::dataStore.isInitialized || clearSessionOnExit || tabs.isEmpty()) return
+        val activeIndex = tabs.indexOfFirst { it.id == activeTabId }
+        val selection = BrowserSessionPolicy.selectForPersistence(
+            tabs.map { tab ->
+                SessionTabState(
+                    url = tab.url.ifBlank { HOME_URL },
+                    title = tab.title,
+                    desktopMode = tab.desktopMode,
+                    groupId = tab.groupId
+                )
+            },
+            activeIndex
+        )
+        val snapshot = selection.tabs.map { tab ->
             BrowserSessionTab(
-                url = tab.url.ifBlank { HOME_URL },
+                url = tab.url,
                 title = tab.title,
                 desktopMode = tab.desktopMode,
                 groupId = tab.groupId
             )
         }
-        dataStore.saveSession(snapshot, savedActiveIndex)
+        dataStore.saveSession(snapshot, selection.activeIndex)
     }
 
     private var dialogRef: AlertDialog? = null
@@ -1419,7 +2072,7 @@ class BrowserActivity : AppCompatActivity() {
             toast("No downloads started in this profile")
             return
         }
-        val labels = downloads.map { it.fileName }.toTypedArray()
+        val labels = downloads.map { "${it.fileName} · ${it.status}" }.toTypedArray()
         AlertDialog.Builder(this)
             .setTitle("Downloads")
             .setItems(labels) { _, which -> openDownloadedFile(downloads[which].id) }
@@ -1431,39 +2084,167 @@ class BrowserActivity : AppCompatActivity() {
     // Downloading and sharing
 
     private fun downloadUrl(url: String, userAgent: String?, contentDisposition: String?, mimeType: String?) {
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            toast("This download type is not supported by the current WebView download handler")
+        if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) {
+            toast("Only HTTP and HTTPS downloads are supported")
             return
         }
-        try {
-            val request = DownloadManager.Request(Uri.parse(url))
-            val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
-            request.setTitle(fileName)
-            request.setDescription(Uri.parse(url).host ?: "NEXORA download")
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            request.setAllowedOverMetered(true)
-            request.setAllowedOverRoaming(false)
-            request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, fileName)
-            if (!mimeType.isNullOrBlank()) request.setMimeType(mimeType)
-            val ua = userAgent ?: activeTab?.webView?.settings?.userAgentString
-            if (!ua.isNullOrBlank()) request.addRequestHeader("User-Agent", ua)
-            val cookie = try {
-                androidx.webkit.ProfileStore.getInstance()
-                    .getProfile(profile.webViewProfileKey)?.cookieManager?.getCookie(url)
-            } catch (_: Exception) {
-                CookieManager.getInstance().getCookie(url)
+
+        requestDownloadNotificationPermission()
+
+        val profileCookieManager = try {
+            androidx.webkit.ProfileStore.getInstance()
+                .getProfile(profile.webViewProfileKey)?.cookieManager
+        } catch (_: Exception) {
+            null
+        }
+        if (profileCookieManager == null) {
+            toast("Could not access this profile's cookie store. Download cancelled to protect profile isolation.")
+            return
+        }
+
+        val activeRelay = if (proxyRoutingActive) proxyRelay?.takeIf { it.isRunning } else null
+        if (proxyRoutingActive && activeRelay == null) {
+            toast("The assigned proxy relay is unavailable. Download cancelled; no direct fallback was attempted.")
+            return
+        }
+        val networkProxy = activeRelay?.let {
+            Proxy(Proxy.Type.HTTP, InetSocketAddress("127.0.0.1", it.localPort))
+        } ?: Proxy.NO_PROXY
+
+        val directory = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            ?: File(filesDir, "downloads")
+        if (!directory.exists() && !directory.mkdirs()) {
+            toast("Could not create the downloads directory")
+            return
+        }
+        val suggested = URLUtil.guessFileName(url, contentDisposition, mimeType)
+        val safeName = File(suggested).name
+            .replace(Regex("[\\u0000-\\u001F\\\\/:*?\"<>|]"), "_")
+            .trim()
+            .take(160)
+            .trim('.')
+            .ifBlank { "download" }
+        val destination = uniqueDownloadFile(directory, safeName)
+        val id = NEXT_DOWNLOAD_ID.incrementAndGet()
+        val ua = userAgent ?: activeTab?.webView?.settings?.userAgentString
+        dataStore.addDownload(id, destination.name, status = "QUEUED", mimeType = mimeType.orEmpty())
+        toast("Download queued")
+
+        DOWNLOAD_EXECUTOR.execute {
+            dataStore.updateDownload(id, status = "DOWNLOADING", mimeType = mimeType.orEmpty())
+            var lastProgress = 0L
+            try {
+                val client = ProfileDownloadClient(
+                    proxy = networkProxy,
+                    userAgent = ua,
+                    cookieForUrl = { requestUrl -> profileCookieManager.getCookie(requestUrl) }
+                )
+                val result = client.download(url, destination) { downloaded, total ->
+                    if (downloaded - lastProgress >= DOWNLOAD_PROGRESS_STEP || downloaded == total) {
+                        dataStore.updateDownload(
+                            id = id,
+                            status = "DOWNLOADING",
+                            downloadedBytes = downloaded,
+                            totalBytes = total,
+                            mimeType = mimeType.orEmpty()
+                        )
+                        lastProgress = downloaded
+                    }
+                }
+                dataStore.updateDownload(
+                    id = id,
+                    status = "COMPLETE",
+                    localPath = destination.absolutePath,
+                    downloadedBytes = result.bytesDownloaded,
+                    totalBytes = result.totalBytes,
+                    mimeType = result.mimeType.ifBlank { mimeType.orEmpty() }
+                )
+                runOnUiThread {
+                    BrowserNotifications.notifyDownload(
+                        applicationContext, profile.id, id, destination.name, success = true
+                    )
+                    if (!isFinishing && !isDestroyed) toast("Download complete: ${destination.name}")
+                }
+            } catch (error: Exception) {
+                dataStore.updateDownload(
+                    id = id,
+                    status = "FAILED",
+                    downloadedBytes = 0L,
+                    totalBytes = -1L,
+                    mimeType = mimeType.orEmpty()
+                )
+                runOnUiThread {
+                    BrowserNotifications.notifyDownload(
+                        applicationContext,
+                        profile.id,
+                        id,
+                        destination.name,
+                        success = false,
+                        detail = error.message ?: "Network or storage error"
+                    )
+                    if (!isFinishing && !isDestroyed) {
+                        toast("Download failed: ${error.message ?: "network or storage error"}")
+                    }
+                }
             }
-            if (!cookie.isNullOrBlank()) request.addRequestHeader("Cookie", cookie)
-            val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-            val id = manager.enqueue(request)
-            dataStore.addDownload(id, fileName)
-            toast("Download started")
-        } catch (e: Exception) {
-            toast("Download failed: ${e.message ?: "unknown error"}")
         }
     }
 
+    private fun requestDownloadNotificationPermission() {
+        if (Build.VERSION.SDK_INT < 33) return
+        val prefs = getSharedPreferences(NexoraApp.PREFS_NAME, MODE_PRIVATE)
+        if (!prefs.getBoolean(NexoraApp.KEY_DOWNLOAD_NOTIFICATIONS, true)) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) return
+        if (!prefs.getBoolean(NexoraApp.KEY_NOTIFICATION_PERMISSION_ASKED, false)) {
+            prefs.edit().putBoolean(NexoraApp.KEY_NOTIFICATION_PERMISSION_ASKED, true).apply()
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun uniqueDownloadFile(directory: File, requestedName: String): File {
+        val name = File(requestedName).name.ifBlank { "download" }
+        var candidate = File(directory, name)
+        if (!candidate.exists()) return candidate
+        val dot = name.lastIndexOf('.').takeIf { it > 0 } ?: name.length
+        val base = name.substring(0, dot)
+        val extension = name.substring(dot)
+        var index = 1
+        while (candidate.exists()) {
+            candidate = File(directory, "$base ($index)$extension")
+            index += 1
+        }
+        return candidate
+    }
+
     private fun openDownloadedFile(id: Long) {
+        val record = dataStore.downloads().firstOrNull { it.id == id }
+        if (record != null && record.status != "LEGACY") {
+            if (record.status != "COMPLETE" || record.localPath.isBlank()) {
+                toast(if (record.status == "FAILED") "This download failed" else "Download is not complete yet")
+                return
+            }
+            val file = File(record.localPath)
+            if (!file.exists()) {
+                toast("Downloaded file is no longer available")
+                return
+            }
+            try {
+                val uri = FileProvider.getUriForFile(this, "$packageName.files", file)
+                val mime = record.mimeType.ifBlank {
+                    java.net.URLConnection.guessContentTypeFromName(file.name) ?: "*/*"
+                }
+                val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, mime)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            } catch (_: Exception) {
+                toast("No app can open this download")
+            }
+            return
+        }
+
+        // Alpha18 DownloadManager records remain readable after upgrading.
         try {
             val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
             val uri = manager.getUriForDownloadedFile(id)
@@ -1507,6 +2288,75 @@ class BrowserActivity : AppCompatActivity() {
     // ---------------------------------------------------------------------
     // Profile and utility actions
 
+    private fun showSiteInfoDialog() {
+        val currentUrl = activeTab?.url.orEmpty()
+        val isHome = currentUrl == HOME_URL || currentUrl.isBlank()
+        val scheme = Uri.parse(currentUrl).scheme?.lowercase().orEmpty()
+        val host = Uri.parse(currentUrl).host.orEmpty()
+        val connection = when {
+            isHome -> "Local browser start page"
+            scheme == "https" -> "HTTPS transport"
+            scheme == "http" -> "HTTP · not encrypted"
+            else -> "Unknown or local content"
+        }
+        val detail = buildString {
+            append("Site: ").append(host.ifBlank { if (isHome) "New tab" else "Unavailable" })
+            append("\nConnection: ").append(connection)
+            append("\nProfile: ").append(profile.name)
+            append("\n\nThis indicator reports the page URL scheme only. It does not verify certificate trust, DNS routing, proxy routing, or whether a site is safe.")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Connection information")
+            .setMessage(detail)
+            .setPositiveButton("Privacy Center") { _, _ ->
+                startActivity(
+                    Intent(this, PrivacyCenterActivity::class.java)
+                        .putExtra(PrivacyCenterActivity.EXTRA_PROFILE_ID, profile.id)
+                )
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showPrivacyDiagnosticsDialog() {
+        val tab = activeTab
+        val proxyStatus = when {
+            proxyRoutingActive && proxyRelay?.isRunning == true -> "Active through loopback relay"
+            proxyRoutingActive -> "Configured, but relay unavailable"
+            else -> "Direct connection (no proxy assigned)"
+        }
+        val fingerprintStatus = when {
+            tab?.documentStartInstalled == true -> "Document-start script registered"
+            fpScript.isNotBlank() -> "Best-effort page-start fallback"
+            else -> "No fingerprint override script"
+        }
+        val blockerEnabled = contentBlockerStore.snapshot().enabled
+        val message = buildString {
+            append("Profile: ").append(profile.name).append('\n')
+            append("Named WebView storage: ").append(profile.webViewProfileKey).append('\n')
+            append("Multi-profile API: ").append(
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) "Supported" else "Unavailable"
+            ).append('\n')
+            append("Network route: ").append(proxyStatus).append('\n')
+            append("Safe Browsing: ").append(if (PrivacyPolicy.SAFE_BROWSING_ENABLED) "On" else "Off").append('\n')
+            append("Mixed content: ").append(if (PrivacyPolicy.BLOCK_MIXED_CONTENT) "Blocked" else "Compatibility mode").append('\n')
+            append("Third-party cookies: ").append(if (PrivacyPolicy.THIRD_PARTY_COOKIES_ALLOWED) "Allowed" else "Blocked").append('\n')
+            append("Web permissions: Deny by default\n")
+            append("Website geolocation: Deny by default\n")
+            append("Fingerprint injection: ").append(fingerprintStatus).append('\n')
+            append("Content blocker: ").append(if (blockerEnabled) "Enabled" else "Disabled").append('\n')
+            append("Blocked resources this session: ").append(blockedResourcesThisSession.get()).append('\n')
+            append("WebRTC setting: ").append(if (profile.webrtcBlock) "JavaScript-level block preference" else "Default WebView behavior").append('\n')
+            append("Hardware MAC control: Not available\n\n")
+            append("This screen reports local configuration only. It does not perform a live IP, DNS or WebRTC leak test.")
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Privacy diagnostics")
+            .setMessage(message)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
     private fun showProfileInfo() {
         val presetName = preset?.displayName ?: profile.deviceId
         val osLabel = if (preset?.isIos == true) "iOS ${profile.osVersion} (emulation)" else "Android ${profile.osVersion}"
@@ -1520,7 +2370,10 @@ class BrowserActivity : AppCompatActivity() {
             append("Timezone: ").append(profile.timezoneId.ifEmpty { "Auto (device)" }).append('\n')
             append("Language: ").append(profile.language).append('\n')
             append("WebRTC: ").append(if (profile.webrtcBlock) "Blocked" else "Default").append('\n')
-            append("Fingerprint script: ").append(if (docStartSupported) "Document start" else "Fallback").append("\n\n")
+            append("Fingerprint script: ").append(
+                if (activeTab?.documentStartInstalled == true) "Document-start registered"
+                else "Best-effort fallback"
+            ).append("\n\n")
             append("User-Agent:\n").append(profile.userAgent)
             append("\n\nFingerprint changes are JavaScript-level, not native Chromium modifications.")
         }
@@ -1546,6 +2399,7 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun clearProfileData() {
         clearSessionOnExit = true
+        sessionPersistHandler.removeCallbacks(sessionPersistRunnable)
         dataStore.clearSession()
         activeTab?.webView?.stopLoading()
         try {
@@ -1562,7 +2416,15 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun updateToolbar() {
         val tab = activeTab
-        binding.btnTabs.text = "▢ ${tabs.size}"
+        binding.btnTabs.text = tabs.size.toString()
+        binding.btnTabs.contentDescription = "Tabs, ${tabs.size} open"
+        val currentUrl = tab?.url.orEmpty()
+        val secure = currentUrl.startsWith("https://", true) && currentUrl != HOME_URL
+        binding.btnSiteInfo.setImageResource(
+            if (secure) R.drawable.ic_lock else R.drawable.ic_info
+        )
+        binding.btnSiteInfo.contentDescription =
+            if (secure) "Secure connection information" else "Connection information"
         binding.btnBack.isEnabled = tab?.webView?.canGoBack() == true
         binding.btnForward.isEnabled = tab?.webView?.canGoForward() == true
         binding.btnBack.alpha = if (binding.btnBack.isEnabled) 1f else 0.38f
@@ -1591,11 +2453,34 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        tabs.forEach { it.webView.onResume() }
+        activityResumed = true
+        if (::dataStore.isInitialized && dataStore.consumePrivacyResetPending() && tabs.isNotEmpty()) {
+            resetLiveTabsAfterPrivacyCleanup()
+        }
+        activeTab?.webView?.onResume()
+        tabs.filterNot { it.id == activeTabId }.forEach { it.webView.onPause() }
+    }
+
+    private fun resetLiveTabsAfterPrivacyCleanup() {
+        tabs.toList().forEach { tab ->
+            (tab.webView.parent as? ViewGroup)?.removeView(tab.webView)
+            runCatching {
+                tab.webView.stopLoading()
+                tab.webView.clearHistory()
+                tab.webView.clearFormData()
+                tab.webView.destroy()
+            }
+        }
+        tabs.clear()
+        activeTabId = null
+        dataStore.clearSession()
+        createTab(null)
+        toast("Open tabs and in-memory navigation history were reset")
     }
 
     override fun onPause() {
-        persistSession()
+        activityResumed = false
+        persistSessionNow()
         tabs.forEach { it.webView.onPause() }
         super.onPause()
     }
@@ -1603,15 +2488,15 @@ class BrowserActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (!isClosing) {
             isClosing = true
-            persistSession()
+            persistSessionNow()
             tabs.forEach { tab ->
                 (tab.webView.parent as? ViewGroup)?.removeView(tab.webView)
                 tab.webView.stopLoading()
                 tab.webView.destroy()
             }
             tabs.clear()
-            clearProxy()
         }
+        releaseNetworkSession()
         super.onDestroy()
     }
 
@@ -1621,24 +2506,16 @@ class BrowserActivity : AppCompatActivity() {
         const val EXTRA_PROFILE_ID = "profile_id"
         private const val HOME_BASE = "https://nexora.invalid/"
         private const val HOME_URL = HOME_BASE
-        private const val MAX_RESTORED_TABS = 20
+        private const val MAX_RESTORED_TABS = BrowserSessionPolicy.MAX_PERSISTED_TABS
+        private const val MAX_LIVE_TABS = 20
+        private const val SESSION_PERSIST_DEBOUNCE_MS = 350L
         private const val MAX_REDIRECT_HOPS = 10
+        private const val DOWNLOAD_PROGRESS_STEP = 512L * 1024L
+        private val NEXT_DOWNLOAD_ID = AtomicLong(System.currentTimeMillis() * 1000L)
+        private val DOWNLOAD_EXECUTOR = Executors.newFixedThreadPool(2) { task ->
+            Thread(task, "NEXORA-Profile-Download").apply { isDaemon = true }
+        }
         private const val FILTER_ALL = "__nexora_all_tabs__"
         private const val FILTER_UNGROUPED = "__nexora_ungrouped_tabs__"
-        private const val NEW_TAB_HTML = """
-            <!doctype html>
-            <html><head>
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <style>
-            *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#fff;color:#202027;
-            font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;
-            text-align:center;padding:28px}main{max-width:420px}.mark{width:56px;height:56px;
-            margin:0 auto 22px;border-radius:16px;background:#202027;color:#fff;display:grid;
-            place-items:center;font-size:27px;font-weight:700}h1{font-size:25px;margin:0 0 10px}
-            p{color:#777;font-size:14px;line-height:1.6}small{color:#999;letter-spacing:1px}
-            </style></head><body><main><div class="mark">N</div><h1>Browse with focus.</h1>
-            <p>Search or enter a website in the address bar.</p><small>NEXORA · PRIVATE WORKSPACE</small>
-            </main></body></html>
-        """
     }
 }

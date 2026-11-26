@@ -1,5 +1,6 @@
 package com.nexora.browser.ui
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.WebSettings
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.EditText
@@ -25,6 +27,7 @@ import androidx.webkit.WebViewFeature
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.nexora.browser.R
+import com.nexora.browser.util.UiFeedback
 import com.nexora.browser.bulk.BulkProfileDraft
 import com.nexora.browser.bulk.BulkProfileValidator
 import com.nexora.browser.bulk.PerProfileDraft
@@ -52,6 +55,7 @@ class BulkCreateActivity : AppCompatActivity() {
     private var proxyEntries: List<ProxyEntry> = emptyList()
     private var draft = BulkProfileDraft()
     private var step = 0
+    private var proxyManagerOpened = false
 
     private lateinit var content: LinearLayout
     private lateinit var progress: TextView
@@ -59,6 +63,8 @@ class BulkCreateActivity : AppCompatActivity() {
     private lateinit var subtitle: TextView
     private lateinit var backButton: MaterialButton
     private lateinit var nextButton: MaterialButton
+    private lateinit var stepTrack: LinearLayout
+    private lateinit var footerStepLabel: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,13 +96,30 @@ class BulkCreateActivity : AppCompatActivity() {
                     draft.osVersion = preset.osVersions.lastOrNull().orEmpty()
                     draft.ramGb = preset.ramOptions.firstOrNull() ?: 8
                     draft.storageGb = preset.storageOptions.firstOrNull() ?: 128
-                    draft.globalUserAgent = UaBuilder.build(preset, draft.osVersion)
+                    draft.globalUserAgent = buildAutoUa(preset, draft.osVersion)
                 }
             }
         }
         draft.ensureProfiles()
+        if (draft.globalUserAgentMode == "AUTO") {
+            presets.firstOrNull { it.id == draft.deviceId }?.let { draft.globalUserAgent = buildAutoUa(it, draft.osVersion) }
+        }
+        val resetUnavailable = draft.normalizeUnavailableSelections()
+        if (resetUnavailable.isNotEmpty()) {
+            toast("Unsupported saved options reset to supported defaults: ${resetUnavailable.joinToString()}")
+            persistDraft()
+        }
         buildShell()
         renderStep()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (proxyManagerOpened && ::content.isInitialized) {
+            proxyManagerOpened = false
+            proxyEntries = proxyStore.loadAll()
+            renderStep()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -115,85 +138,190 @@ class BulkCreateActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(color(R.color.nexora_bg))
         }
+
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(18), dp(20), dp(12))
-            setBackgroundColor(color(R.color.nexora_header))
+            setPadding(dp(20), dp(14), dp(20), dp(16))
+            setBackgroundColor(color(R.color.nexora_surface))
         }
-        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+
+        val top = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         val close = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
-            text = "‹"
-            textSize = 26f
+            text = "×"
+            textSize = 22f
+            isAllCaps = false
             minWidth = dp(44)
             minimumWidth = dp(44)
-            setPadding(0, 0, 0, 0)
-            contentDescription = "Close bulk creation"
+            minHeight = dp(44)
+            setPadding(0, 0, 0, dp(2))
+            cornerRadius = dp(14)
+            strokeColor = ColorStateList.valueOf(color(R.color.nexora_line))
+            setTextColor(color(R.color.nexora_text))
+            contentDescription = "Close profile creation"
             setOnClickListener { confirmExit() }
         }
         top.addView(close, LinearLayout.LayoutParams(dp(48), dp(48)))
-        val heading = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(8), 0, 0, 0) }
-        title = TextView(this).apply { text = "Bulk profile creation"; textSize = 20f; setTextColor(color(R.color.nexora_text)); setTypeface(null, android.graphics.Typeface.BOLD) }
-        subtitle = TextView(this).apply { text = "Configure a batch of browser profiles"; textSize = 12f; setTextColor(color(R.color.nexora_muted)) }
-        heading.addView(title)
-        heading.addView(subtitle)
-        top.addView(heading, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+
+        val brand = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(12), 0, 0, 0)
+        }
+        val brandLabel = TextView(this).apply {
+            text = "N E X O R A   /   P R O F I L E   S T U D I O"
+            textSize = 9f
+            letterSpacing = 0.08f
+            setTextColor(color(R.color.nexora_accent))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        title = TextView(this).apply {
+            text = "Create profiles"
+            textSize = 21f
+            setTextColor(color(R.color.nexora_text))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setPadding(0, dp(3), 0, 0)
+        }
+        subtitle = TextView(this).apply {
+            text = "Build a reusable browser workspace"
+            textSize = 12f
+            setTextColor(color(R.color.nexora_muted))
+            setPadding(0, dp(3), 0, 0)
+        }
+        brand.addView(brandLabel)
+        brand.addView(title)
+        brand.addView(subtitle)
+        top.addView(brand, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         header.addView(top)
-        progress = TextView(this).apply { textSize = 12f; setTextColor(color(R.color.nexora_accent)); setPadding(dp(4), dp(14), dp(4), dp(4)) }
+
+        progress = TextView(this).apply {
+            textSize = 10f
+            letterSpacing = 0.06f
+            setTextColor(color(R.color.nexora_muted))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setPadding(0, dp(18), 0, dp(8))
+        }
         header.addView(progress)
+
+        stepTrack = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        repeat(4) { index ->
+            val segment = View(this).apply {
+                background = roundedFill(if (index == 0) color(R.color.nexora_accent) else color(R.color.nexora_line), 4)
+            }
+            stepTrack.addView(segment, LinearLayout.LayoutParams(0, dp(4), 1f).apply {
+                if (index > 0) marginStart = dp(5)
+            })
+        }
+        header.addView(stepTrack)
         root.addView(header)
 
-        val scroll = ScrollView(this).apply { clipToPadding = false; isFillViewport = true }
+        val scroll = ScrollView(this).apply {
+            clipToPadding = false
+            isFillViewport = true
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+        }
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(24))
+            setPadding(dp(18), dp(18), dp(18), dp(28))
         }
         scroll.addView(content)
         root.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
 
         val footer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(10), dp(18), dp(14))
+            setBackgroundColor(color(R.color.nexora_surface))
+        }
+        val divider = View(this).apply { setBackgroundColor(color(R.color.nexora_line)) }
+        root.addView(divider, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)))
+
+        val footerMeta = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(16), dp(10), dp(16), dp(12))
-            setBackgroundColor(color(R.color.nexora_header))
+            setPadding(dp(2), 0, dp(2), dp(8))
+        }
+        footerStepLabel = TextView(this).apply {
+            text = "STEP 01 / 04"
+            textSize = 10f
+            letterSpacing = 0.06f
+            setTextColor(color(R.color.nexora_muted))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        val savedLabel = TextView(this).apply {
+            text = "Draft saves automatically"
+            textSize = 10f
+            setTextColor(color(R.color.nexora_muted))
+            gravity = Gravity.END
+        }
+        footerMeta.addView(footerStepLabel, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        footerMeta.addView(savedLabel)
+        footer.addView(footerMeta)
+
+        val actions = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
         backButton = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             text = "Back"
             isAllCaps = false
+            textSize = 13f
+            minHeight = dp(50)
+            cornerRadius = dp(14)
+            strokeColor = ColorStateList.valueOf(color(R.color.nexora_line))
+            setTextColor(color(R.color.nexora_text))
             setOnClickListener { if (step > 0) { step--; renderStep() } else confirmExit() }
         }
         nextButton = MaterialButton(this).apply {
-            text = "Next"
+            text = "Continue"
             isAllCaps = false
+            textSize = 13f
+            minHeight = dp(50)
+            cornerRadius = dp(14)
             backgroundTintList = ColorStateList.valueOf(color(R.color.nexora_cta))
             setTextColor(Color.WHITE)
             setOnClickListener { onNext() }
         }
-        footer.addView(backButton, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginEnd = dp(8) })
-        footer.addView(nextButton, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginStart = dp(8) })
+        actions.addView(backButton, LinearLayout.LayoutParams(dp(104), dp(50)).apply { marginEnd = dp(10) })
+        actions.addView(nextButton, LinearLayout.LayoutParams(0, dp(50), 1f))
+        footer.addView(actions)
         root.addView(footer)
         setContentView(root)
+        UiFeedback.install(root)
     }
 
     private fun renderStep() {
         persistDraft()
         content.removeAllViews()
-        val labels = listOf("1  General", "2  Per Profile", "3  Fingerprint", "4  Advanced")
-        progress.text = "STEP ${step + 1} OF 4  ·  ${labels[step].substringAfter("  ").uppercase()}"
-        title.text = labels[step].substringAfter("  ")
+        val shortLabels = listOf("BATCH SETUP", "PROFILE DETAILS", "PRIVACY SETTINGS", "REVIEW")
+        progress.text = "STEP ${step + 1} OF 4   ·   ${shortLabels[step]}"
+        footerStepLabel.text = "STEP ${String.format("%02d", step + 1)} / 04"
+        title.text = "Create profiles"
         subtitle.text = when (step) {
-            0 -> "Set defaults for ${draft.count.coerceIn(1, 50)} profiles"
-            1 -> "Customize each profile before creation"
-            2 -> "Choose privacy and identity preferences"
-            else -> "Review and create your batch"
+            0 -> "Set up ${draft.count.coerceIn(1, 50)} browser profiles in one workspace."
+            1 -> "Review names and customize each profile."
+            2 -> "Configure supported browser and privacy preferences."
+            else -> "Check your setup before saving the batch."
+        }
+        for (index in 0 until stepTrack.childCount) {
+            val segment = stepTrack.getChildAt(index)
+            segment.background = roundedFill(
+                if (index <= step) color(R.color.nexora_accent) else color(R.color.nexora_line),
+                4
+            )
         }
         backButton.visibility = if (step == 0) View.INVISIBLE else View.VISIBLE
-        nextButton.text = if (step == 3) "Create ${draft.count} profiles" else "Next"
+        nextButton.text = if (step == 3) "Create ${draft.count.coerceIn(1, 50)} profiles" else "Continue"
         when (step) {
             0 -> renderGeneral()
             1 -> renderPerProfile()
             2 -> renderFingerprint()
             3 -> renderAdvancedAndReview()
         }
+        UiFeedback.install(content)
     }
 
     // ---------------------------------------------------------------------
@@ -213,8 +341,8 @@ class BulkCreateActivity : AppCompatActivity() {
             if (draft.count in 1..50) {
                 draft.ensureProfiles()
                 namePreview.text = buildNamePreview()
-                subtitle.text = "Set defaults for ${draft.count} profiles"
-                nextButton.text = "Next"
+                subtitle.text = "Set up ${draft.count} browser profiles in one workspace."
+                nextButton.text = "Continue"
             } else {
                 namePreview.text = "Enter a count from 1 to 50"
             }
@@ -249,7 +377,7 @@ class BulkCreateActivity : AppCompatActivity() {
                 draft.osVersion = selected.osVersions.lastOrNull().orEmpty()
                 draft.ramGb = selected.ramOptions.firstOrNull() ?: 8
                 draft.storageGb = selected.storageOptions.firstOrNull() ?: 128
-                if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = UaBuilder.build(selected, draft.osVersion)
+                if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = buildAutoUa(selected, draft.osVersion)
             }
             renderStep()
         }
@@ -262,7 +390,7 @@ class BulkCreateActivity : AppCompatActivity() {
             draft.osVersion = selected.osVersions.lastOrNull().orEmpty()
             draft.ramGb = selected.ramOptions.firstOrNull() ?: 8
             draft.storageGb = selected.storageOptions.firstOrNull() ?: 128
-            if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = UaBuilder.build(selected, draft.osVersion)
+            if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = buildAutoUa(selected, draft.osVersion)
             renderStep()
         }
         var globalUaField: EditText? = null
@@ -271,23 +399,25 @@ class BulkCreateActivity : AppCompatActivity() {
             addSpinner(browser, "OS version", selectedPreset.osVersions, selectedPreset.osVersions.indexOf(draft.osVersion).coerceAtLeast(0)) { index ->
                 draft.osVersion = selectedPreset.osVersions.getOrNull(index).orEmpty()
                 if (draft.globalUserAgentMode == "AUTO") {
-                    draft.globalUserAgent = UaBuilder.build(selectedPreset, draft.osVersion)
+                    draft.globalUserAgent = buildAutoUa(selectedPreset, draft.osVersion)
                     globalUaField?.setText(draft.globalUserAgent)
                 }
             }
-            addSpinner(browser, "RAM", selectedPreset.ramOptions.map { "$it GB" }, selectedPreset.ramOptions.indexOf(draft.ramGb).coerceAtLeast(0)) { draft.ramGb = selectedPreset.ramOptions.getOrElse(it) { 8 } }
-            addSpinner(browser, "Storage", selectedPreset.storageOptions.map { "$it GB" }, selectedPreset.storageOptions.indexOf(draft.storageGb).coerceAtLeast(0)) { draft.storageGb = selectedPreset.storageOptions.getOrElse(it) { 128 } }
+            addSpinner(browser, "RAM hint (approximate browser bucket)", selectedPreset.ramOptions.map { "$it GB" }, selectedPreset.ramOptions.indexOf(draft.ramGb).coerceAtLeast(0)) { draft.ramGb = selectedPreset.ramOptions.getOrElse(it) { 8 } }
+            addSpinner(browser, "Storage label (metadata only)", selectedPreset.storageOptions.map { "$it GB" }, selectedPreset.storageOptions.indexOf(draft.storageGb).coerceAtLeast(0)) { draft.storageGb = selectedPreset.storageOptions.getOrElse(it) { 128 } }
+            addDevicePreview(browser, selectedPreset)
+            addNote(browser, "Hardware simulation limits", "RAM is exposed only through coarse navigator.deviceMemory buckets (maximum 8 GB). Storage is profile metadata only; it does not change Android storage capacity or browser quota.")
         }
         addSpinner(browser, "Global User-Agent", listOf("Auto — generated from device preset", "Custom — use imported or pasted value"), if (draft.globalUserAgentMode == "CUSTOM") 1 else 0) { index ->
             draft.globalUserAgentMode = if (index == 1) "CUSTOM" else "AUTO"
             if (draft.globalUserAgentMode == "AUTO") {
                 val p = presets.firstOrNull { it.id == draft.deviceId }
-                if (p != null) draft.globalUserAgent = UaBuilder.build(p, draft.osVersion)
+                if (p != null) draft.globalUserAgent = buildAutoUa(p, draft.osVersion)
             }
             renderStep()
         }
         if (draft.globalUserAgentMode == "AUTO" && draft.globalUserAgent.isBlank()) {
-            presets.firstOrNull { it.id == draft.deviceId }?.let { draft.globalUserAgent = UaBuilder.build(it, draft.osVersion) }
+            presets.firstOrNull { it.id == draft.deviceId }?.let { draft.globalUserAgent = buildAutoUa(it, draft.osVersion) }
         }
         val uaField = addField(browser, "User-Agent string", "Mozilla/5.0 …", draft.globalUserAgent, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE, multiline = true)
         globalUaField = uaField
@@ -319,12 +449,94 @@ class BulkCreateActivity : AppCompatActivity() {
         val remark = addField(organization, "Remark", "Optional batch note", draft.remark, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE, multiline = true, minLines = 2)
         remark.addTextChangedListener(watcher { draft.remark = it })
 
-        val proxy = section("Global proxy", "Choose No Proxy or a saved proxy. Unsupported proxy types and authentication are blocked for browsing in this WebView build.")
+        val proxy = section(
+            "Proxy assignment",
+            "Choose one shared global proxy for profiles that inherit it, or automatically distribute different saved proxies one-to-one. HTTP, HTTPS and SOCKS5 use the NEXORA relay, including authentication; SOCKS4 remains import-only. Only one profile browser session can be active at a time in this WebView build."
+        )
         val proxyOptions = listOf("No Proxy") + proxyEntries.map { proxyLabel(it) }
         val proxyIds = listOf("") + proxyEntries.map { it.id }
-        addSpinner(proxy, "Apply to all profiles", proxyOptions, proxyIds.indexOf(draft.globalProxyId).coerceAtLeast(0)) { index -> draft.globalProxyId = proxyIds.getOrElse(index) { "" } }
+        addSpinner(
+            proxy,
+            "Global proxy (shared by profiles that inherit)",
+            proxyOptions,
+            proxyIds.indexOf(draft.globalProxyId).coerceAtLeast(0)
+        ) { index -> draft.globalProxyId = proxyIds.getOrElse(index) { "" } }
+        addNote(proxy, "Saved proxy library", "${proxyEntries.size} saved · ${draft.count.coerceIn(1, 50)} profiles requested")
+        addButton(proxy, "Auto-assign saved proxies 1:1") {
+            if (proxyEntries.isEmpty()) {
+                toast("Import proxies first")
+            } else {
+                val summary = draft.assignSavedProxiesInOrder(proxyEntries)
+                draft.globalProxyId = ""
+                val message = buildString {
+                    append("Assigned ${summary.assignedProfiles} unique saved proxies")
+                    if (summary.directProfiles > 0) append(" · ${summary.directProfiles} profiles set to direct")
+                    if (summary.unsupportedAssignments > 0) append(" · ${summary.unsupportedAssignments} unsupported")
+                    if (summary.unusedSavedProxies > 0) append(" · ${summary.unusedSavedProxies} unused")
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                persistDraft()
+                step = 1
+                renderStep()
+            }
+        }
         addButton(proxy, "Import Proxies") { showProxyImport() }
-        addButton(proxy, "Manage saved proxies") { showProxyManager() }
+        addButton(proxy, "Manage saved proxies") {
+            proxyManagerOpened = true
+            startActivity(Intent(this, ProxyLibraryActivity::class.java))
+        }
+    }
+
+    private fun addDevicePreview(parent: LinearLayout, preset: DevicePreset) {
+        val card = MaterialCardView(this).apply {
+            radius = dp(16).toFloat()
+            cardElevation = 0f
+            setCardBackgroundColor(color(R.color.nexora_raised))
+            strokeWidth = dp(1)
+            strokeColor = color(R.color.nexora_line)
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(13), dp(12), dp(13), dp(12))
+        }
+        val marker = TextView(this).apply {
+            text = "N"
+            textSize = 18f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            background = roundedFill(color(R.color.nexora_accent), 13)
+        }
+        row.addView(marker, LinearLayout.LayoutParams(dp(42), dp(42)).apply { marginEnd = dp(12) })
+        val details = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        details.addView(TextView(this).apply {
+            text = "SELECTED DEVICE"
+            textSize = 9f
+            letterSpacing = 0.08f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(color(R.color.nexora_accent))
+        })
+        details.addView(TextView(this).apply {
+            text = preset.displayName
+            textSize = 14f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(color(R.color.nexora_text))
+            setPadding(0, dp(2), 0, 0)
+        })
+        details.addView(TextView(this).apply {
+            val platform = if (preset.isIos) "iOS emulation" else "Android"
+            text = "$platform  ·  ${preset.cssWidth} × ${preset.cssHeight} CSS px  ·  ${preset.widthPx} × ${preset.heightPx} physical px"
+            textSize = 10f
+            setTextColor(color(R.color.nexora_muted))
+            setPadding(0, dp(3), 0, 0)
+        })
+        row.addView(details, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        card.addView(row)
+        parent.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(4)
+            bottomMargin = dp(10)
+        })
     }
 
     // ---------------------------------------------------------------------
@@ -354,6 +566,37 @@ class BulkCreateActivity : AppCompatActivity() {
             draft.perProfiles.forEach { it.proxySelection = "GLOBAL" }
             renderStep()
         }
+        addButton(actions, "Reassign saved proxies in order (1:1)") {
+            if (proxyEntries.isEmpty()) {
+                toast("Import proxies first")
+            } else {
+                val summary = draft.assignSavedProxiesInOrder(proxyEntries)
+                draft.globalProxyId = ""
+                val message = buildString {
+                    append("Assigned ${summary.assignedProfiles} unique proxies in library order")
+                    if (summary.directProfiles > 0) append(" · ${summary.directProfiles} profiles set to direct")
+                    if (summary.unsupportedAssignments > 0) append(" · ${summary.unsupportedAssignments} unsupported")
+                    if (summary.unusedSavedProxies > 0) append(" · ${summary.unusedSavedProxies} unused")
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                persistDraft()
+                renderStep()
+            }
+        }
+        addButton(actions, "Clear all proxy assignments") {
+            draft.perProfiles.forEach { it.proxySelection = "NONE" }
+            renderStep()
+        }
+        val currentMap = draft.perProfiles.take(draft.count.coerceIn(1, 50)).mapIndexed { index, row ->
+            val proxyId = when (row.proxySelection) {
+                "NONE" -> ""
+                "GLOBAL" -> draft.globalProxyId
+                else -> row.proxySelection
+            }
+            val assigned = proxyEntries.firstOrNull { it.id == proxyId }
+            "${row.name.ifBlank { "Profile ${index + 1}" }} → ${assigned?.name ?: if (proxyId.isBlank()) "No Proxy" else "MISSING PROXY"}"
+        }
+        addNote(actions, "Current proxy distribution", currentMap.joinToString("\n"))
 
         val proxyLabels = listOf("Inherit global proxy", "No Proxy") + proxyEntries.map { proxyLabel(it) }
         val proxyValues = listOf("GLOBAL", "NONE") + proxyEntries.map { it.id }
@@ -386,36 +629,46 @@ class BulkCreateActivity : AppCompatActivity() {
     // Step 3 — Fingerprint
 
     private fun renderFingerprint() {
-        val network = section("Network identity", "These settings are saved per profile. Availability depends on the installed WebView provider.")
-        addSpinner(network, "WebRTC", listOf("Disabled — block WebRTC", "Real IP — allow WebRTC", "Proxy IP — unavailable"), when (draft.webrtcMode) { "REAL_IP" -> 1; "PROXY_IP" -> 2; else -> 0 }) {
-            draft.webrtcMode = listOf("DISABLED", "REAL_IP", "PROXY_IP").getOrElse(it) { "DISABLED" }
+        val network = section("Network identity", "Only the options below are selectable in this WebView build. JavaScript-level settings are labelled separately from native network controls.")
+        addSpinner(network, "WebRTC API", listOf("Restrict WebRTC JavaScript API", "Allow WebRTC (provider default)"), if (draft.webrtcMode == "REAL_IP") 1 else 0) {
+            draft.webrtcMode = if (it == 1) "REAL_IP" else "DISABLED"
         }
-        addSpinner(network, "Timezone", listOf("Device timezone", "Based on IP", "Custom timezone"), when (draft.timezoneMode) { "IP" -> 1; "CUSTOM" -> 2; else -> 0 }) {
-            draft.timezoneMode = listOf("DEVICE", "IP", "CUSTOM").getOrElse(it) { "DEVICE" }
+        addNote(network, "Protection scope", "Restrict mode hides the page-visible RTCPeerConnection constructors. It is not native WebRTC routing and does not guarantee prevention of every network leak.")
+        addSpinner(network, "Timezone", listOf("Device timezone", "Custom timezone (JavaScript-level partial)"), if (draft.timezoneMode == "CUSTOM") 1 else 0) {
+            draft.timezoneMode = if (it == 1) "CUSTOM" else "DEVICE"
             renderStep()
         }
         if (draft.timezoneMode == "CUSTOM") {
             val timezone = addField(network, "IANA timezone", "America/New_York", draft.customTimezone, InputType.TYPE_CLASS_TEXT)
             timezone.addTextChangedListener(watcher { draft.customTimezone = it })
+            addNote(network, "Known limitation", "Intl resolvedOptions and Date.getTimezoneOffset are adjusted. Native local Date getters still use the Android device timezone.")
         }
-        addSpinner(network, "Language", listOf("Device language", "Based on IP", "Custom language"), when (draft.languageMode) { "IP" -> 1; "CUSTOM" -> 2; else -> 0 }) {
-            draft.languageMode = listOf("DEVICE", "IP", "CUSTOM").getOrElse(it) { "DEVICE" }
+        addSpinner(network, "Language", listOf("Device language", "Custom language (JavaScript-level)"), if (draft.languageMode == "CUSTOM") 1 else 0) {
+            draft.languageMode = if (it == 1) "CUSTOM" else "DEVICE"
             renderStep()
         }
         if (draft.languageMode == "CUSTOM") {
             val language = addField(network, "Language tag", "en-US", draft.customLanguage, InputType.TYPE_CLASS_TEXT)
             language.addTextChangedListener(watcher { draft.customLanguage = it })
+            addNote(network, "Known limitation", "Changes page-visible navigator.language and navigator.languages. It does not change Android's app locale or the HTTP Accept-Language request header.")
         }
 
-        val noise = section("Privacy options", "These three controls are applied by the current JavaScript fingerprint layer. They are not native Chromium patches.")
-        addToggle(noise, "Canvas noise", "Seeded canvas readback noise", draft.canvasNoise) { draft.canvasNoise = it }
-        addToggle(noise, "WebGL identity", "Use the selected device preset's WebGL vendor and renderer", draft.webglNoise) { draft.webglNoise = it }
-        addToggle(noise, "Audio noise", "Seeded AudioBuffer readback noise", draft.audioNoise) { draft.audioNoise = it }
+        val noise = section("Privacy options", "These are JavaScript-level transformations in the current fingerprint layer, not native Chromium patches. Site behavior can still vary by API and frame context.")
+        addToggle(noise, "Canvas noise", "Seeded Canvas readback and export transformations", draft.canvasNoise) { draft.canvasNoise = it }
+        addToggle(noise, "WebGL identity", "Overrides selected WebGL vendor and renderer parameters", draft.webglNoise) { draft.webglNoise = it }
+        addToggle(noise, "Audio noise", "Seeded AudioBuffer readback transformations", draft.audioNoise) { draft.audioNoise = it }
 
-        val pending = section("Additional controls — engine support pending", "The current Android System WebView integration does not implement these controls. They are displayed for roadmap visibility and are not saved as active protections.")
-        addDisabledToggle(pending, "Media devices", "Not applied in this release")
-        addDisabledToggle(pending, "Client rects", "Not applied in this release")
-        addDisabledToggle(pending, "Speech synthesis", "Not applied in this release")
+        val pending = section("Roadmap — unavailable in this engine", "Visible for planning only. These items are disabled, are not saved as active protections and cannot be selected in this release.")
+        addRoadmapItem(pending, "IP-based timezone", "Requires an explicit, proxy-routed IP lookup and a verified timezone result. No direct-network fallback is used.")
+        addRoadmapItem(pending, "IP-based language", "Requires an explicit, proxy-routed region lookup. It is not connected in this release.")
+        addRoadmapItem(pending, "Per-profile MAC address spoofing", "Android apps cannot change the device Wi-Fi/Ethernet MAC on a stock phone. Websites do not receive the hardware MAC through browser APIs, so a generated value would be misleading.")
+        addRoadmapItem(pending, "WebRTC proxy routing", "Requires native engine or network-stack routing; not provided by this WebView adapter.")
+        addRoadmapItem(pending, "Media device metadata", "No device enumeration masking is applied.")
+        addRoadmapItem(pending, "Client Rects protection", "DOM geometry APIs are not transformed.")
+        addRoadmapItem(pending, "Speech synthesis protection", "Voice inventory and synthesis behavior are not transformed.")
+        addRoadmapItem(pending, "Dedicated worker injection", "Document-start scripts do not automatically run in dedicated worker globals.")
+        addRoadmapItem(pending, "Native Windows / macOS / Linux profiles", "Requires a separate desktop Chromium build; Android WebView cannot become a desktop OS runtime.")
+        addRoadmapItem(pending, "Native iOS browser engine", "Requires a separate iOS app and WebKit integration. Current iOS presets are emulation labels only.")
     }
 
     // ---------------------------------------------------------------------
@@ -433,11 +686,34 @@ class BulkCreateActivity : AppCompatActivity() {
         val selectedProxy = proxyStore.find(draft.globalProxyId)
         addNote(review, "Profiles", "${draft.count} profiles · ${draft.perProfiles.firstOrNull()?.name ?: draft.namePrefix + " 1"} → ${draft.perProfiles.lastOrNull()?.name ?: draft.namePrefix + " ${draft.count}"}")
         addNote(review, "Template", "${draft.targetOs} · ${presets.firstOrNull { it.id == draft.deviceId }?.displayName ?: "No device"} · OS ${draft.osVersion}")
-        addNote(review, "User-Agent", if (draft.globalUserAgentMode == "AUTO") "Auto-generated from selected preset" else "Custom global User-Agent")
+        addNote(review, "User-Agent", if (draft.globalUserAgentMode == "AUTO") "Preset device tokens with the installed WebView Chromium version" else "Custom global User-Agent")
         addNote(review, "Startup tabs", "${BulkProfileValidator.parseStartupUrls(draft.startupUrlsText).size} URLs")
         addNote(review, "Group", draft.groupName.ifBlank { "No group" })
         addNote(review, "Global proxy", selectedProxy?.let { proxyLabel(it) } ?: "No Proxy")
-        addNote(review, "Fingerprint", "WebRTC ${draft.webrtcMode} · timezone ${draft.timezoneMode} · language ${draft.languageMode}")
+        val selectedProxyIds = draft.perProfiles.take(draft.count.coerceIn(0, 50)).mapNotNull { row ->
+            when (row.proxySelection) {
+                "NONE" -> null
+                "GLOBAL" -> draft.globalProxyId.takeIf { it.isNotBlank() }
+                else -> row.proxySelection
+            }
+        }
+        val selectedProxyEntries = selectedProxyIds.mapNotNull { id -> proxyEntries.firstOrNull { it.id == id } }
+        val unsupportedProxyCount = selectedProxyEntries.count { !it.isSupportedByProxyRelay }
+        addNote(review, "Per-profile proxy assignments", "${selectedProxyEntries.size} assigned · ${unsupportedProxyCount} unsupported · ${draft.perProfiles.take(draft.count.coerceIn(0, 50)).count { it.proxySelection == "NONE" || (it.proxySelection == "GLOBAL" && draft.globalProxyId.isBlank()) }} direct")
+        val reviewedProxyMap = draft.perProfiles.take(draft.count.coerceIn(0, 50)).mapIndexed { index, row ->
+            val proxyId = when (row.proxySelection) {
+                "NONE" -> ""
+                "GLOBAL" -> draft.globalProxyId
+                else -> row.proxySelection
+            }
+            val assigned = proxyEntries.firstOrNull { it.id == proxyId }
+            "${row.name.ifBlank { "Profile ${index + 1}" }} → ${assigned?.name ?: if (proxyId.isBlank()) "Direct" else "MISSING — FIX BEFORE CREATE"}"
+        }
+        addNote(review, "Proxy assignment map", reviewedProxyMap.joinToString("\n"))
+        val webRtcSummary = if (draft.webrtcMode == "DISABLED") "WebRTC JS API restricted" else "WebRTC allowed"
+        val timezoneSummary = if (draft.timezoneMode == "CUSTOM") "Custom timezone (partial JS)" else "Device timezone"
+        val languageSummary = if (draft.languageMode == "CUSTOM") "Custom language (JS only)" else "Device language"
+        addNote(review, "Fingerprint", "$webRtcSummary · $timezoneSummary · $languageSummary")
         addNote(review, "Advanced", "DNT ${draft.dntMode} · hardware acceleration ${if (draft.hardwareAcceleration) "On" else "Off"} · block images ${if (draft.blockImages) "On" else "Off"}")
         addNote(review, "Storage", "Profile metadata will be saved locally. Isolated website storage is created when each profile is launched and requires WebView MULTI_PROFILE support.")
         addButton(review, "Validate batch") {
@@ -458,7 +734,7 @@ class BulkCreateActivity : AppCompatActivity() {
             setTextColor(color(R.color.nexora_text))
             setHintTextColor(color(R.color.nexora_muted))
             setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = ContextCompat.getDrawable(this@BulkCreateActivity, R.drawable.omnibox_bg)
+            background = ContextCompat.getDrawable(this@BulkCreateActivity, R.drawable.profile_field_bg)
         }
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0) }
         container.addView(input, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(180)))
@@ -490,7 +766,7 @@ class BulkCreateActivity : AppCompatActivity() {
 
     private fun showProxyImport() {
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0) }
-        val typeSpinner = spinner(listOf("SOCKS5", "SOCKS4", "HTTP", "HTTPS"), 0)
+        val typeSpinner = spinner(listOf("HTTP", "SOCKS5", "SOCKS4", "HTTPS"), 0)
         container.addView(label("Default protocol for lines without a scheme"))
         container.addView(typeSpinner, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
         val input = EditText(this).apply {
@@ -504,7 +780,7 @@ class BulkCreateActivity : AppCompatActivity() {
             background = ContextCompat.getDrawable(this@BulkCreateActivity, R.drawable.omnibox_bg)
         }
         container.addView(input, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(160)).apply { topMargin = dp(10) })
-        val preview = TextView(this).apply { text = "Credentials are encrypted in the local proxy library. Current WebView browsing supports only unauthenticated HTTP and SOCKS5 proxies."; textSize = 12f; setTextColor(color(R.color.nexora_muted)); setPadding(0, dp(8), 0, 0) }
+        val preview = TextView(this).apply { text = "Credentials are encrypted in the local proxy library. NEXORA routes HTTP, HTTPS and SOCKS5 through a loopback relay; SOCKS4 remains import-only. For host:port:username:password lists, choose HTTP unless your provider specifies another protocol."; textSize = 12f; setTextColor(color(R.color.nexora_muted)); setPadding(0, dp(8), 0, 0) }
         container.addView(preview)
         fun updatePreview() {
             val rows = ProxyImporter.parse(input.text.toString(), typeSpinner.selectedItem.toString())
@@ -526,9 +802,10 @@ class BulkCreateActivity : AppCompatActivity() {
                     val result = proxyStore.import(valid)
                     proxyEntries = proxyStore.loadAll()
                     if (draft.globalProxyId.isBlank()) {
-                        draft.globalProxyId = proxyEntries.firstOrNull { it.isSupportedByCurrentWebView }?.id.orEmpty()
+                        draft.globalProxyId = proxyEntries.firstOrNull { it.isSupportedByProxyRelay }?.id.orEmpty()
                     }
-                    toast("Imported ${result.first} proxies · ${result.second} duplicates")
+                    val unsupported = proxyEntries.count { !it.isSupportedByProxyRelay }
+                    toast("Imported ${result.first} proxies · ${result.second} exact duplicates · ${unsupported} saved entries not usable by this WebView")
                     renderStep()
                 }
             }
@@ -566,7 +843,14 @@ class BulkCreateActivity : AppCompatActivity() {
             showValidationErrors(errors)
             return
         }
-        val summary = "Create ${draft.count} profiles?\n\nNames: ${draft.perProfiles.first().name} → ${draft.perProfiles.last().name}\nDevice: ${presets.first { it.id == draft.deviceId }.displayName}\nStartup tabs: ${BulkProfileValidator.parseStartupUrls(draft.startupUrlsText).size}\nGroup: ${draft.groupName.ifBlank { "No group" }}"
+        val proxyCount = draft.perProfiles.take(draft.count).count { row ->
+            when (row.proxySelection) {
+                "NONE" -> false
+                "GLOBAL" -> draft.globalProxyId.isNotBlank()
+                else -> true
+            }
+        }
+        val summary = "Create ${draft.count} profiles?\n\nNames: ${draft.perProfiles.first().name} → ${draft.perProfiles.last().name}\nDevice: ${presets.first { it.id == draft.deviceId }.displayName}\nProxy assignments: $proxyCount / ${draft.count}\nStartup tabs: ${BulkProfileValidator.parseStartupUrls(draft.startupUrlsText).size}\nGroup: ${draft.groupName.ifBlank { "No group" }}"
         AlertDialog.Builder(this)
             .setTitle("Confirm batch creation")
             .setMessage(summary)
@@ -597,10 +881,29 @@ class BulkCreateActivity : AppCompatActivity() {
                     "GLOBAL" -> draft.globalProxyId
                     else -> row.proxySelection
                 }
-                val proxy = proxyStore.find(proxyId)
+                val proxy = if (proxyId.isBlank()) {
+                    null
+                } else {
+                    proxyStore.find(proxyId) ?: throw IllegalStateException(
+                        "${row.name}: selected saved proxy no longer exists. No profiles were created."
+                    )
+                }
+                if (proxy != null && !proxy.isSupportedByProxyRelay) {
+                    throw IllegalStateException(
+                        "${row.name}: ${proxy.type} cannot be used by this WebView proxy relay. No profiles were created."
+                    )
+                }
+                if (proxy?.hasCredentials == true) {
+                    val credentials = proxyStore.credentials(proxy)
+                    if (credentials.first.isEmpty() && credentials.second.isEmpty()) {
+                        throw IllegalStateException(
+                            "${row.name}: saved proxy credentials could not be decrypted. No profiles were created."
+                        )
+                    }
+                }
                 val ua = if (row.userAgentMode == "CUSTOM") row.userAgent.trim()
                     else if (draft.globalUserAgentMode == "CUSTOM") draft.globalUserAgent.trim()
-                    else UaBuilder.build(preset, draft.osVersion)
+                    else buildAutoUa(preset, draft.osVersion)
                 val profile = BrowserProfile(
                     id = id,
                     name = row.name.trim(),
@@ -614,6 +917,7 @@ class BulkCreateActivity : AppCompatActivity() {
                     proxyPort = proxy?.port ?: 0,
                     proxyUser = "",
                     proxyPass = "",
+                    proxyEntryId = proxy?.id.orEmpty(),
                     timezoneId = if (draft.timezoneMode == "CUSTOM") draft.customTimezone.trim() else "",
                     language = if (draft.languageMode == "CUSTOM") draft.customLanguage.trim() else java.util.Locale.getDefault().toLanguageTag(),
                     webrtcBlock = draft.webrtcMode == "DISABLED",
@@ -690,53 +994,43 @@ class BulkCreateActivity : AppCompatActivity() {
             .remove(DRAFT_JSON).remove(DRAFT_STEP).apply()
     }
 
-    private fun showProxyManager() {
-        proxyEntries = proxyStore.loadAll()
-        if (proxyEntries.isEmpty()) { toast("No saved proxies yet"); return }
-        val labels = proxyEntries.map { proxyLabel(it) }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle("Saved proxies · ${proxyEntries.size}")
-            .setItems(labels) { _, which ->
-                val entry = proxyEntries.getOrNull(which) ?: return@setItems
-                AlertDialog.Builder(this)
-                    .setTitle("${entry.type} ${entry.host}:${entry.port}")
-                    .setMessage(if (entry.hasCredentials) "Credentials are stored encrypted. This proxy cannot be assigned to browser profiles until authenticated proxy support is available." else "Saved locally. Current WebView support: ${if (entry.isSupportedByCurrentWebView) "available" else "not available"}.")
-                    .setPositiveButton("Delete") { _, _ ->
-                        proxyStore.delete(entry.id)
-                        if (draft.globalProxyId == entry.id) draft.globalProxyId = ""
-                        draft.perProfiles.forEach { if (it.proxySelection == entry.id) it.proxySelection = "GLOBAL" }
-                        proxyEntries = proxyStore.loadAll()
-                        renderStep()
-                    }
-                    .setNegativeButton("Close", null)
-                    .show()
-            }
-            .setNegativeButton("Close", null)
-            .show()
-    }
 
     // ---------------------------------------------------------------------
     // UI helpers
 
     private fun section(heading: String, description: String): LinearLayout {
         val card = MaterialCardView(this).apply {
-            radius = dp(16).toFloat()
+            radius = dp(20).toFloat()
             cardElevation = 0f
             setCardBackgroundColor(color(R.color.nexora_surface))
             strokeWidth = dp(1)
             strokeColor = color(R.color.nexora_line)
             useCompatPadding = false
+            preventCornerOverlap = true
         }
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(14), dp(16), dp(16))
+            setPadding(dp(17), dp(16), dp(17), dp(17))
         }
-        val h = TextView(this).apply { text = heading; textSize = 16f; setTextColor(color(R.color.nexora_text)); setTypeface(null, android.graphics.Typeface.BOLD) }
-        val d = TextView(this).apply { text = description; textSize = 12f; setTextColor(color(R.color.nexora_muted)); setPadding(0, dp(4), 0, dp(8)) }
+        val h = TextView(this).apply {
+            text = heading
+            textSize = 16f
+            setTextColor(color(R.color.nexora_text))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        val d = TextView(this).apply {
+            text = description
+            textSize = 12f
+            setTextColor(color(R.color.nexora_muted))
+            setPadding(0, dp(4), 0, dp(10))
+            if (description.isBlank()) visibility = View.GONE
+        }
         body.addView(h)
         body.addView(d)
         card.addView(body)
-        content.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(12) })
+        content.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            bottomMargin = dp(12)
+        })
         return body
     }
 
@@ -757,8 +1051,8 @@ class BulkCreateActivity : AppCompatActivity() {
             setTextColor(color(R.color.nexora_text))
             setHintTextColor(color(R.color.nexora_muted))
             textSize = 14f
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = ContextCompat.getDrawable(this@BulkCreateActivity, R.drawable.omnibox_bg)
+            setPadding(dp(14), dp(11), dp(14), dp(11))
+            background = ContextCompat.getDrawable(this@BulkCreateActivity, R.drawable.profile_field_bg)
             if (multiline) {
                 this.minLines = minLines
                 maxLines = maxOf(minLines, 5)
@@ -768,7 +1062,7 @@ class BulkCreateActivity : AppCompatActivity() {
                 setSingleLine(true)
             }
         }
-        parent.addView(edit, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, if (multiline) ViewGroup.LayoutParams.WRAP_CONTENT else dp(48)).apply { topMargin = dp(4); bottomMargin = dp(8) })
+        parent.addView(edit, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, if (multiline) ViewGroup.LayoutParams.WRAP_CONTENT else dp(50)).apply { topMargin = dp(5); bottomMargin = dp(9) })
         return edit
     }
 
@@ -800,27 +1094,86 @@ class BulkCreateActivity : AppCompatActivity() {
         parent.addView(row)
     }
 
-    private fun addDisabledToggle(parent: LinearLayout, heading: String, description: String) {
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(6), 0, dp(6)) }
+    private fun addRoadmapItem(parent: LinearLayout, heading: String, description: String) {
+        val card = MaterialCardView(this).apply {
+            radius = dp(12).toFloat()
+            cardElevation = 0f
+            setCardBackgroundColor(color(R.color.nexora_raised))
+            strokeWidth = dp(1)
+            strokeColor = color(R.color.nexora_line)
+            isClickable = false
+            isFocusable = false
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            alpha = 0.78f
+        }
         val text = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        text.addView(TextView(this).apply { this.text = heading; textSize = 14f; setTextColor(color(R.color.nexora_muted)) })
-        text.addView(TextView(this).apply { this.text = description; textSize = 11f; setTextColor(color(R.color.nexora_muted)) })
+        text.addView(TextView(this).apply {
+            this.text = heading
+            textSize = 13f
+            setTextColor(color(R.color.nexora_text))
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        })
+        text.addView(TextView(this).apply {
+            this.text = description
+            textSize = 11f
+            setTextColor(color(R.color.nexora_muted))
+            setPadding(0, dp(3), 0, 0)
+        })
         row.addView(text, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        row.addView(CheckBox(this).apply { isEnabled = false })
-        parent.addView(row)
+        val status = TextView(this).apply {
+            this.text = "PLANNED"
+            textSize = 9f
+            letterSpacing = 0.06f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(color(R.color.nexora_muted))
+            setPadding(dp(8), dp(5), dp(8), dp(5))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadius = dp(8).toFloat()
+                setColor(color(R.color.nexora_surface))
+                setStroke(dp(1), color(R.color.nexora_line))
+            }
+            isEnabled = false
+        }
+        row.addView(status)
+        card.addView(row)
+        parent.addView(card, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(6)
+        })
+    }
+
+    private fun buildAutoUa(preset: DevicePreset, osVersion: String): String {
+        val native = WebSettings.getDefaultUserAgent(this)
+        return runCatching { UaBuilder.build(preset, osVersion, native) }.getOrDefault(native)
     }
 
     private fun addChoiceRow(parent: LinearLayout, options: List<Pair<String, String>>, selected: String, onSelected: (String) -> Unit) {
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         options.forEach { (label, value) ->
-            val button = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            val button = MaterialButton(
+                this,
+                null,
+                if (value == selected) com.google.android.material.R.attr.materialButtonStyle
+                else com.google.android.material.R.attr.materialButtonOutlinedStyle
+            ).apply {
                 text = label
                 isAllCaps = false
                 textSize = 11f
-                minHeight = dp(42)
+                minHeight = dp(44)
+                cornerRadius = dp(12)
                 setPadding(dp(8), 0, dp(8), 0)
-                strokeColor = ColorStateList.valueOf(if (value == selected) color(R.color.nexora_accent) else color(R.color.nexora_line))
-                setTextColor(if (value == selected) color(R.color.nexora_accent) else color(R.color.nexora_text))
+                if (value == selected) {
+                    backgroundTintList = ColorStateList.valueOf(color(R.color.nexora_accent))
+                    strokeWidth = 0
+                    setTextColor(Color.WHITE)
+                } else {
+                    strokeColor = ColorStateList.valueOf(color(R.color.nexora_line))
+                    setTextColor(color(R.color.nexora_text))
+                }
                 setOnClickListener { onSelected(value); persistDraft() }
             }
             row.addView(button, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(5) })
@@ -839,7 +1192,8 @@ class BulkCreateActivity : AppCompatActivity() {
         val button = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             this.text = text
             isAllCaps = false
-            setTextColor(color(R.color.nexora_accent))
+            setTextColor(color(R.color.nexora_text))
+            cornerRadius = dp(12)
             strokeColor = ColorStateList.valueOf(color(R.color.nexora_line))
             setOnClickListener { onClick() }
         }
@@ -848,9 +1202,10 @@ class BulkCreateActivity : AppCompatActivity() {
 
     private fun label(value: String) = TextView(this).apply {
         text = value
-        textSize = 12f
+        textSize = 11f
+        letterSpacing = 0.02f
         setTextColor(color(R.color.nexora_muted))
-        setPadding(0, dp(6), 0, dp(2))
+        setPadding(0, dp(8), 0, dp(3))
     }
 
     private fun watcher(onChanged: (String) -> Unit) = object : TextWatcher {
@@ -878,10 +1233,15 @@ class BulkCreateActivity : AppCompatActivity() {
     }
 
     private fun proxyLabel(entry: ProxyEntry): String =
-        "${entry.name}${if (entry.hasCredentials) " · Auth" else ""}${if (entry.isSupportedByCurrentWebView) "" else " · Not supported"}"
+        "${entry.name}${if (entry.hasCredentials) " · Auth" else ""}${if (entry.isSupportedByProxyRelay) "" else " · Not supported"}"
 
     private fun color(id: Int): Int = ContextCompat.getColor(this, id)
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+    private fun roundedFill(fillColor: Int, radiusDp: Int): android.graphics.drawable.GradientDrawable =
+        android.graphics.drawable.GradientDrawable().apply {
+            setColor(fillColor)
+            cornerRadius = dp(radiusDp).toFloat()
+        }
     private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
     companion object {
