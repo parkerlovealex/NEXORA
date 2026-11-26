@@ -1,75 +1,73 @@
 package com.nexora.browser.util
 
 import com.nexora.browser.data.BrowserProfile
-import java.net.Authenticator
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
-import java.net.PasswordAuthentication
 import java.net.Proxy
-import java.net.URL
+import java.net.URI
 
 /**
- * Tests the configured proxy with a direct JVM connection, not WebView.
- * The JVM Authenticator is process-wide, so tests are serialized and the
- * previous authenticator is restored immediately after each test.
+ * Explicit proxy test. Traffic is sent through NEXORA's loopback relay so HTTP,
+ * HTTPS and authenticated SOCKS5/HTTP proxy sessions use the same transport path
+ * as BrowserActivity. No process-wide Authenticator is installed.
  */
 object ProxyTester {
-
-    private val authLock = Any()
 
     fun test(profile: BrowserProfile, callback: (String) -> Unit) {
         if (profile.proxyType == "NONE") {
             callback("No proxy set")
             return
         }
-        if (profile.proxyHost.isBlank() || profile.proxyPort !in 1..65535) {
+        if (!profile.hasProxy) {
             callback("Failed: host or port is missing/invalid")
             return
         }
-        Thread {
-            val start = System.currentTimeMillis()
-            val result = synchronized(authLock) {
-                // Android has no Authenticator.getDefault() before API 35; the app never
-                // installs a global authenticator outside this test, so restore = clear.
-                var connection: HttpURLConnection? = null
-                try {
-                    if (profile.proxyUser.isNotEmpty()) {
-                        val user = profile.proxyUser
-                        val pass = profile.proxyPass
-                        Authenticator.setDefault(object : Authenticator() {
-                            override fun getPasswordAuthentication(): PasswordAuthentication =
-                                PasswordAuthentication(user, pass.toCharArray())
-                        })
-                    } else {
-                        Authenticator.setDefault(null)
-                    }
 
-                    val type = when (profile.proxyType) {
-                        "SOCKS5" -> Proxy.Type.SOCKS
-                        "HTTP" -> Proxy.Type.HTTP
-                        else -> throw IllegalArgumentException("Unsupported proxy type")
-                    }
-                    val proxy = Proxy(type, InetSocketAddress(profile.proxyHost, profile.proxyPort))
-                    connection = URL("https://api.ipify.org").openConnection(proxy) as HttpURLConnection
-                    connection!!.connectTimeout = 8000
-                    connection!!.readTimeout = 8000
-                    connection!!.requestMethod = "GET"
-                    connection!!.setRequestProperty("User-Agent", "NEXORA-ProxyTest")
-                    val ip = connection!!.inputStream.bufferedReader().use { it.readText() }.trim()
-                    val elapsed = System.currentTimeMillis() - start
-                    if (ip.isBlank()) "Failed: empty response from proxy"
-                    else "OK — exit IP $ip (${elapsed} ms)"
-                } catch (e: Exception) {
-                    "Failed: ${e.message ?: e.javaClass.simpleName}"
-                } finally {
-                    try { connection?.disconnect() } catch (_: Exception) {}
-                    try { Authenticator.setDefault(null) } catch (_: Exception) {}
-                }
+        Thread({
+            val start = System.currentTimeMillis()
+            var relay: ProxyRelayServer? = null
+            var connection: HttpURLConnection? = null
+            val result = try {
+                val config = ProxyRelayConfig(
+                    type = profile.proxyType,
+                    host = profile.proxyHost,
+                    port = profile.proxyPort,
+                    username = profile.proxyUser,
+                    password = profile.proxyPass
+                )
+                config.validate()?.let { throw IllegalArgumentException(it) }
+                relay = ProxyRelayServer(config)
+                val localPort = relay.start()
+                val localProxy = Proxy(
+                    Proxy.Type.HTTP,
+                    InetSocketAddress("127.0.0.1", localPort)
+                )
+                val opened = URI.create(TEST_URL).toURL().openConnection(localProxy) as HttpURLConnection
+                connection = opened
+                opened.connectTimeout = CONNECT_TIMEOUT_MS
+                opened.readTimeout = READ_TIMEOUT_MS
+                opened.requestMethod = "GET"
+                opened.useCaches = false
+                opened.instanceFollowRedirects = false
+                opened.setRequestProperty("User-Agent", "NEXORA-ProxyTest")
+                val ip = opened.inputStream.bufferedReader().use { it.readText() }.trim()
+                val elapsed = System.currentTimeMillis() - start
+                if (ip.isBlank()) "Failed: empty response from proxy"
+                else "OK — exit IP $ip (${elapsed} ms)"
+            } catch (error: Exception) {
+                "Failed: ${error.message ?: error.javaClass.simpleName}"
+            } finally {
+                try { connection?.disconnect() } catch (_: Exception) {}
+                try { relay?.close() } catch (_: Exception) {}
             }
             callback(result)
-        }.apply {
-            name = "NEXORA-Proxy-Test"
+        }, "NEXORA-Proxy-Test").apply {
             isDaemon = true
-        }.start()
+            start()
+        }
     }
+
+    private const val TEST_URL = "https://api.ipify.org"
+    private const val CONNECT_TIMEOUT_MS = 10_000
+    private const val READ_TIMEOUT_MS = 10_000
 }
