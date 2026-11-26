@@ -18,7 +18,6 @@ class NexoraApp : Application() {
             }
             previous?.uncaughtException(thread, e)
         }
-        com.nexora.browser.data.DeviceDataUpdater.maybeAutoCheck(this)
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val mode = prefs.getInt(KEY_THEME_MODE, THEME_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(
@@ -28,13 +27,24 @@ class NexoraApp : Application() {
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
         )
+        // Native browser download alerts are created locally on this device.
+        com.nexora.browser.util.BrowserNotifications.createChannel(this)
+
+        // Optional daily catalog sync. If no API origin is configured, the
+        // bundled database remains the only source and the app stays offline-ready.
+        com.nexora.browser.data.DeviceDataUpdater.maybeAutoCheck(this)
     }
 
     companion object {
         const val PREFS_NAME = "nexora_prefs"
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_SEARCH_ENGINE = "search_engine"
+        const val KEY_CATALOG_API_BASE = "catalog_api_base"
         const val KEY_DATA_LAST_CHECK = "data_last_check"
+        const val KEY_SOUND_EFFECTS = "sound_effects"
+        const val KEY_HAPTIC_FEEDBACK = "haptic_feedback"
+        const val KEY_DOWNLOAD_NOTIFICATIONS = "download_notifications"
+        const val KEY_NOTIFICATION_PERMISSION_ASKED = "notification_permission_asked"
         const val SEARCH_DUCKDUCKGO = "duckduckgo"
         const val SEARCH_GOOGLE = "google"
         const val SEARCH_BING = "bing"
