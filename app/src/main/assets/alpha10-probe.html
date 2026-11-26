@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'; frame-src 'self'; worker-src 'self' blob:;">
+<title>NEXORA Alpha10 Compatibility Probe</title>
+<style>
+  html,body{margin:0;padding:0;background:#fff;color:#111;font:14px sans-serif}
+  #probe{padding:8px}
+</style>
+</head>
+<body>
+<div id="probe">Running local compatibility checks…</div>
+<!-- NEXORA_ALPHA10_WORKER_SOURCE -->
+<!-- NEXORA_ALPHA10_EXPECTED -->
+<script>
+(function () {
+  "use strict";
+  window.__nexoraAlpha10Ready = false;
+  var expected = window.__nexoraAlpha10Expected || {};
+  var report = {
+    pageDocumentStart: window.__nexoraAlpha10DocumentStart === true,
+    userAgent: navigator.userAgent || "",
+    platform: navigator.platform || "",
+    language: navigator.language || "",
+    languages: Array.prototype.slice.call(navigator.languages || []),
+    hardwareConcurrency: Number(navigator.hardwareConcurrency || 0),
+    deviceMemory: typeof navigator.deviceMemory === "number" ? navigator.deviceMemory : null,
+    screenWidth: Number(screen.width || 0),
+    screenHeight: Number(screen.height || 0),
+    dpr: Number(window.devicePixelRatio || 0),
+    expected: {
+      userAgent: expected.expectedUserAgent || "",
+      platform: expected.expectedPlatform || "",
+      language: expected.expectedLanguage || "",
+      cores: Number(expected.expectedCores || 0),
+      memory: Number(expected.expectedMemory || 0),
+      screenWidth: Number(expected.expectedScreenWidth || 0),
+      screenHeight: Number(expected.expectedScreenHeight || 0),
+      dpr: Number(expected.expectedDpr || 0),
+      canvasNoiseEnabled: expected.canvasNoiseEnabled === true,
+      audioNoiseEnabled: expected.audioNoiseEnabled === true,
+      webglSpoofEnabled: expected.webglSpoofEnabled === true,
+      expectedWebglVendor: expected.expectedWebglVendor || "",
+      expectedWebglRenderer: expected.expectedWebglRenderer || ""
+    }
+  };
+
+  function timeoutValue(promise, ms, fallback) {
+    return Promise.race([
+      promise,
+      new Promise(function (resolve) { setTimeout(function () { resolve(fallback); }, ms); })
+    ]);
+  }
+
+  function measureCanvas() {
+    var result = {
+      canvas2d: false, getImageData: false, toDataURL: false, toBlob: false,
+      offscreenCanvas: typeof window.OffscreenCanvas === "function",
+      changedPixels: null, dataUrlAvailable: false, blobAvailable: false,
+      offscreenReadback: null
+    };
+    try {
+      var canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 128;
+      var context = canvas.getContext("2d", {willReadFrequently:true});
+      if (!context) return result;
+      result.canvas2d = true;
+      result.getImageData = typeof context.getImageData === "function";
+      result.toDataURL = typeof canvas.toDataURL === "function";
+      result.toBlob = typeof canvas.toBlob === "function";
+      context.fillStyle = "rgb(100,100,100)";
+      context.fillRect(0, 0, 128, 128);
+      var pixels = context.getImageData(0, 0, 128, 128).data;
+      var changed = 0;
+      for (var i = 0; i < pixels.length; i += 4) {
+        if (pixels[i] !== 100 || pixels[i + 1] !== 100 || pixels[i + 2] !== 100) changed++;
+      }
+      result.changedPixels = changed;
+      if (result.toDataURL) {
+        var dataUrl = canvas.toDataURL("image/png");
+        result.dataUrlAvailable = typeof dataUrl === "string" && dataUrl.indexOf("data:image/") === 0;
+      }
+      if (result.toBlob) {
+        result.blobAvailable = true;
+      }
+      if (result.offscreenCanvas) {
+        try {
+          var offscreen = new OffscreenCanvas(128, 128);
+          var offscreenContext = offscreen.getContext("2d", {willReadFrequently:true});
+          offscreenContext.fillStyle = "rgb(100,100,100)";
+          offscreenContext.fillRect(0, 0, 128, 128);
+          var offscreenPixels = offscreenContext.getImageData(0, 0, 128, 128).data;
+          var offscreenChanged = 0;
+          for (var j = 0; j < offscreenPixels.length; j += 4) {
+            if (offscreenPixels[j] !== 100 || offscreenPixels[j + 1] !== 100 || offscreenPixels[j + 2] !== 100) offscreenChanged++;
+          }
+          result.offscreenReadback = offscreenChanged;
+        } catch (error) {
+          result.offscreenReadback = "ERROR: " + String(error && error.message || error);
+        }
+      }
+    } catch (error) {
+      result.error = String(error && error.message || error);
+    }
+    return result;
+  }
+
+  function measureWebGL() {
+    var result = {available:false, vendor:"", renderer:"", version:"", debugInfo:false};
+    try {
+      var canvas = document.createElement("canvas");
+      var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl") || canvas.getContext("webgl2");
+      if (!gl) return result;
+      result.available = true;
+      result.vendor = String(gl.getParameter(gl.VENDOR) || "");
+      result.renderer = String(gl.getParameter(gl.RENDERER) || "");
+      result.version = String(gl.getParameter(gl.VERSION) || "");
+      var ext = gl.getExtension("WEBGL_debug_renderer_info");
+      result.debugInfo = !!ext;
+      if (ext) {
+        result.unmaskedVendor = String(gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || "");
+        result.unmaskedRenderer = String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "");
+      }
+    } catch (error) {
+      result.error = String(error && error.message || error);
+    }
+    return result;
+  }
+
+  async function measureAudio() {
+    var result = {available:false, rendered:false, samples:0, signature:"", note:""};
+    var AudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!AudioContextClass) {
+      result.note = "OfflineAudioContext is not exposed by this WebView.";
+      return result;
+    }
+    result.available = true;
+    var context;
+    try {
+      context = new AudioContextClass(1, 4096, 44100);
+      var oscillator = context.createOscillator();
+      var gain = context.createGain();
+      oscillator.type = "triangle";
+      oscillator.frequency.value = 997;
+      gain.gain.value = 0.15;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(0);
+      var rendered = await timeoutValue(context.startRendering(), 5000, null);
+      if (!rendered) {
+        result.note = "Offline render timed out.";
+        return result;
+      }
+      var samples = rendered.getChannelData(0);
+      result.rendered = true;
+      result.samples = samples.length;
+      var hash = 2166136261;
+      var stride = Math.max(1, Math.floor(samples.length / 256));
+      for (var i = 0; i < samples.length; i += stride) {
+        var quantized = Math.round(samples[i] * 1000000000);
+        hash ^= quantized;
+        hash = Math.imul(hash, 16777619);
+      }
+      result.signature = ("00000000" + (hash >>> 0).toString(16)).slice(-8);
+      result.note = "Rendering succeeded. This confirms API operation, not by itself that audio noise is effective.";
+    } catch (error) {
+      result.note = String(error && error.message || error);
+    } finally {
+      if (context && typeof context.close === "function") {
+        try { await context.close(); } catch (_) {}
+      }
+    }
+    return result;
+  }
+
+  async function measureUaHints() {
+    var result = {available:!!navigator.userAgentData, platform:"", mobile:null, model:"", brands:[], highEntropyAvailable:false};
+    try {
+      var data = navigator.userAgentData;
+      if (!data) return result;
+      result.platform = String(data.platform || "");
+      result.mobile = !!data.mobile;
+      result.brands = (data.brands || []).map(function (entry) {
+        return String(entry.brand || "") + " " + String(entry.version || "");
+      });
+      if (typeof data.getHighEntropyValues === "function") {
+        var high = await timeoutValue(data.getHighEntropyValues([
+          "architecture","bitness","model","platformVersion","fullVersionList","wow64"
+        ]), 2500, null);
+        if (high) {
+          result.highEntropyAvailable = true;
+          result.model = String(high.model || "");
+          result.architecture = String(high.architecture || "");
+          result.bitness = String(high.bitness || "");
+          result.platformVersion = String(high.platformVersion || "");
+          result.fullVersionList = high.fullVersionList || [];
+          result.wow64 = typeof high.wow64 === "boolean" ? high.wow64 : null;
+        }
+      }
+    } catch (error) {
+      result.error = String(error && error.message || error);
+    }
+    return result;
+  }
+
+  function measureProfileConsistency() {
+    var checks = {};
+    checks.userAgent = report.expected.userAgent ? report.userAgent === report.expected.userAgent : null;
+    checks.platform = report.expected.platform ? report.platform === report.expected.platform : null;
+    checks.language = report.expected.language ? report.language === report.expected.language : null;
+    checks.cores = report.expected.cores ? report.hardwareConcurrency === report.expected.cores : null;
+    checks.memory = report.expected.memory ? report.deviceMemory === report.expected.memory : null;
+    checks.screen = (report.expected.screenWidth && report.expected.screenHeight)
+      ? (report.screenWidth === report.expected.screenWidth && report.screenHeight === report.expected.screenHeight)
+      : null;
+    checks.dpr = report.expected.dpr ? Math.abs(report.dpr - report.expected.dpr) < 0.01 : null;
+    return checks;
+  }
+
+  var frameResult = new Promise(function (resolve) {
+    var finished = false;
+    function finish(value) {
+      if (finished) return;
+      finished = true;
+      resolve(value);
+    }
+    var frame = document.createElement("iframe");
+    frame.setAttribute("title", "NEXORA compatibility frame probe");
+    frame.onload = function () {
+      var child = frame.contentWindow;
+      finish({
+        loaded:true,
+        documentStart:!!(child && child.__nexoraAlpha10FrameFirstScript === true),
+        firstScript:!!(child && child.__nexoraAlpha10FrameFirstScript === true)
+      });
+    };
+    frame.onerror = function () { finish({loaded:false, documentStart:false, note:"Frame request failed."}); };
+    frame.src = "/alpha10-frame.html";
+    document.body.appendChild(frame);
+    setTimeout(function () { finish({loaded:false, documentStart:false, note:"Frame probe timed out."}); }, 4000);
+  });
+
+  var workerResult = new Promise(function (resolve) {
+    if (typeof Worker !== "function") {
+      resolve({available:false, documentStart:false, note:"Worker API is unavailable."});
+      return;
+    }
+    var worker;
+    var finished = false;
+    function finish(value) {
+      if (finished) return;
+      finished = true;
+      try { if (worker) worker.terminate(); } catch (_) {}
+      try { if (workerBlobUrl) URL.revokeObjectURL(workerBlobUrl); } catch (_) {}
+      resolve(value);
+    }
+    try {
+      var workerSource = String(window.__nexoraAlpha10WorkerSource || "");
+      if (!workerSource || typeof Blob !== "function" || !window.URL || !URL.createObjectURL) {
+        resolve({available:false, documentStart:false, note:"Local Blob worker support is unavailable."});
+        return;
+      }
+      var workerBlobUrl = URL.createObjectURL(new Blob([workerSource], {type:"application/javascript"}));
+      worker = new Worker(workerBlobUrl);
+      worker.onmessage = function (event) {
+        if (event.data && event.data.source === "nexora-alpha10-worker") {
+          finish({available:true, documentStart:event.data.documentStart === true});
+        }
+      };
+      worker.onerror = function () { finish({available:true, documentStart:false, note:"Worker script failed to load or execute."}); };
+      setTimeout(function () { finish({available:true, documentStart:false, note:"Worker probe timed out."}); }, 4000);
+    } catch (error) {
+      finish({available:false, documentStart:false, note:String(error && error.message || error)});
+    }
+  });
+
+  async function run() {
+    report.canvas = measureCanvas();
+    report.webgl = measureWebGL();
+    report.audio = await measureAudio();
+    report.uaHints = await measureUaHints();
+    report.profileConsistency = measureProfileConsistency();
+    var frameAndWorker = await Promise.all([frameResult, workerResult]);
+    report.iframe = frameAndWorker[0];
+    report.worker = frameAndWorker[1];
+    report.workerProtection = report.worker.available
+      ? (report.worker.documentStart ? "MARKER_PRESENT" : "NOT_INJECTED")
+      : "UNAVAILABLE";
+    report.canvasNoiseExpected = report.expected.canvasNoiseEnabled;
+    report.canvasNoiseObserved = report.canvas.changedPixels !== null && report.canvas.changedPixels > 0;
+    report.canvasNoiseCheck = report.canvasNoiseExpected
+      ? (report.canvasNoiseObserved ? "OBSERVED" : "NOT_OBSERVED")
+      : "DISABLED_BY_PROFILE";
+    report.webglSpoofCheck = report.expected.webglSpoofEnabled && report.webgl.available
+      ? (report.webgl.vendor === report.expected.expectedWebglVendor &&
+         report.webgl.renderer === report.expected.expectedWebglRenderer ? "MATCH" : "MISMATCH")
+      : (report.expected.webglSpoofEnabled ? "UNAVAILABLE" : "DISABLED_BY_PROFILE");
+    window.__nexoraAlpha10Report = report;
+    window.__nexoraAlpha10Ready = true;
+    document.getElementById("probe").textContent = "NEXORA compatibility probes completed.";
+  }
+
+  run().catch(function (error) {
+    report.fatalError = String(error && error.message || error);
+    window.__nexoraAlpha10Report = report;
+    window.__nexoraAlpha10Ready = true;
+  });
+})();
+</script>
+</body>
+</html>

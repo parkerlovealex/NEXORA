@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0b141a">
+  <title>NEXORA · New tab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#0b141a; --surface:#14242c; --surface-2:#1a2a33; --surface-3:#243943;
+      --text:#f2f8f8; --muted:#a3b8bc; --faint:#7f969c; --line:rgba(255,255,255,.085);
+      --red:#63e6c2; --red-soft:rgba(99,230,194,.12); --good:#5bd39b; --good-soft:rgba(91,211,155,.12);
+      --warn:#f5bd61; --warn-soft:rgba(245,189,97,.12); --bad:#ff7b86;
+      --radius:20px; --shadow:0 12px 32px rgba(0,0,0,.22);
+    }
+    html[data-theme="light"] {
+      color-scheme:light;
+      --bg:#f3f7f8; --surface:#ffffff; --surface-2:#eaf1f2; --surface-3:#dce7e8;
+      --text:#14252b; --muted:#64777d; --faint:#87999e; --line:rgba(20,37,43,.09);
+      --red:#087f73; --red-soft:rgba(8,127,115,.09); --good:#168653; --good-soft:rgba(22,134,83,.09);
+      --warn:#9b650d; --warn-soft:rgba(155,101,13,.10); --bad:#c42e40;
+      --shadow:0 10px 28px rgba(20,20,25,.07);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Roboto,"Segoe UI",system-ui,sans-serif}
+    body{padding:calc(18px + env(safe-area-inset-top)) 16px 28px;}
+    button{font:inherit}
+    .shell{width:100%;max-width:620px;margin:0 auto}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .mark{width:38px;height:38px;border-radius:13px;background:var(--red);display:grid;place-items:center;color:white;font-weight:800;font-size:20px;letter-spacing:-1px;box-shadow:0 5px 16px rgba(217,47,53,.18)}
+    .brand-name{font-size:15px;font-weight:800;letter-spacing:.12em}
+    .brand-sub{font-size:9px;letter-spacing:.16em;color:var(--muted);margin-top:3px}
+    .top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:50%;color:var(--text);display:grid;place-items:center;font-size:17px}
+    .eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--red);text-transform:uppercase}
+    h1{font-size:clamp(25px,7vw,34px);line-height:1.08;letter-spacing:-.045em;margin:9px 0 8px;font-weight:750}
+    .intro{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 20px;max-width:440px}
+    .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .panel-title{font-size:14px;font-weight:700;letter-spacing:-.015em}
+    .panel-sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--faint);display:inline-block}
+    .dot.good{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+    .hero{padding:17px;position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;right:-42px;top:-48px;width:145px;height:145px;border:1px solid var(--line);border-radius:50%;pointer-events:none}
+    .hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .hero-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .hero-value{font-size:25px;font-weight:750;letter-spacing:-.04em;margin-top:7px}
+    .hero-caption{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.45;max-width:250px}
+    .hero-icon{width:54px;height:54px;border-radius:17px;background:var(--red-soft);color:var(--red);display:grid;place-items:center;font-size:24px;flex-shrink:0}
+    .hero-actions{display:flex;gap:8px;margin-top:16px}
+    .btn{border:0;border-radius:13px;padding:12px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px}
+    .btn-primary{background:var(--red);color:white;flex:1}
+    .btn-secondary{background:var(--surface-3);color:var(--text);border:1px solid var(--line)}
+    .btn:active,.icon-btn:active{transform:scale(.98)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .metric{padding:12px;border-radius:14px;background:var(--surface-2);min-width:0}
+    .metric-label{font-size:10px;color:var(--muted);margin-bottom:7px}
+    .metric-value{font-size:13px;font-weight:700;overflow-wrap:anywhere}
+    .metric-note{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.35}
+    .check-list{display:flex;flex-direction:column;gap:0}
+    .check{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+    .check:last-child{border-bottom:0;padding-bottom:0}
+    .check:first-child{padding-top:0}
+    .check-icon{width:30px;height:30px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;font-size:14px;flex-shrink:0}
+    .check-copy{flex:1;min-width:0}
+    .check-name{font-size:12px;font-weight:650}
+    .check-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}
+    .status{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+    .status.good{background:var(--good-soft);color:var(--good)}
+    .status.warn{background:var(--warn-soft);color:var(--warn)}
+    .status.bad{background:rgba(255,123,134,.12);color:var(--bad)}
+    .network-value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;font-weight:650;overflow-wrap:anywhere}
+    .notice{display:flex;gap:9px;padding:11px;border-radius:13px;background:var(--warn-soft);color:var(--muted);font-size:10px;line-height:1.5;margin-top:12px}
+    .notice strong{color:var(--text)}
+    .section-kicker{font-size:10px;color:var(--muted);font-weight:750;letter-spacing:.15em;text-transform:uppercase;margin:21px 2px 9px}
+    .footnote{font-size:10px;color:var(--faint);line-height:1.55;text-align:center;padding:10px 12px 0}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);display:flex;align-items:flex-end;justify-content:center;padding:16px;z-index:10}
+    .overlay[hidden]{display:none}
+    .sheet{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:19px;box-shadow:0 20px 70px rgba(0,0,0,.4)}
+    .sheet h2{font-size:19px;margin:0 0 8px;letter-spacing:-.03em}
+    .sheet p{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 13px}
+    .sheet-actions{display:flex;gap:8px;margin-top:16px}
+    .sheet-actions .btn{flex:1}
+    .loading{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .metric-state{display:inline-flex;align-items:center;margin-top:8px;padding:4px 7px;border-radius:999px;background:var(--surface-3);color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+    .metric-state.good{background:var(--good-soft);color:var(--good)}
+    .metric-state.warn{background:var(--warn-soft);color:var(--warn)}
+    .metric-state.bad{background:rgba(255,123,134,.12);color:var(--bad)}
+    .metric-value.long{font-size:10px;line-height:1.5;font-weight:550;word-break:break-all}
+    .metric-value.medium{font-size:11px;line-height:1.45;word-break:break-word}
+    .diagnostic-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .network-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .network-disclosure{margin-top:12px}
+    .muted-inline{color:var(--muted);font-size:10px;line-height:1.5}
+    .section-actions{display:flex;align-items:center;gap:8px}
+    .section-actions .pill{flex-shrink:0}
+    @media(max-width:360px){.diagnostic-grid,.network-grid{grid-template-columns:1fr}.hero-actions{flex-wrap:wrap}.hero-actions .btn{flex:1 1 100%}}
+    @media(min-width:600px){body{padding-top:28px}.panel{padding:19px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <div class="brand">
+        <div class="mark">N</div>
+        <div><div class="brand-name">NEXORA</div><div class="brand-sub">PRIVATE BROWSING WORKSPACE</div></div>
+      </div>
+      <div class="top-actions">
+        <span class="pill"><span class="dot good"></span> WEBVIEW</span>
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle theme">◐</button>
+      </div>
+    </header>
+
+    <div class="eyebrow">BROWSER / PRIVACY CENTER</div>
+    <h1>Understand your browser.</h1>
+    <p class="intro">Inspect the signals this website can read from your NEXORA session. Local measurements stay on this device; network intelligence is optional and requires your approval.</p>
+
+    <section class="panel hero">
+      <div class="hero-row">
+        <div>
+          <div class="hero-label">Diagnostic status</div>
+          <div class="hero-value" id="overallStatus">Ready to check</div>
+          <div class="hero-caption" id="overallCaption">Local browser checks can run without contacting an external service.</div>
+        </div>
+        <div class="hero-icon" aria-hidden="true">⌁</div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="runLocal" type="button">↻ Run all local checks</button>
+        <button class="btn btn-secondary" id="checkNetwork" type="button">Check network ↗</button>
+      </div>
+    </section>
+
+    <div class="section-kicker">Browser protections</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Current WebView configuration</div><div class="panel-sub">Native security rows reflect this build's source configuration; browser API rows are read from this page.</div></div>
+        <span class="pill" id="localUpdated">NOT RUN</span>
+      </div>
+      <div class="check-list" id="localChecks">
+        <div class="check"><div class="check-icon">◌</div><div class="check-copy"><div class="check-name">Waiting for measurements</div><div class="check-desc">Run local checks to inspect this browser session.</div></div><span class="status">Pending</span></div>
+      </div>
+    </section>
+
+    <div class="section-kicker">Device & browser identity</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">What pages can read</div><div class="panel-sub">Values are read from this active WebView session, including profile overrides.</div></div>
+        <span class="pill" id="identityStatus">PENDING</span>
+      </div>
+      <div class="diagnostic-grid" id="identityChecks"></div>
+    </section>
+
+    <div class="section-kicker">Profile consistency</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Configured vs observed</div><div class="panel-sub">Compares this local start page's browser-visible values with the active profile configuration. It does not transmit profile settings.</div></div>
+        <span class="pill" id="profileConsistencyStatus">PENDING</span>
+      </div>
+      <div class="diagnostic-grid" id="profileConsistencyChecks"></div>
+    </section>
+
+    <div class="section-kicker">Display & hardware</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Device capabilities</div><div class="panel-sub">Browser-exposed values only; RAM and some device hints are approximate.</div></div>
+        <span class="pill" id="hardwareStatus">PENDING</span>
+      </div>
+      <div class="diagnostic-grid" id="hardwareChecks"></div>
+    </section>
+
+    <div class="section-kicker">Fingerprint surfaces</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Rendering & API signals</div><div class="panel-sub">Synthetic local probes. Signatures are shown on this page and are not uploaded or saved.</div></div>
+        <span class="pill" id="fingerprintStatus">PENDING</span>
+      </div>
+      <div class="diagnostic-grid" id="fingerprintChecks"></div>
+    </section>
+
+    <div class="section-kicker">System signals</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Browser environment</div><div class="panel-sub">Some APIs are restricted or omitted by Android System WebView.</div></div>
+        <span class="pill" id="systemStatus">PENDING</span>
+      </div>
+      <div class="diagnostic-grid" id="systemChecks"></div>
+    </section>
+
+    <div class="section-kicker">Network intelligence</div>
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="panel-title">Public connection observation</div><div class="panel-sub">IP, provider, ASN, approximate IP location and known VPN/proxy signals.</div></div>
+        <span class="pill" id="networkStatus"><span class="dot"></span> NOT CHECKED</span>
+      </div>
+      <div class="network-grid" id="networkResults">
+        <div class="metric"><div class="metric-label">Public IP</div><div class="metric-value">Not checked</div><div class="metric-note">Requires external consent</div></div>
+        <div class="metric"><div class="metric-label">Provider / ISP</div><div class="metric-value">Not checked</div><div class="metric-note">Not inferred locally</div></div>
+        <div class="metric"><div class="metric-label">ASN</div><div class="metric-value">Not checked</div><div class="metric-note">Not inferred locally</div></div>
+        <div class="metric"><div class="metric-label">IP location</div><div class="metric-value">Not checked</div><div class="metric-note">Approximate database location</div></div>
+        <div class="metric"><div class="metric-label">VPN signal</div><div class="metric-value">Not checked</div><div class="metric-note">Provider database verdict</div></div>
+        <div class="metric"><div class="metric-label">Proxy / Tor signal</div><div class="metric-value">Not checked</div><div class="metric-note">Provider database verdict</div></div>
+      </div>
+      <div class="notice network-disclosure"><span>ⓘ</span><div><strong>External lookup disclosure.</strong> If approved, NEXORA sends one request to proxycheck.io. The provider sees your public IP and request metadata and may cache lookup results. NEXORA does not send your canvas, audio, device, profile or browsing data to this provider. The request uses <code>tag=0</code> to disable positive-detection logging.</div></div>
+      <div class="muted-inline" style="margin-top:9px">The unregistered provider tier currently allows up to 100 lookups per day per querying IP. Results are database signals, not proof that a VPN or proxy is absent.</div>
+    </section>
+
+    <div class="section-kicker">Measurement boundaries</div>
+    <section class="panel">
+      <div class="check-list">
+        <div class="check"><div class="check-icon">✓</div><div class="check-copy"><div class="check-name">Direct browser settings</div><div class="check-desc">Reported from the current WebView configuration.</div></div><span class="status good">Supported</span></div>
+        <div class="check"><div class="check-icon">⌗</div><div class="check-copy"><div class="check-name">Fingerprint uniqueness and third-party scores</div><div class="check-desc">Canvas, WebGL and audio signatures are local diagnostics only. NEXORA does not calculate uniqueness, bot-detection resistance, an anonymity grade, or CreepJS/BrowserLeaks/Whoer scores.</div></div><span class="status">Not calculated</span></div>
+        <div class="check"><div class="check-icon">⌁</div><div class="check-copy"><div class="check-name">DNS and WebRTC leak verdicts</div><div class="check-desc">DNS resolver discovery is not available to page JavaScript. WebRTC API presence is checked, but no STUN candidate or IP leak test is performed.</div></div><span class="status">Not tested</span></div>
+        <div class="check"><div class="check-icon">▣</div><div class="check-copy"><div class="check-name">Dedicated worker fingerprinting</div><div class="check-desc">Document-start scripts apply to matching frames, not worker globals. The inspector measures dedicated-worker divergence; this release does not claim worker-level protection.</div></div><span class="status">Known limitation</span></div>
+      </div>
+    </section>
+
+    <div class="footnote">NEXORA reports browser configuration and explicitly observed network data. It does not calculate fingerprint uniqueness, bot-detection resistance, or an anonymity grade.</div>
+  </div>
+
+  <div class="overlay" id="consentOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <div class="sheet">
+      <div class="eyebrow">OPTIONAL NETWORK INTELLIGENCE</div>
+      <h2 id="consentTitle">Check your public connection?</h2>
+      <p>NEXORA will make one HTTPS request to <strong>proxycheck.io</strong> for your public IP, network provider, ASN, approximate IP location and available VPN/proxy/Tor database signals. The provider receives your public IP and request metadata.</p>
+      <p>The request includes <strong>tag=0</strong> to disable positive-detection logging. The provider may still process or cache the lookup. NEXORA does not send local fingerprint measurements, profile credentials or browsing history. The result is displayed in this page only.</p>
+      <p>The no-key tier is limited to 100 lookups per day per querying IP. Detection databases can miss residential/mobile proxies and cannot guarantee a clean result. Cancel to run local checks only.</p>
+      <div class="sheet-actions">
+        <button class="btn btn-secondary" id="consentCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="consentAllow" type="button">Allow this session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEXORA_PROFILE_CONTEXT -->
+
+  <script>
+    (function () {
+      "use strict";
+      const $ = (id) => document.getElementById(id);
+      const localChecks = $("localChecks");
+      const runButton = $("runLocal");
+      const networkButton = $("checkNetwork");
+      const nativeSettings = [
+        {key:"safeBrowsing", icon:"◈", value:true, detail:"Android WebView Safe Browsing is enabled by BrowserActivity."},
+        {key:"mixedContent", icon:"⇄", value:true, detail:"Mixed HTTP content is blocked by the active WebView."},
+        {key:"fileAccess", icon:"▤", value:false, detail:"Web pages cannot read local file:// paths."},
+        {key:"contentAccess", icon:"▣", value:false, detail:"Web pages cannot access content:// resources."},
+        {key:"javascript", icon:"JS", value:!!window.navigator, detail:"JavaScript is executing in this browser page."},
+        {key:"domStorage", icon:"▦", value:storageAvailable(), detail:"Measured by attempting to access localStorage."},
+        {key:"cookies", icon:"◉", value:!!navigator.cookieEnabled, detail:"Reported by navigator.cookieEnabled."},
+        {key:"secureContext", icon:"⌑", value:!!window.isSecureContext, detail:"Reported by the browser's secure-context flag."}
+      ];
+      const labels = {
+        safeBrowsing:"Safe Browsing",
+        mixedContent:"Mixed-content blocking",
+        fileAccess:"Local file access",
+        contentAccess:"Content URI access",
+        javascript:"JavaScript",
+        domStorage:"DOM storage",
+        cookies:"Cookie support",
+        secureContext:"Secure-context APIs"
+      };
+
+      function storageAvailable() {
+        try { return !!window.localStorage; } catch (_) { return false; }
+      }
+
+      function stateClass(state) {
+        if (state === "MEASURED") return "good";
+        if (state === "ESTIMATE" || state === "LIMITED") return "warn";
+        if (state === "ERROR") return "bad";
+        return "";
+      }
+
+      function makeMetric(item) {
+        const card = document.createElement("div");
+        card.className = "metric";
+        const label = document.createElement("div");
+        label.className = "metric-label";
+        label.textContent = item.label;
+        const value = document.createElement("div");
+        value.className = "metric-value";
+        if (item.long) value.classList.add("long");
+        else if (item.medium) value.classList.add("medium");
+        value.textContent = item.value == null || item.value === "" ? "Unavailable" : String(item.value);
+        const note = document.createElement("div");
+        note.className = "metric-note";
+        note.textContent = item.note || "";
+        const state = document.createElement("span");
+        state.className = "metric-state " + stateClass(item.state || "UNAVAILABLE");
+        state.textContent = item.state || "UNAVAILABLE";
+        card.append(label, value, note, state);
+        return card;
+      }
+
+      function renderMetricGroup(id, items, statusId) {
+        const target = $(id);
+        target.replaceChildren();
+        items.forEach((item) => target.appendChild(makeMetric(item)));
+        const measured = items.filter((item) => item.state === "MEASURED").length;
+        const estimates = items.filter((item) => item.state === "ESTIMATE").length;
+        const limited = items.filter((item) => item.state === "LIMITED").length;
+        const unavailable = items.filter((item) => item.state === "UNAVAILABLE" || item.state === "ERROR").length;
+        $(statusId).textContent = measured + " MEASURED · " + (estimates + limited + unavailable) + " LIMITED";
+      }
+
+      function renderNativeChecks() {
+        localChecks.replaceChildren();
+        nativeSettings.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "check";
+          const accessDisabledIsGood = item.key === "fileAccess" || item.key === "contentAccess";
+          const isGood = accessDisabledIsGood ? !item.value : item.value;
+          const statusClassName = isGood ? "good" : "warn";
+          const statusText = accessDisabledIsGood
+            ? (item.value ? "Enabled" : "Disabled")
+            : (item.value ? "Enabled" : "Unavailable");
+          const icon = document.createElement("div");
+          icon.className = "check-icon";
+          icon.textContent = item.icon;
+          const copy = document.createElement("div");
+          copy.className = "check-copy";
+          const name = document.createElement("div");
+          name.className = "check-name";
+          name.textContent = labels[item.key];
+          const desc = document.createElement("div");
+          desc.className = "check-desc";
+          desc.textContent = item.detail;
+          copy.append(name, desc);
+          const status = document.createElement("span");
+          status.className = "status " + statusClassName;
+          status.textContent = statusText;
+          row.append(icon, copy, status);
+          localChecks.appendChild(row);
+        });
+        $("localUpdated").textContent = "SOURCE CONFIG";
+      }
+
+      function parseBrowser(ua) {
+        let match;
+        if ((match = ua.match(/EdgA?\/([\d.]+)/i))) return {name:"Microsoft Edge", version:match[1]};
+        if ((match = ua.match(/OPR\/([\d.]+)/i))) return {name:"Opera", version:match[1]};
+        if ((match = ua.match(/Chrome\/([\d.]+)/i))) {
+          const webview = /;\s*wv\)/i.test(ua) || /Version\/4\.0/i.test(ua);
+          return {name:webview ? "Android System WebView (Chromium)" : "Chromium-based browser", version:match[1]};
+        }
+        if ((match = ua.match(/Firefox\/([\d.]+)/i))) return {name:"Firefox", version:match[1]};
+        if ((match = ua.match(/Version\/([\d.]+).*Safari/i))) return {name:"Safari/WebKit", version:match[1]};
+        return {name:"Unidentified from User-Agent", version:"Not reported"};
+      }
+
+      function parseOperatingSystem(ua, uaData) {
+        if (uaData && uaData.platform) return uaData.platform + (uaData.platformVersion ? " " + uaData.platformVersion : "");
+        let match;
+        if ((match = ua.match(/Android\s+([\d.]+)/i))) return "Android " + match[1];
+        if ((match = ua.match(/iPhone OS\s+([\d_]+)/i))) return "iOS " + match[1].replace(/_/g, ".");
+        if ((match = ua.match(/CPU OS\s+([\d_]+)/i))) return "iOS " + match[1].replace(/_/g, ".");
+        if ((match = ua.match(/Windows NT\s+([\d.]+)/i))) return "Windows NT " + match[1];
+        if ((match = ua.match(/Mac OS X\s+([\d_]+)/i))) return "macOS " + match[1].replace(/_/g, ".");
+        if (/Linux/i.test(ua)) return "Linux (version not disclosed)";
+        return "Not disclosed by User-Agent";
+      }
+
+      function parseDeviceModel(ua, uaData) {
+        if (uaData && uaData.model) return uaData.model;
+        let match;
+        if ((match = ua.match(/Android\s+[^;]+;\s*([^;)]+)[;)]/i))) {
+          const model = match[1].trim();
+          if (model && !/^(wv|mobile|linux|k)$/i.test(model)) return model;
+        }
+        if (/iPhone/i.test(ua)) return "iPhone family (exact model not disclosed)";
+        if (/iPad/i.test(ua)) return "iPad family (exact model not disclosed)";
+        return "Not disclosed in this User-Agent";
+      }
+
+      function fnvHash(text) {
+        let hash = 2166136261;
+        for (let i = 0; i < text.length; i++) {
+          hash ^= text.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+        return ("00000000" + (hash >>> 0).toString(16)).slice(-8);
+      }
+
+      async function digestText(text) {
+        try {
+          if (window.crypto && crypto.subtle && window.TextEncoder) {
+            const bytes = new TextEncoder().encode(text);
+            const digest = await crypto.subtle.digest("SHA-256", bytes);
+            return Array.from(new Uint8Array(digest)).slice(0, 8)
+              .map((n) => n.toString(16).padStart(2, "0")).join("");
+          }
+        } catch (_) {}
+        return fnvHash(text);
+      }
+
+      async function canvasProbe() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 320;
+        canvas.height = 90;
+        const ctx = canvas.getContext("2d", {willReadFrequently:true});
+        if (!ctx) throw new Error("2D canvas context unavailable");
+        ctx.fillStyle = "#e7e7eb";
+        ctx.fillRect(0, 0, 320, 90);
+        ctx.fillStyle = "#d92f35";
+        ctx.fillRect(9, 9, 83, 27);
+        ctx.fillStyle = "#17171b";
+        ctx.font = "17px Arial";
+        ctx.fillText("NEXORA Smartlink 012345", 12, 61);
+        ctx.strokeStyle = "#55555d";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(260, 42, 22, 0, Math.PI * 2);
+        ctx.stroke();
+        const pixels = ctx.getImageData(0, 0, 320, 90).data;
+        const dataUrl = canvas.toDataURL("image/png");
+        return {
+          signature:await digestText(dataUrl + Array.from(pixels.slice(0, 128)).join(",")),
+          toDataURL:typeof canvas.toDataURL === "function",
+          getImageData:typeof ctx.getImageData === "function",
+          toBlob:typeof canvas.toBlob === "function",
+          offscreen:typeof window.OffscreenCanvas === "function"
+        };
+      }
+
+      function webglProbe() {
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl") ||
+          canvas.getContext("webgl2");
+        if (!gl) throw new Error("WebGL context unavailable");
+        let vendor = "Not exposed";
+        let renderer = "Not exposed";
+        const ext = gl.getExtension("WEBGL_debug_renderer_info");
+        if (ext) {
+          vendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || vendor;
+          renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || renderer;
+        } else {
+          vendor = gl.getParameter(gl.VENDOR) || vendor;
+          renderer = gl.getParameter(gl.RENDERER) || renderer;
+        }
+        const version = gl.getParameter(gl.VERSION) || "Unknown";
+        const shading = gl.getParameter(gl.SHADING_LANGUAGE_VERSION) || "Unknown";
+        const maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        const extensions = gl.getSupportedExtensions() || [];
+        return {
+          vendor:String(vendor),
+          renderer:String(renderer),
+          version:String(version),
+          shading:String(shading),
+          maxTexture:String(maxTexture),
+          extensionCount:extensions.length,
+          debugInfo:!!ext
+        };
+      }
+
+      async function audioProbe() {
+        const AudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!AudioContextClass) throw new Error("OfflineAudioContext unavailable");
+        const context = new AudioContextClass(1, 44100, 44100);
+        const oscillator = context.createOscillator();
+        const compressor = context.createDynamicsCompressor();
+        oscillator.type = "triangle";
+        oscillator.frequency.value = 10000;
+        compressor.threshold.value = -50;
+        compressor.knee.value = 40;
+        compressor.ratio.value = 12;
+        compressor.attack.value = 0;
+        compressor.release.value = 0.25;
+        oscillator.connect(compressor);
+        compressor.connect(context.destination);
+        oscillator.start(0);
+        let timeoutId;
+        let rendered;
+        try {
+          rendered = await Promise.race([
+            context.startRendering(),
+            new Promise((_, reject) => { timeoutId = window.setTimeout(() => reject(new Error("Audio render timed out")), 5000); })
+          ]);
+        } finally {
+          if (timeoutId) window.clearTimeout(timeoutId);
+        }
+        const samples = rendered.getChannelData(0);
+        let sampleText = "";
+        const step = Math.max(1, Math.floor(samples.length / 2048));
+        for (let i = 0; i < samples.length; i += step) {
+          sampleText += Math.round(samples[i] * 1000000000) + ",";
+        }
+        try { await context.close(); } catch (_) {}
+        return {signature:await digestText(sampleText), sampleCount:samples.length};
+      }
+
+      function fontProbe() {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas text metrics unavailable");
+        const sample = "mmmmmmmmmmlliWW@#$% 0123456789";
+        ctx.font = "32px monospace";
+        const baseline = ctx.measureText(sample).width;
+        const fonts = [
+          "Arial","Roboto","Noto Sans","Noto Serif","Droid Sans","Courier New",
+          "Times New Roman","Georgia","Verdana","Tahoma","Trebuchet MS","Comic Sans MS"
+        ];
+        const detected = [];
+        fonts.forEach((font) => {
+          ctx.font = '32px "' + font + '", monospace';
+          if (Math.abs(ctx.measureText(sample).width - baseline) > 0.15) detected.push(font);
+        });
+        return {detected:detected, tested:fonts.length};
+      }
+
+      function boolText(value) {
+        if (value === true) return "Available";
+        if (value === false) return "Unavailable";
+        return "Not reported";
+      }
+
+      function profileContext() {
+        const node = $("nexoraProfileContext");
+        if (!node) return null;
+        try { return JSON.parse(node.textContent || "{}"); } catch (_) { return null; }
+      }
+
+      function compareProfileValue(label, expected, observed, note, long) {
+        if (expected === null || expected === undefined || expected === "" ||
+            observed === null || observed === undefined || observed === "") {
+          return {label:label,value:"Not verifiable",note:note,state:"UNAVAILABLE"};
+        }
+        const match = String(expected) === String(observed);
+        return {
+          label:label,
+          value:(match ? "MATCH" : "MISMATCH") + " · observed " + String(observed) + " / configured " + String(expected),
+          note:note,
+          state:match ? "MEASURED" : "LIMITED",
+          medium:!long,
+          long:!!long
+        };
+      }
+
+      function renderProfileConsistency() {
+        const config = profileContext();
+        const items = [];
+        if (!config || !Object.keys(config).length) {
+          items.push({label:"Profile context",value:"Not supplied",note:"The local profile context was not available to this bundled page.",state:"UNAVAILABLE"});
+          renderMetricGroup("profileConsistencyChecks", items, "profileConsistencyStatus");
+          return items;
+        }
+        items.push({
+          label:"Document-start injection",
+          value:config.documentStartSupported ? "Available before page scripts" : "Best-effort fallback only",
+          note:config.documentStartSupported
+            ? "AndroidX WebKit registered the script before this navigation."
+            : "This WebView did not confirm document-start injection; onPageStarted fallback timing is not guaranteed.",
+          state:config.documentStartSupported ? "MEASURED" : "LIMITED",
+          medium:true
+        });
+        items.push(compareProfileValue("User-Agent",config.expectedUserAgent,navigator.userAgent,
+          "Exact page-visible string compared with the active WebView User-Agent.",true));
+        items.push(compareProfileValue("Platform",config.expectedPlatform,navigator.platform,
+          "navigator.platform compared with the selected device preset."));
+        items.push(compareProfileValue("Language",config.expectedLanguage,navigator.language,
+          "Primary navigator.language value compared with the profile."));
+        items.push(compareProfileValue("CPU logical cores",config.expectedCores,navigator.hardwareConcurrency,
+          "navigator.hardwareConcurrency compared with the device preset."));
+        items.push(compareProfileValue("Approximate RAM bucket",config.expectedMemory,navigator.deviceMemory,
+          "navigator.deviceMemory is coarse and may be unavailable in this WebView."));
+        items.push(compareProfileValue("Screen resolution",
+          String(config.expectedScreenWidth) + " × " + String(config.expectedScreenHeight),
+          String(screen.width) + " × " + String(screen.height),
+          "CSS screen dimensions compared with the selected device preset."));
+        items.push(compareProfileValue("Device pixel ratio",config.expectedDpr,window.devicePixelRatio,
+          "window.devicePixelRatio compared with the selected device preset."));
+
+        if (config.webglSpoofEnabled) {
+          try {
+            const gl = webglProbe();
+            items.push(compareProfileValue("WebGL vendor",config.expectedWebglVendor,gl.vendor,
+              "Observed vendor compared with the profile's configured GPU family."));
+            items.push(compareProfileValue("WebGL renderer",config.expectedWebglRenderer,gl.renderer,
+              "Observed renderer compared with the profile's configured GPU model.",true));
+          } catch (error) {
+            items.push({label:"WebGL profile match",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+          }
+        } else {
+          items.push({label:"WebGL profile match",value:"Not configured",note:"WebGL spoofing is disabled in this profile.",state:"LIMITED"});
+        }
+
+        const rtcPresent = typeof window.RTCPeerConnection === "function" ||
+          typeof window.webkitRTCPeerConnection === "function";
+        if (config.webrtcBlocked) {
+          items.push({label:"WebRTC block setting",value:rtcPresent ? "MISMATCH · API remains exposed" : "MATCH · API not exposed",
+            note:"Checks API presence only; this is not a STUN or IP leak test.",state:rtcPresent ? "LIMITED" : "MEASURED"});
+        } else {
+          items.push({label:"WebRTC block setting",value:"Protection disabled",note:"The profile does not request WebRTC API blocking.",state:"LIMITED"});
+        }
+        items.push({label:"Canvas protection setting",value:config.canvasNoiseEnabled ? "Enabled in profile" : "Disabled in profile",
+          note:"Configuration only; canvas export coverage is tested separately and this is not a proof of anonymity.",state:"LIMITED"});
+        items.push({label:"Audio protection setting",value:config.audioNoiseEnabled ? "Enabled in profile" : "Disabled in profile",
+          note:"Configuration only; audio buffer paths are covered by the local implementation tests.",state:"LIMITED"});
+
+        if (navigator.userAgentData) {
+          const uaPlatform = navigator.userAgentData.platform || "Not exposed";
+          const expectedUaPlatform = /Android/i.test(navigator.userAgent) ? "Android" :
+            (/iPhone|iPad|iPod/i.test(navigator.userAgent) ? "iOS" : uaPlatform);
+          items.push(compareProfileValue("UA-CH platform",expectedUaPlatform,uaPlatform,
+            "Low-entropy User-Agent Client Hints platform compared with the current User-Agent."));
+        } else {
+          items.push({label:"UA-CH platform",value:"API not exposed",note:"NEXORA does not fabricate User-Agent Client Hints support when WebView omits it.",state:"UNAVAILABLE"});
+        }
+        renderMetricGroup("profileConsistencyChecks", items, "profileConsistencyStatus");
+        return items;
+      }
+
+      function snapshotWindow(target) {
+        return {
+          ua:String(target.navigator.userAgent || ""),
+          platform:String(target.navigator.platform || ""),
+          language:String(target.navigator.language || ""),
+          cores:Number(target.navigator.hardwareConcurrency) || 0,
+          memory:Number(target.navigator.deviceMemory) || 0,
+          touch:Number(target.navigator.maxTouchPoints) || 0
+        };
+      }
+
+      function compareSnapshots(reference, observed) {
+        const fields = ["ua","platform","language","cores","memory","touch"];
+        return fields.filter((field) => String(reference[field]) !== String(observed[field]));
+      }
+
+      function iframeProbe() {
+        return new Promise((resolve) => {
+          const frame = document.createElement("iframe");
+          frame.setAttribute("aria-hidden","true");
+          frame.style.cssText = "position:absolute;width:1px;height:1px;left:-10000px;top:-10000px;border:0";
+          let finished = false;
+          const finish = (item) => {
+            if (finished) return;
+            finished = true;
+            window.clearTimeout(timer);
+            try { frame.remove(); } catch (_) {}
+            resolve(item);
+          };
+          const timer = window.setTimeout(() => finish({
+            label:"Same-origin iframe consistency",value:"Timed out",
+            note:"The local iframe did not finish loading; frame injection could not be verified.",state:"UNAVAILABLE"
+          }),2500);
+          frame.onload = () => {
+            try {
+              const observed = snapshotWindow(frame.contentWindow);
+              const mismatches = compareSnapshots(snapshotWindow(window),observed);
+              finish({
+                label:"Same-origin iframe consistency",
+                value:mismatches.length ? "Mismatch: " + mismatches.join(", ") : "Selected values match",
+                note:"Compares six browser-visible values in a same-origin srcdoc iframe. Cross-origin frames cannot be inspected here.",
+                state:mismatches.length ? "LIMITED" : "MEASURED",
+                medium:true
+              });
+            } catch (error) {
+              finish({label:"Same-origin iframe consistency",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+            }
+          };
+          frame.srcdoc = "<!doctype html><meta charset='utf-8'><title>NEXORA frame probe</title><body></body>";
+          document.documentElement.appendChild(frame);
+        });
+      }
+
+      function workerProbe() {
+        return new Promise((resolve) => {
+          if (typeof Worker !== "function" || typeof Blob !== "function" || !URL.createObjectURL) {
+            resolve({label:"Dedicated worker consistency",value:"Worker API unavailable",note:"This WebView does not expose dedicated workers or Blob URLs.",state:"UNAVAILABLE"});
+            return;
+          }
+          const source = "self.postMessage({ua:String(navigator.userAgent||''),platform:String(navigator.platform||''),language:String(navigator.language||''),cores:Number(navigator.hardwareConcurrency)||0,memory:Number(navigator.deviceMemory)||0,touch:Number(navigator.maxTouchPoints)||0});";
+          let worker;
+          let objectUrl;
+          let finished = false;
+          const finish = (item) => {
+            if (finished) return;
+            finished = true;
+            window.clearTimeout(timer);
+            try { if (worker) worker.terminate(); } catch (_) {}
+            try { if (objectUrl) URL.revokeObjectURL(objectUrl); } catch (_) {}
+            resolve(item);
+          };
+          const timer = window.setTimeout(() => finish({
+            label:"Dedicated worker consistency",value:"Timed out or blocked",
+            note:"Blob workers may be restricted by the page's content security policy.",state:"UNAVAILABLE"
+          }),2500);
+          try {
+            objectUrl = URL.createObjectURL(new Blob([source],{type:"text/javascript"}));
+            worker = new Worker(objectUrl);
+            worker.onmessage = (event) => {
+              const observed = event.data || {};
+              const mismatches = compareSnapshots(snapshotWindow(window),observed);
+              finish({
+                label:"Dedicated worker consistency",
+                value:mismatches.length ? "Different in worker: " + mismatches.join(", ") : "Selected values match",
+                note:"Workers have a separate JavaScript global. This probe checks six values; it does not claim document-start overrides run inside workers.",
+                state:mismatches.length ? "LIMITED" : "ESTIMATE",
+                medium:true
+              });
+            };
+            worker.onerror = () => finish({
+              label:"Dedicated worker consistency",value:"Worker execution blocked",
+              note:"The WebView or page policy prevented the local Blob worker probe.",state:"UNAVAILABLE"
+            });
+          } catch (error) {
+            finish({label:"Dedicated worker consistency",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+          }
+        });
+      }
+
+      async function runLocalChecks() {
+        runButton.disabled = true;
+        runButton.textContent = "Measuring…";
+        $("overallStatus").textContent = "Running local diagnostics";
+        $("overallCaption").textContent = "Only local browser APIs are being read. No network lookup is running.";
+        renderNativeChecks();
+
+        const ua = String(navigator.userAgent || "");
+        let uaData = null;
+        try {
+          if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === "function") {
+            uaData = await navigator.userAgentData.getHighEntropyValues([
+              "architecture","bitness","model","platform","platformVersion","fullVersionList"
+            ]);
+          }
+        } catch (_) {}
+
+        const browser = parseBrowser(ua);
+        const os = parseOperatingSystem(ua, uaData);
+        const model = parseDeviceModel(ua, uaData);
+        const uaHintSummary = uaData
+          ? [uaData.model || "model hidden", uaData.platform || "platform hidden",
+             uaData.platformVersion || "OS version hidden",
+             uaData.architecture || "", uaData.bitness ? uaData.bitness + "-bit" : ""]
+             .filter(Boolean).join(" · ")
+          : "Not exposed by this WebView";
+        const identity = [
+          {label:"Device model hint",value:model,note:"Parsed from the profile-visible User-Agent; not native hardware verification.",state:model.startsWith("Not disclosed") ? "LIMITED" : "MEASURED"},
+          {label:"User-Agent Client Hints",value:uaHintSummary,note:"High-entropy hints are queried only when the browser exposes the API.",state:uaData ? "MEASURED" : "LIMITED",medium:true},
+          {label:"Browser / engine",value:browser.name + " · " + browser.version,note:"Parsed from the User-Agent string visible to web pages.",state:browser.version === "Not reported" ? "LIMITED" : "MEASURED"},
+          {label:"Operating system",value:os,note:"Parsed from User-Agent or high-entropy client hints; may be profile-customized.",state:os.startsWith("Not disclosed") ? "LIMITED" : "MEASURED"},
+          {label:"Platform",value:(uaData && uaData.platform) || navigator.platform || "Not exposed",note:"navigator.platform / User-Agent Client Hints.",state:(navigator.platform || (uaData && uaData.platform)) ? "MEASURED" : "LIMITED"},
+          {label:"Language",value:(navigator.languages || [navigator.language]).filter(Boolean).join(", ") || "Not exposed",note:"Browser language preference exposed to pages.",state:navigator.language ? "MEASURED" : "UNAVAILABLE"},
+          {label:"Touch points",value:typeof navigator.maxTouchPoints === "number" ? String(navigator.maxTouchPoints) : "Not exposed",note:"navigator.maxTouchPoints.",state:typeof navigator.maxTouchPoints === "number" ? "MEASURED" : "UNAVAILABLE"},
+          {label:"User-Agent",value:ua || "Not exposed",note:"Exact string visible to websites; can be changed by profile settings.",state:ua ? "MEASURED" : "UNAVAILABLE",long:true}
+        ];
+        renderMetricGroup("identityChecks", identity, "identityStatus");
+
+        const screenValue = (window.screen && screen.width && screen.height)
+          ? screen.width + " × " + screen.height + " CSS px"
+          : "Not exposed";
+        const viewport = window.innerWidth + " × " + window.innerHeight + " CSS px";
+        const hardware = [
+          {label:"Screen resolution",value:screenValue,note:"screen.width × screen.height as exposed to this page.",state:screenValue === "Not exposed" ? "UNAVAILABLE" : "MEASURED"},
+          {label:"Viewport / DPR",value:viewport + " · DPR " + (window.devicePixelRatio || "unknown"),note:"Current page viewport and devicePixelRatio.",state:"MEASURED"},
+          {label:"CPU logical cores",value:Number.isFinite(navigator.hardwareConcurrency) ? String(navigator.hardwareConcurrency) : "Not exposed",note:"navigator.hardwareConcurrency; may be reduced or overridden.",state:Number.isFinite(navigator.hardwareConcurrency) ? "MEASURED" : "UNAVAILABLE"},
+          {label:"Approximate RAM",value:Number.isFinite(navigator.deviceMemory) ? navigator.deviceMemory + " GB bucket" : "Not exposed",note:"navigator.deviceMemory is a coarse, rounded bucket, not exact installed RAM.",state:Number.isFinite(navigator.deviceMemory) ? "ESTIMATE" : "UNAVAILABLE"},
+          {label:"WebGL GPU",value:"Checking…",note:"GPU vendor and renderer are queried below.",state:"LIMITED"},
+          {label:"Network connection hint",value:(navigator.connection && navigator.connection.effectiveType) || "Not exposed",note:navigator.connection ? "Downlink " + (navigator.connection.downlink || "unknown") + " Mbps · RTT " + (navigator.connection.rtt || "unknown") + " ms" : "Network Information API is not exposed by this WebView.",state:navigator.connection ? "MEASURED" : "UNAVAILABLE"}
+        ];
+        try {
+          const gl = webglProbe();
+          hardware[4] = {
+            label:"WebGL GPU",
+            value:gl.vendor + " · " + gl.renderer,
+            note:gl.version + " · Max texture " + gl.maxTexture + " · " + gl.extensionCount + " extensions" +
+              (gl.debugInfo ? " · unmasked debug info exposed" : " · unmasked debug info restricted"),
+            state:"MEASURED",
+            medium:true
+          };
+        } catch (error) {
+          hardware[4] = {label:"WebGL GPU",value:"Unavailable",note:error.message,state:"UNAVAILABLE"};
+        }
+        renderMetricGroup("hardwareChecks", hardware, "hardwareStatus");
+
+        const fingerprint = [];
+        try {
+          const canvas = await canvasProbe();
+          fingerprint.push({
+            label:"Canvas signature",
+            value:canvas.signature,
+            note:"Local synthetic canvas hash. toDataURL " + boolText(canvas.toDataURL) +
+              " · getImageData " + boolText(canvas.getImageData) +
+              " · toBlob " + boolText(canvas.toBlob) +
+              " · OffscreenCanvas " + boolText(canvas.offscreen),
+            state:"MEASURED"
+          });
+        } catch (error) {
+          fingerprint.push({label:"Canvas signature",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+        }
+        try {
+          const gl = webglProbe();
+          fingerprint.push({
+            label:"WebGL signature",
+            value:await digestText([gl.vendor,gl.renderer,gl.version,gl.shading,gl.maxTexture,gl.extensionCount].join("|")),
+            note:gl.vendor + " · " + gl.renderer + " · " + gl.shading,
+            state:"MEASURED",
+            medium:true
+          });
+        } catch (error) {
+          fingerprint.push({label:"WebGL signature",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+        }
+        try {
+          const audio = await audioProbe();
+          fingerprint.push({
+            label:"Audio signature",
+            value:audio.signature,
+            note:"OfflineAudioContext rendered " + audio.sampleCount + " samples; no sound played or uploaded.",
+            state:"MEASURED"
+          });
+        } catch (error) {
+          fingerprint.push({label:"Audio signature",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+        }
+        try {
+          const fonts = fontProbe();
+          fingerprint.push({
+            label:"Font probing",
+            value:fonts.detected.length + " / " + fonts.tested + " font metrics differ",
+            note:fonts.detected.length ? "Metric-based hints: " + fonts.detected.join(", ") : "No tested font differed from the fallback metric. This is a heuristic, not a complete font inventory.",
+            state:"ESTIMATE",
+            medium:true
+          });
+        } catch (error) {
+          fingerprint.push({label:"Font probing",value:"Unavailable",note:error.message,state:"UNAVAILABLE"});
+        }
+        renderMetricGroup("fingerprintChecks", fingerprint, "fingerprintStatus");
+        const profileConsistency = renderProfileConsistency();
+
+        const timezone = (Intl.DateTimeFormat().resolvedOptions().timeZone || "Not exposed") +
+          " · UTC offset " + new Date().getTimezoneOffset() + " min";
+        let batteryItem;
+        try {
+          if (typeof navigator.getBattery === "function") {
+            const battery = await Promise.race([
+              navigator.getBattery(),
+              new Promise((_, reject) => window.setTimeout(() => reject(new Error("Battery query timed out")), 2500))
+            ]);
+            batteryItem = {
+              label:"Battery status",
+              value:Math.round(battery.level * 100) + "% · " + (battery.charging ? "Charging" : "Not charging"),
+              note:"Battery Status API returned a one-time snapshot; no event tracking is enabled.",
+              state:"LIMITED"
+            };
+          } else {
+            batteryItem = {label:"Battery status",value:"API not exposed",note:"Android WebView may omit the Battery Status API.",state:"UNAVAILABLE"};
+          }
+        } catch (error) {
+          batteryItem = {label:"Battery status",value:"Unavailable",note:error.message,state:"UNAVAILABLE"};
+        }
+        const rtcAvailable = typeof window.RTCPeerConnection === "function" ||
+          typeof window.webkitRTCPeerConnection === "function";
+        const iframeItem = await iframeProbe();
+        const workerItem = await workerProbe();
+        const system = [
+          {label:"Browser timezone",value:timezone,note:"Intl.DateTimeFormat and Date offset as seen by this page.",state:timezone.startsWith("Not exposed") ? "UNAVAILABLE" : "MEASURED"},
+          batteryItem,
+          {label:"WebRTC API",value:rtcAvailable ? "Available" : "Not exposed / blocked",note:rtcAvailable ? "API presence only. No STUN candidate or IP leak test is performed." : "The active profile may disable the WebRTC API.",state:rtcAvailable ? "LIMITED" : "MEASURED"},
+          iframeItem,
+          workerItem,
+          {label:"DNS resolver",value:"Not exposed to page JavaScript",note:"The page does not expose Android's active DNS resolver to JavaScript; no DNS leak verdict is claimed.",state:"UNAVAILABLE"}
+        ];
+        renderMetricGroup("systemChecks", system, "systemStatus");
+
+        const all = identity.concat(profileConsistency, hardware, fingerprint, system);
+        const measured = all.filter((item) => item.state === "MEASURED").length;
+        const limited = all.length - measured;
+        $("overallStatus").textContent = "Local diagnostics complete";
+        $("overallCaption").textContent = measured + " measurements available · " + limited +
+          " estimated, limited or unavailable. No external service was contacted.";
+        runButton.disabled = false;
+        runButton.textContent = "↻ Run all local checks";
+      }
+
+      function setNetworkState(label, kind) {
+        $("networkStatus").innerHTML = '<span class="dot ' + (kind || '') + '"></span> ' + label;
+      }
+
+      function valueOr(value, fallback) {
+        return value === null || value === undefined || value === "" ? fallback : String(value);
+      }
+
+      function booleanSignal(value) {
+        if (value === true || value === "yes" || value === "true" || value === 1) return true;
+        if (value === false || value === "no" || value === "false" || value === 0) return false;
+        return null;
+      }
+
+      function firstSignal(values) {
+        for (let i = 0; i < values.length; i++) {
+          const parsed = booleanSignal(values[i]);
+          if (parsed !== null) return parsed;
+        }
+        return null;
+      }
+
+      function networkVerdict(value, anonymous) {
+        if (value === true) return "Detected by provider";
+        if (value === false) return "No known flag returned";
+        if (anonymous === true) return "Anonymous IP flagged; subtype unavailable";
+        if (anonymous === false) return "No anonymous flag returned";
+        return "Not reported by provider";
+      }
+
+      function renderNetwork(items) {
+        const target = $("networkResults");
+        target.replaceChildren();
+        items.forEach((item) => target.appendChild(makeMetric(item)));
+      }
+
+      async function runNetworkLookup() {
+        setNetworkState("CHECKING", "warn");
+        networkButton.disabled = true;
+        networkButton.innerHTML = '<span class="loading"></span> Checking';
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 12000);
+        try {
+          const response = await fetch("https://proxycheck.io/v3/?tag=0", {
+            method:"GET",
+            mode:"cors",
+            redirect:"error",
+            cache:"no-store",
+            credentials:"omit",
+            referrerPolicy:"no-referrer",
+            signal:controller.signal,
+            headers:{"Accept":"application/json"}
+          });
+          const data = await response.json();
+          if (!response.ok || !data || !["ok","warning"].includes(String(data.status || "").toLowerCase())) {
+            const message = data && (data.message || data.status) ? (data.message || data.status) : "Provider request failed";
+            throw new Error("Network intelligence provider: " + message + " (HTTP " + response.status + ")");
+          }
+          const ip = String(data.ip || "").trim();
+          const record = ip ? data[ip] : null;
+          if (!ip || !record || typeof record !== "object") throw new Error("Provider returned no usable IP record");
+
+          const network = record.network || {};
+          const location = record.location || {};
+          const detections = record.detections || {};
+          const anonymous = firstSignal([detections.anonymous, detections.is_anonymous, record.anonymous]);
+          const vpn = firstSignal([detections.vpn, detections.is_vpn, record.vpn, record.is_vpn]);
+          const proxy = firstSignal([detections.proxy, detections.is_proxy, record.proxy, record.is_proxy]);
+          const tor = firstSignal([detections.tor, detections.is_tor, record.tor, record.is_tor]);
+          const city = location.city || location.city_name || record.city;
+          const region = location.region || location.region_name || location.state || record.region;
+          const country = location.country || location.country_name || record.country;
+          const place = [city, region, country].filter(Boolean).join(", ");
+          const provider = network.provider || network.organisation || network.organization ||
+            network.isp || record.provider || record.organisation;
+          const asn = network.asn || record.asn;
+          const operator = record.operator && typeof record.operator === "object"
+            ? (record.operator.name || record.operator.provider || "")
+            : record.operator;
+          const detectionsNote = detections && Object.keys(detections).length
+            ? "Provider database flags; coverage is incomplete and may miss residential/mobile proxies."
+            : "No detailed detection fields were returned for this record.";
+
+          renderNetwork([
+            {label:"Public IP address",value:ip,note:"Observed by proxycheck.io from this HTTPS request.",state:"MEASURED"},
+            {label:"Provider / ISP",value:valueOr(provider,"Not reported"),note:"Registered network provider; may not identify the retail carrier.",state:provider ? "MEASURED" : "UNAVAILABLE"},
+            {label:"ASN",value:valueOr(asn,"Not reported"),note:"Autonomous System Number / network operator.",state:asn ? "MEASURED" : "UNAVAILABLE"},
+            {label:"IP geolocation",value:valueOr(place,"Not reported"),note:"Approximate IP database location, not GPS or an exact street address.",state:place ? "ESTIMATE" : "UNAVAILABLE",medium:true},
+            {label:"Network class",value:valueOr(network.type || record.type,"Not reported"),note:"Provider classification such as residential, wireless or hosting.",state:(network.type || record.type) ? "ESTIMATE" : "UNAVAILABLE"},
+            {label:"VPN signal",value:networkVerdict(vpn,anonymous),note:detectionsNote,state:vpn === null && anonymous === null ? "UNAVAILABLE" : "ESTIMATE",medium:true},
+            {label:"Proxy signal",value:networkVerdict(proxy,anonymous),note:detectionsNote,state:proxy === null && anonymous === null ? "UNAVAILABLE" : "ESTIMATE",medium:true},
+            {label:"Tor / operator",value:tor === null ? valueOr(operator,"Not separately reported") : (tor ? "Tor signal detected" : "No known Tor flag"),note:"Database classification; false negatives are possible.",state:tor === null && !operator ? "UNAVAILABLE" : "ESTIMATE",medium:true}
+          ]);
+          setNetworkState("OBSERVED", "good");
+          $("overallStatus").textContent = "Network lookup complete";
+          $("overallCaption").textContent = "Local measurements remain on this device. Network intelligence was requested only after your approval.";
+        } catch (error) {
+          renderNetwork([
+            {label:"Network lookup",value:"Unavailable",note:String(error && error.message || "Request failed"),state:"ERROR",medium:true},
+            {label:"Local diagnostics",value:"Still available",note:"Run local checks without contacting an external service.",state:"MEASURED"}
+          ]);
+          setNetworkState("FAILED", "bad");
+          $("overallStatus").textContent = "Network lookup unavailable";
+          $("overallCaption").textContent = "No IP, provider or location value was guessed. Local browser diagnostics remain available.";
+        } finally {
+          window.clearTimeout(timeout);
+          networkButton.disabled = false;
+          networkButton.textContent = "Check network ↗";
+        }
+      }
+
+      function showConsent() {
+        $("consentOverlay").hidden = false;
+        $("consentAllow").focus();
+      }
+
+      function hideConsent() {
+        $("consentOverlay").hidden = true;
+      }
+
+      runButton.addEventListener("click", () => {
+        runLocalChecks().catch((error) => {
+          $("overallStatus").textContent = "Local diagnostics incomplete";
+          $("overallCaption").textContent = String(error && error.message || "A local measurement could not run.");
+          runButton.disabled = false;
+          runButton.textContent = "↻ Run all local checks";
+        });
+      });
+      networkButton.addEventListener("click", () => {
+        let consented = false;
+        try { consented = sessionStorage.getItem("nexoraNetworkConsent") === "yes"; } catch (_) {}
+        if (consented) runNetworkLookup();
+        else showConsent();
+      });
+      $("consentCancel").addEventListener("click", hideConsent);
+      $("consentAllow").addEventListener("click", () => {
+        try { sessionStorage.setItem("nexoraNetworkConsent", "yes"); } catch (_) {}
+        hideConsent();
+        runNetworkLookup();
+      });
+      $("consentOverlay").addEventListener("click", (event) => {
+        if (event.target === $("consentOverlay")) hideConsent();
+      });
+      $("themeToggle").addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        $("themeToggle").textContent = next === "dark" ? "◐" : "☼";
+        try { localStorage.setItem("nexoraHomeTheme", next); } catch (_) {}
+      });
+      try {
+        const savedTheme = localStorage.getItem("nexoraHomeTheme");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.dataset.theme = savedTheme;
+          $("themeToggle").textContent = savedTheme === "dark" ? "◐" : "☼";
+        }
+      } catch (_) {}
+
+      runLocalChecks().catch((error) => {
+        $("overallStatus").textContent = "Local diagnostics incomplete";
+        $("overallCaption").textContent = String(error && error.message || "A local measurement could not run.");
+        runButton.disabled = false;
+        runButton.textContent = "↻ Run all local checks";
+      });
+    })();
+  </script>
+</body>
+</html>
