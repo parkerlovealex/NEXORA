@@ -757,6 +757,3 @@ body.show-admin-chip .admin-chip{display:flex}
 }
 
 .platform-switch [data-platform-mode="all"]{grid-column:2}
-
-/* Dedicated Kotlin/JS User-Agent Studio navigation link. */
-.nav a.nav-item{text-decoration:none}
