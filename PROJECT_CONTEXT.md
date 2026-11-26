@@ -447,3 +447,12 @@ The ChatGPT handoff pack "NEXORA Kotlin UA Studio Update 2026-11-25" was audited
 - **Fixes applied vs the pack:** (1) the pack's main `index.html` carried the regressed token `-8` — not taken; (2) the pack's `ua_templates.json` copies were the STALE `.4` (11 candidates) — the Studio's data copy is the live `.5` (12 records incl. 1 pending); (3) the pack's docs were NOT taken (its spec copy still had the superseded `.6` baseline line).
 - **UPKEEP RULE:** `web/ua-studio/data/` holds its OWN copies of `devices.json`, `desktop-catalog.json` and `ua_templates.json`. Whenever any main catalog updates, refresh all three Studio copies in the same round or the Studio silently drifts stale.
 - Report: `reports/kotlin-ua-studio-2026-11-25.md`; smoke test: `tests/ua-studio-smoke.js` (paths adapted `web-current/` → `web/`; passes, and reports the 12-record .5 inventory).
+
+## Addendum — first VERIFIED template published (2026-11-26, Muse)
+
+On the owner's explicit approval, `facebook-android-fb4a-observed-2026-v1` was promoted **pending → verified** and the template catalog published as **dataVersion 2026.11.25.6** (12 records: 11 candidate + 1 verified; validator 0 errors / 0 warnings; 15/15 pipeline tests pass).
+
+- Verification gate met: TWO independent observed-UA sources agree token-for-token (byte-identical, 165 chars) — avidtrak request log 2026-11-24 and a Goodbox Symfony profiler log 2026-11-24 — plus a HackerNoon technical reference (dated by its publication date, 2026-11-25) confirming the current FB_IAB/FB4A no-`wv` format. The undated user-agents.net item was dropped from this record's evidence (preserved in findings/research files; no date invented). Pair 588.0.0.42.55 / 707615019 stands in catalog .7 history.
+- The template is the reduced-UA variant: `Android 10; K` and `Chrome/158.0.0.0` are LITERAL observed tokens (only `{appVersion}` is dynamic) — do not "modernize" them to catalog Chrome 159 without a matching observation.
+- The record's stale baseline-discrepancy review note was resolved in the published copy (spec baseline is .7, authoritative).
+- Published to BOTH `web/ua_templates.json` and `web/ua-studio/data/ua_templates.json` (upkeep rule). Effect: the generator may now offer Facebook Android as a real **Verified template** in-app option; the other 11 records stay candidate/pending and locked. Website UI unchanged.
