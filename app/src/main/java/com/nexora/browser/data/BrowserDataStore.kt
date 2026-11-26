@@ -1,6 +1,7 @@
 package com.nexora.browser.data
 
 import android.content.Context
+import java.security.MessageDigest
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -13,7 +14,12 @@ data class BrowserPageRecord(
 data class BrowserDownloadRecord(
     val id: Long,
     val fileName: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val localPath: String = "",
+    val status: String = "LEGACY",
+    val downloadedBytes: Long = 0L,
+    val totalBytes: Long = -1L,
+    val mimeType: String = ""
 )
 
 data class BrowserTabGroup(
@@ -39,10 +45,38 @@ data class BrowserSessionSnapshot(
  * AndroidX WebKit profile data store; this class stores UI metadata only.
  */
 class BrowserDataStore(context: Context, profileId: String) {
-    private val prefs = context.getSharedPreferences(
-        "nexora_browser_${profileId.hashCode()}",
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences(
+        profilePrefsName(profileId),
         Context.MODE_PRIVATE
     )
+
+    init {
+        migrateLegacyPreferences(profileId)
+    }
+
+    /**
+     * SHA-256 prevents unrelated profile IDs with equal String.hashCode() values
+     * from sharing browser metadata. The previous namespace is copied forward
+     * once so existing bookmarks, history and sessions survive the upgrade.
+     */
+    private fun migrateLegacyPreferences(profileId: String) {
+        if (prefs.getBoolean(KEY_NAMESPACE_MIGRATED, false)) return
+        val legacy = appContext.getSharedPreferences(legacyPrefsName(profileId), Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        legacy.all.forEach { (key, value) ->
+            if (prefs.contains(key)) return@forEach
+            when (value) {
+                is String -> editor.putString(key, value)
+                is Boolean -> editor.putBoolean(key, value)
+                is Int -> editor.putInt(key, value)
+                is Long -> editor.putLong(key, value)
+                is Float -> editor.putFloat(key, value)
+                is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
+            }
+        }
+        editor.putBoolean(KEY_NAMESPACE_MIGRATED, true).commit()
+    }
 
     @Synchronized
     fun tabGroups(): List<BrowserTabGroup> {
@@ -103,6 +137,7 @@ class BrowserDataStore(context: Context, profileId: String) {
 
     @Synchronized
     fun saveSession(tabs: List<BrowserSessionTab>, activeIndex: Int) {
+        val validGroupIds = tabGroups().mapTo(mutableSetOf()) { it.id }
         val array = JSONArray()
         tabs.take(MAX_SESSION_TABS).forEach { tab ->
             val url = tab.url.take(MAX_SESSION_URL_LENGTH)
@@ -111,14 +146,20 @@ class BrowserDataStore(context: Context, profileId: String) {
                 .put("url", url)
                 .put("title", tab.title.take(MAX_SESSION_TITLE_LENGTH))
                 .put("desktopMode", tab.desktopMode)
-            if (!tab.groupId.isNullOrBlank() && tabGroups().any { it.id == tab.groupId }) {
+            if (!tab.groupId.isNullOrBlank() && tab.groupId in validGroupIds) {
                 item.put("groupId", tab.groupId)
             }
             array.put(item)
         }
+        val serialized = array.toString()
         val safeIndex = activeIndex.coerceIn(0, (array.length() - 1).coerceAtLeast(0))
+        // WebView can emit several navigation callbacks for one page. Avoid
+        // rewriting identical session metadata for those duplicate events.
+        if (prefs.getString(KEY_SESSION, "[]") == serialized &&
+            prefs.getInt(KEY_SESSION_ACTIVE, 0) == safeIndex
+        ) return
         prefs.edit()
-            .putString(KEY_SESSION, array.toString())
+            .putString(KEY_SESSION, serialized)
             .putInt(KEY_SESSION_ACTIVE, safeIndex)
             .apply()
     }
@@ -157,6 +198,18 @@ class BrowserDataStore(context: Context, profileId: String) {
     @Synchronized
     fun clearSession() {
         prefs.edit().remove(KEY_SESSION).remove(KEY_SESSION_ACTIVE).apply()
+    }
+
+    @Synchronized
+    fun markPrivacyResetPending() {
+        prefs.edit().putBoolean(KEY_PRIVACY_RESET_PENDING, true).apply()
+    }
+
+    @Synchronized
+    fun consumePrivacyResetPending(): Boolean {
+        val pending = prefs.getBoolean(KEY_PRIVACY_RESET_PENDING, false)
+        if (pending) prefs.edit().remove(KEY_PRIVACY_RESET_PENDING).commit()
+        return pending
     }
 
     @Synchronized
@@ -227,6 +280,11 @@ class BrowserDataStore(context: Context, profileId: String) {
     }
 
     @Synchronized
+    fun clearRecentlyClosed() {
+        prefs.edit().remove(KEY_CLOSED).apply()
+    }
+
+    @Synchronized
     fun siteUserAgent(host: String): String? {
         if (host.isBlank()) return null
         return try {
@@ -273,13 +331,60 @@ class BrowserDataStore(context: Context, profileId: String) {
     }
 
     @Synchronized
-    fun addDownload(id: Long, fileName: String) {
+    fun addDownload(
+        id: Long,
+        fileName: String,
+        status: String = "QUEUED",
+        mimeType: String = ""
+    ) {
         val items = readDownloads().toMutableList()
         items.removeAll { it.id == id }
-        items.add(0, BrowserDownloadRecord(id, fileName, System.currentTimeMillis()))
+        items.add(0, BrowserDownloadRecord(
+            id = id,
+            fileName = fileName,
+            timestamp = System.currentTimeMillis(),
+            status = status,
+            mimeType = mimeType
+        ))
+        writeDownloads(items)
+    }
+
+    @Synchronized
+    fun updateDownload(
+        id: Long,
+        status: String,
+        localPath: String = "",
+        downloadedBytes: Long = 0L,
+        totalBytes: Long = -1L,
+        mimeType: String = ""
+    ) {
+        val items = readDownloads().toMutableList()
+        val index = items.indexOfFirst { it.id == id }
+        if (index < 0) return
+        items[index] = items[index].copy(
+            localPath = localPath,
+            status = status,
+            downloadedBytes = downloadedBytes.coerceAtLeast(0L),
+            totalBytes = totalBytes,
+            mimeType = mimeType.ifBlank { items[index].mimeType }
+        )
+        writeDownloads(items)
+    }
+
+    private fun writeDownloads(items: List<BrowserDownloadRecord>) {
         val array = JSONArray()
         items.take(MAX_DOWNLOADS).forEach {
-            array.put(JSONObject().put("id", it.id).put("fileName", it.fileName).put("timestamp", it.timestamp))
+            array.put(
+                JSONObject()
+                    .put("id", it.id)
+                    .put("fileName", it.fileName)
+                    .put("timestamp", it.timestamp)
+                    .put("localPath", it.localPath)
+                    .put("status", it.status)
+                    .put("downloadedBytes", it.downloadedBytes)
+                    .put("totalBytes", it.totalBytes)
+                    .put("mimeType", it.mimeType)
+            )
         }
         prefs.edit().putString(KEY_DOWNLOADS, array.toString()).apply()
     }
@@ -296,9 +401,14 @@ class BrowserDataStore(context: Context, profileId: String) {
                     val id = item.optLong("id", -1L)
                     if (id >= 0L) add(
                         BrowserDownloadRecord(
-                            id,
-                            item.optString("fileName", "Download"),
-                            item.optLong("timestamp", 0L)
+                            id = id,
+                            fileName = item.optString("fileName", "Download"),
+                            timestamp = item.optLong("timestamp", 0L),
+                            localPath = item.optString("localPath", ""),
+                            status = item.optString("status", "LEGACY"),
+                            downloadedBytes = item.optLong("downloadedBytes", 0L),
+                            totalBytes = item.optLong("totalBytes", -1L),
+                            mimeType = item.optString("mimeType", "")
                         )
                     )
                 }
@@ -345,9 +455,22 @@ class BrowserDataStore(context: Context, profileId: String) {
     }
 
     companion object {
+        private const val KEY_NAMESPACE_MIGRATED = "__nexora_namespace_migrated_v2"
+
+        fun profilePrefsName(profileId: String): String {
+            val digest = MessageDigest.getInstance("SHA-256")
+                .digest(profileId.toByteArray(Charsets.UTF_8))
+            val hex = digest.joinToString("") { byte -> "%02x".format(byte) }
+            return "nexora_browser_v2_$hex"
+        }
+
+        private fun legacyPrefsName(profileId: String): String =
+            "nexora_browser_${profileId.hashCode()}"
+
         private const val KEY_HISTORY = "history"
         private const val KEY_BOOKMARKS = "bookmarks"
         private const val KEY_CLOSED = "recently_closed"
+        private const val KEY_PRIVACY_RESET_PENDING = "privacy_reset_pending"
         private const val KEY_SITE_UA = "site_user_agents"
         private const val KEY_DARK_HOSTS = "site_dark_hosts"
         private const val KEY_REDIRECT_RULES = "redirect_rules"

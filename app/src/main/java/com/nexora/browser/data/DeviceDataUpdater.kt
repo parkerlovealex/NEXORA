@@ -3,114 +3,174 @@ package com.nexora.browser.data
 import android.content.Context
 import com.nexora.browser.NexoraApp
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import kotlin.concurrent.thread
 
 /**
- * In-app auto-update for the device database (devices.json, schema v2).
+ * Optional sync client for the public NEXORA Next API.
  *
- * The canonical file lives in the NEXORA GitHub repo; the weekly refresh
- * workflow keeps it current there. The app fetches that same file, validates
- * it, and swaps it in atomically. The bundled assets copy is the offline
- * fallback, and the previous downloaded copy is kept for rollback.
- * Existing profiles are never touched: they keep the UA they were made with.
+ * The bundled catalog always remains available offline. A server snapshot is
+ * activated only after schema, required fields, duplicate IDs and build/OS
+ * coherence checks pass. The previous snapshot is retained for rollback.
  */
 object DeviceDataUpdater {
-
-    const val DATA_URL =
-        "https://raw.githubusercontent.com/parkerlovealex/NEXORA/main/app/src/main/assets/devices.json"
 
     private const val FILE_CURRENT = "devices-updated.json"
     private const val FILE_PREVIOUS = "devices-previous.json"
     private const val FILE_TMP = "devices-download.tmp"
     private const val AUTO_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
+    private const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 
-    enum class Result { UPDATED, ALREADY_CURRENT, OFFLINE_OR_ERROR, INVALID_DATA }
+    enum class Result {
+        UPDATED, ALREADY_CURRENT, NOT_CONFIGURED, OFFLINE_OR_ERROR, INVALID_DATA
+    }
 
     fun updatedFile(context: Context): File = File(context.filesDir, FILE_CURRENT)
 
-    /** Raw text of the active database: downloaded copy when present, else null (use assets). */
+    fun hasPrevious(context: Context): Boolean =
+        File(context.filesDir, FILE_PREVIOUS).let { it.exists() && it.length() > 0L }
+
     fun activeDataText(context: Context): String? {
-        val f = updatedFile(context)
-        if (!f.exists()) return null
-        return try {
-            f.readText().takeIf { it.isNotBlank() }
-        } catch (e: Exception) {
+        val file = updatedFile(context)
+        val downloaded = try {
+            if (file.exists() && file.length() > 0L) file.readText().takeIf { it.isNotBlank() } else null
+        } catch (_: Exception) {
             null
+        } ?: return null
+
+        // A newly installed app may bundle a newer catalog than the last
+        // downloaded snapshot. Never let an old snapshot shadow newer assets.
+        val downloadedVersion = validateAndVersion(downloaded) ?: return null
+        val bundledVersion = try {
+            val bundled = context.assets.open("devices.json").bufferedReader().use { it.readText() }
+            validateAndVersion(bundled)
+        } catch (_: Exception) {
+            null
+        }
+        if (bundledVersion != null && compareVersions(downloadedVersion, bundledVersion) < 0) return null
+        return downloaded
+    }
+
+    /** Called on app start; only checks when an administrator has configured an HTTPS API origin. */
+    fun maybeAutoCheck(context: Context) {
+        val appContext = context.applicationContext
+        val prefs = appContext.getSharedPreferences(NexoraApp.PREFS_NAME, Context.MODE_PRIVATE)
+        val apiBase = prefs.getString(NexoraApp.KEY_CATALOG_API_BASE, "").orEmpty().trim()
+        if (apiBase.isBlank()) return
+        val last = prefs.getLong(NexoraApp.KEY_DATA_LAST_CHECK, 0L)
+        if (System.currentTimeMillis() - last < AUTO_CHECK_INTERVAL_MS) return
+        thread(name = "nexora-catalog-autocheck") {
+            checkNow(appContext, apiBase)
         }
     }
 
-    /** Called from Application.onCreate; checks at most once per day, off the main thread. */
-    fun maybeAutoCheck(context: Context) {
-        val prefs = context.getSharedPreferences(NexoraApp.PREFS_NAME, Context.MODE_PRIVATE)
-        val last = prefs.getLong(NexoraApp.KEY_DATA_LAST_CHECK, 0L)
-        if (System.currentTimeMillis() - last < AUTO_CHECK_INTERVAL_MS) return
-        thread(name = "device-data-autocheck") { checkNow(context.applicationContext) }
-    }
+    /** Synchronous network operation. Call only from a background thread. */
+    fun checkNow(context: Context, apiBase: String): Result {
+        val normalizedBase = apiBase.trim().trimEnd('/')
+        if (normalizedBase.isBlank()) return Result.NOT_CONFIGURED
 
-    /** Synchronous check; call from a background thread. */
-    fun checkNow(context: Context): Result {
         val prefs = context.getSharedPreferences(NexoraApp.PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putLong(NexoraApp.KEY_DATA_LAST_CHECK, System.currentTimeMillis()).apply()
+        prefs.edit().putString(NexoraApp.KEY_CATALOG_API_BASE, normalizedBase)
+            .putLong(NexoraApp.KEY_DATA_LAST_CHECK, System.currentTimeMillis()).apply()
 
-        val text = try {
-            download(DATA_URL)
-        } catch (e: Exception) {
+        val payload = try {
+            download(catalogUrl(normalizedBase))
+        } catch (_: Exception) {
             return Result.OFFLINE_OR_ERROR
         } ?: return Result.OFFLINE_OR_ERROR
 
-        val newVersion = validateAndVersion(text) ?: return Result.INVALID_DATA
+        val newVersion = validateAndVersion(payload) ?: return Result.INVALID_DATA
         val currentVersion = DeviceDb.dataVersion(context)
         if (compareVersions(newVersion, currentVersion) <= 0) return Result.ALREADY_CURRENT
 
-        // Atomic swap: write tmp, keep current as previous, rename tmp into place.
-        val tmp = File(context.filesDir, FILE_TMP)
+        val temp = File(context.filesDir, FILE_TMP)
         val current = updatedFile(context)
         val previous = File(context.filesDir, FILE_PREVIOUS)
-        try {
-            tmp.writeText(text)
-            if (current.exists()) current.copyTo(previous, overwrite = true)
-            if (!tmp.renameTo(current)) {
-                tmp.copyTo(current, overwrite = true)
-                tmp.delete()
+        return try {
+            temp.writeText(payload)
+            if (current.exists()) {
+                current.copyTo(previous, overwrite = true)
+                current.delete()
             }
-        } catch (e: Exception) {
-            tmp.delete()
-            return Result.OFFLINE_OR_ERROR
+            if (!temp.renameTo(current)) {
+                temp.copyTo(current, overwrite = true)
+                temp.delete()
+            }
+            DeviceDb.invalidateCache()
+            Result.UPDATED
+        } catch (_: Exception) {
+            temp.delete()
+            // If activation failed after moving the current snapshot, restore it.
+            if (!current.exists() && previous.exists()) {
+                try { previous.copyTo(current, overwrite = true) } catch (_: Exception) { }
+            }
+            Result.OFFLINE_OR_ERROR
         }
-        DeviceDb.invalidateCache()
-        return Result.UPDATED
     }
 
-    /** Restore the previous downloaded database, if one exists. */
     fun rollback(context: Context): Boolean {
         val previous = File(context.filesDir, FILE_PREVIOUS)
-        if (!previous.exists()) return false
+        if (!previous.exists() || previous.length() == 0L) return false
         return try {
-            previous.copyTo(updatedFile(context), overwrite = true)
+            val current = updatedFile(context)
+            val swap = File(context.filesDir, FILE_TMP)
+            if (current.exists()) current.copyTo(swap, overwrite = true)
+            previous.copyTo(current, overwrite = true)
+            if (swap.exists()) {
+                swap.copyTo(previous, overwrite = true)
+                swap.delete()
+            }
             DeviceDb.invalidateCache()
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
-    private fun download(url: String): String? {
-        val conn = URL(url).openConnection() as HttpURLConnection
-        conn.connectTimeout = 10_000
-        conn.readTimeout = 15_000
-        conn.setRequestProperty("User-Agent", "NEXORA-DataUpdater")
+    private fun catalogUrl(base: String): URL {
+        val uri = URI(base)
+        if (uri.scheme != "https" || uri.host.isNullOrBlank() ||
+            uri.rawUserInfo != null || uri.port !in listOf(-1, 443) ||
+            (uri.path.isNotBlank() && uri.path != "/") || uri.query != null || uri.fragment != null
+        ) {
+            throw IllegalArgumentException("Enter an HTTPS API origin, for example https://nexora.example.com")
+        }
+        return URL("${base.trimEnd('/')}/api/v1/data")
+    }
+
+    private fun download(url: URL): String? {
+        val connection = url.openConnection() as HttpURLConnection
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 15_000
+        connection.instanceFollowRedirects = false
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("User-Agent", "NEXORA-Android-CatalogSync/1.0")
         return try {
-            if (conn.responseCode != HttpURLConnection.HTTP_OK) null
-            else conn.inputStream.bufferedReader().use { it.readText() }
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) return null
+            val output = ByteArrayOutputStream()
+            connection.inputStream.use { input ->
+                val buffer = ByteArray(8192)
+                var total = 0
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    total += count
+                    if (total > MAX_RESPONSE_BYTES) throw IllegalStateException("Catalog response exceeded the 2 MB limit")
+                    output.write(buffer, 0, count)
+                }
+            }
+            String(output.toByteArray(), Charsets.UTF_8)
         } finally {
-            conn.disconnect()
+            connection.disconnect()
         }
     }
 
-    /** Returns the dataVersion when the payload passes the in-app coherence checks, else null. */
+    /** Returns the catalog version only when the complete payload is coherent. */
     internal fun validateAndVersion(text: String): String? {
         return try {
             val root = JSONObject(text)
@@ -118,43 +178,54 @@ object DeviceDataUpdater {
             if (meta.optInt("schemaVersion") != 2) return null
             val version = meta.optString("dataVersion")
             if (!version.matches(Regex("""\d{4}\.\d{2}\.\d{2}\.\d+"""))) return null
-            val chrome = meta.optJSONObject("versions")?.optString("chrome").orEmpty()
-            if (!chrome.matches(Regex("""\d+\.\d+\.\d+\.\d+"""))) return null
             val android = root.optJSONArray("android") ?: return null
             if (android.length() == 0) return null
-            for (i in 0 until android.length()) {
-                val row = android.optJSONObject(i) ?: return null
-                if (row.optString("id").isBlank() || row.optString("uaModel").isBlank()) return null
-                val disp = row.optJSONObject("display") ?: return null
-                if (disp.optInt("w") <= 0 || disp.optInt("h") <= 0) return null
-                val osVersions = row.optJSONArray("osVersions") ?: return null
-                if (osVersions.length() == 0) return null
-                val builds = row.optJSONObject("builds")
-                if (builds != null) {
-                    val keys = builds.keys()
-                    while (keys.hasNext()) {
-                        val k = keys.next()
-                        var known = false
-                        for (j in 0 until osVersions.length()) {
-                            if (osVersions.optString(j) == k) { known = true; break }
+
+            val seen = mutableSetOf<String>()
+            for (section in listOf("android", "ios_emulation")) {
+                val rows = root.optJSONArray(section) ?: continue
+                for (i in 0 until rows.length()) {
+                    val row = rows.optJSONObject(i) ?: return null
+                    val id = row.optString("id")
+                    if (id.isBlank() || !seen.add(id)) return null
+                    for (field in listOf("brand", "model", "uaModel", "soc", "gpu")) {
+                        if (row.optString(field).isBlank()) return null
+                    }
+                    if (row.optInt("cores") <= 0) return null
+                    val display = row.optJSONObject("display") ?: return null
+                    if (display.optInt("w") <= 0 || display.optInt("h") <= 0 ||
+                        display.optDouble("dpr", 0.0) <= 0.0
+                    ) return null
+                    val ram = row.optJSONArray("ramGb") ?: return null
+                    val storage = row.optJSONArray("storageGb") ?: return null
+                    val osVersions = row.optJSONArray("osVersions") ?: return null
+                    if (ram.length() == 0 || storage.length() == 0 || osVersions.length() == 0) return null
+                    for (j in 0 until ram.length()) if (ram.optInt(j) <= 0) return null
+                    for (j in 0 until storage.length()) if (storage.optInt(j) <= 0) return null
+                    val osSet = (0 until osVersions.length()).map { osVersions.optString(it) }.toSet()
+                    if (osSet.any { it.isBlank() }) return null
+                    val builds = row.optJSONObject("builds")
+                    if (builds != null) {
+                        val keys = builds.keys()
+                        while (keys.hasNext()) {
+                            val key = keys.next()
+                            if (key !in osSet || !builds.optString(key).matches(Regex("""[A-Za-z0-9._/-]+"""))) return null
                         }
-                        if (!known) return null
                     }
                 }
             }
             version
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
-    /** Numeric compare of YYYY.MM.DD.N versions; non-matching input sorts lowest. */
     internal fun compareVersions(a: String, b: String): Int {
-        val pa = a.split('.').map { it.toIntOrNull() ?: -1 }
-        val pb = b.split('.').map { it.toIntOrNull() ?: -1 }
-        for (i in 0 until maxOf(pa.size, pb.size)) {
-            val x = pa.getOrElse(i) { 0 }
-            val y = pb.getOrElse(i) { 0 }
+        val left = a.split('.').map { it.toIntOrNull() ?: -1 }
+        val right = b.split('.').map { it.toIntOrNull() ?: -1 }
+        for (i in 0 until maxOf(left.size, right.size)) {
+            val x = left.getOrElse(i) { 0 }
+            val y = right.getOrElse(i) { 0 }
             if (x != y) return x.compareTo(y)
         }
         return 0

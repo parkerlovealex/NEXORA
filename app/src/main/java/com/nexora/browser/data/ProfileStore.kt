@@ -22,16 +22,13 @@ class ProfileStore(context: Context) {
             val list = mutableListOf<BrowserProfile>()
             for (i in 0 until array.length()) {
                 val obj = array.optJSONObject(i) ?: continue
-                val normalized = org.json.JSONObject(obj.toString())
-                val encrypted = normalized.optString("proxyPassEncrypted")
-                if (encrypted.isNotBlank()) {
-                    normalized.put("proxyPass", try { secretVault.decrypt(encrypted) } catch (_: Exception) { "" })
-                    normalized.remove("proxyPassEncrypted")
-                } else if (normalized.optString("proxyPass").isNotEmpty()) {
-                    // Migrate profiles saved by earlier versions on the next successful write.
-                    needsSecretMigration = true
-                }
-                val profile = BrowserProfile.fromJson(normalized)
+                val decoded = ProfileCredentialCodec.decode(
+                    obj,
+                    decryptPayload = { secretVault.decrypt(it) },
+                    decryptLegacyPassword = { secretVault.decrypt(it) }
+                )
+                if (decoded.needsMigration) needsSecretMigration = true
+                val profile = decoded.profile
                 if (profile.id.isNotBlank()) list.add(profile)
             }
             list
@@ -48,11 +45,9 @@ class ProfileStore(context: Context) {
         val array = JSONArray()
         try {
             profiles.forEach { profile ->
-                val obj = profile.toJson()
-                val password = profile.proxyPass
-                obj.remove("proxyPass")
-                obj.remove("proxyPassEncrypted")
-                if (password.isNotEmpty()) obj.put("proxyPassEncrypted", secretVault.encrypt(password))
+                val obj = ProfileCredentialCodec.encode(profile) { payload ->
+                    secretVault.encrypt(payload)
+                }
                 array.put(obj)
             }
         } catch (_: Exception) {
@@ -76,19 +71,19 @@ class ProfileStore(context: Context) {
     }
 
     @Synchronized
-    fun add(profile: BrowserProfile) {
+    fun add(profile: BrowserProfile): Boolean {
         val list = loadAll()
-        if (list.any { it.id == profile.id }) return
+        if (list.any { it.id == profile.id }) return false
         list.add(profile)
-        saveAllChecked(list)
+        return saveAllChecked(list)
     }
 
     @Synchronized
-    fun update(profile: BrowserProfile) {
+    fun update(profile: BrowserProfile): Boolean {
         val list = loadAll()
         val idx = list.indexOfFirst { it.id == profile.id }
         if (idx >= 0) list[idx] = profile else list.add(profile)
-        saveAllChecked(list)
+        return saveAllChecked(list)
     }
 
     @Synchronized
@@ -96,6 +91,14 @@ class ProfileStore(context: Context) {
         val list = loadAll()
         list.removeAll { it.id == id }
         saveAllChecked(list)
+    }
+
+    /** Removes a group of profile records in one atomic write. */
+    @Synchronized
+    fun deleteMany(ids: Set<String>): Boolean {
+        if (ids.isEmpty()) return true
+        val remaining = loadAll().filterNot { it.id in ids }
+        return saveAllChecked(remaining)
     }
 
     @Synchronized

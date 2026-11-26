@@ -11,12 +11,14 @@ data class BrowserProfile(
     var ramGb: Int,
     var storageGb: Int,
     var userAgent: String,
-    /** "NONE" | "HTTP" | "SOCKS5" */
+    /** "NONE" | "HTTP" | "HTTPS" | "SOCKS5" */
     var proxyType: String = "NONE",
     var proxyHost: String = "",
     var proxyPort: Int = 0,
     var proxyUser: String = "",
     var proxyPass: String = "",
+    /** Stable reference to an encrypted entry in ProxyLibraryStore; blank means manual settings. */
+    var proxyEntryId: String = "",
     /** IANA zone id, "" = follow device. */
     var timezoneId: String = "",
     var language: String = "en-US",
@@ -33,8 +35,6 @@ data class BrowserProfile(
     var userAgentMode: String = "AUTO",
     var timezoneMode: String = "DEVICE",
     var languageMode: String = "DEVICE",
-    /** Connection key (proxy endpoint or DIRECT) the IP-based timezone/language were resolved for. */
-    var ipGeoKey: String = "",
     var webrtcMode: String = "DISABLED",
     var mediaDevicesNoise: Boolean = false,
     var clientRectsNoise: Boolean = false,
@@ -66,6 +66,7 @@ data class BrowserProfile(
         o.put("proxyPort", proxyPort)
         o.put("proxyUser", proxyUser)
         o.put("proxyPass", proxyPass)
+        o.put("proxyEntryId", proxyEntryId)
         o.put("timezoneId", timezoneId)
         o.put("language", language)
         o.put("webrtcBlock", webrtcBlock)
@@ -82,7 +83,6 @@ data class BrowserProfile(
         o.put("userAgentMode", userAgentMode)
         o.put("timezoneMode", timezoneMode)
         o.put("languageMode", languageMode)
-        o.put("ipGeoKey", ipGeoKey)
         o.put("webrtcMode", webrtcMode)
         o.put("mediaDevicesNoise", mediaDevicesNoise)
         o.put("clientRectsNoise", clientRectsNoise)
@@ -110,6 +110,7 @@ data class BrowserProfile(
             proxyPort = o.optInt("proxyPort", 0),
             proxyUser = o.optString("proxyUser"),
             proxyPass = o.optString("proxyPass"),
+            proxyEntryId = o.optString("proxyEntryId"),
             timezoneId = o.optString("timezoneId"),
             language = o.optString("language", "en-US"),
             webrtcBlock = o.optBoolean("webrtcBlock", true),
@@ -129,7 +130,6 @@ data class BrowserProfile(
             userAgentMode = o.optString("userAgentMode", "AUTO"),
             timezoneMode = o.optString("timezoneMode", if (o.optString("timezoneId").isBlank()) "DEVICE" else "CUSTOM"),
             languageMode = o.optString("languageMode", "DEVICE"),
-            ipGeoKey = o.optString("ipGeoKey"),
             webrtcMode = o.optString("webrtcMode", if (o.optBoolean("webrtcBlock", true)) "DISABLED" else "REAL_IP"),
             mediaDevicesNoise = o.optBoolean("mediaDevicesNoise", false),
             clientRectsNoise = o.optBoolean("clientRectsNoise", false),

@@ -5,7 +5,25 @@ import org.json.JSONArray
 import org.json.JSONObject
 import com.nexora.browser.security.SecretVault
 import com.nexora.browser.util.ParsedProxy
+import com.nexora.browser.util.ProxyImportIdentity
 import java.util.UUID
+
+data class ProxyBackupRecord(
+    val id: String,
+    val name: String,
+    val type: String,
+    val host: String,
+    val port: Int,
+    val username: String,
+    val password: String,
+    val createdAt: Long
+)
+
+data class ProxyBackupMergeResult(
+    val success: Boolean,
+    val idMapping: Map<String, String>,
+    val added: Int
+)
 
 /** Local proxy library. User/password pairs are encrypted with an Android Keystore AES key. */
 class ProxyLibraryStore(context: Context) {
@@ -44,8 +62,24 @@ class ProxyLibraryStore(context: Context) {
         var duplicates = 0
         rows.filter { it.valid }.forEach { row ->
             if (entries.size >= MAX_ENTRIES) return@forEach
-            val duplicate = entries.any {
-                it.type == row.type && it.host.equals(row.host, true) && it.port == row.port
+            val duplicate = entries.any { existing ->
+                if (!ProxyImportIdentity.sameEndpoint(
+                        existing.type, existing.host, existing.port,
+                        row.type, row.host, row.port
+                    )
+                ) {
+                    false
+                } else {
+                    val savedCredentials = if (existing.hasCredentials) credentials(existing) else "" to ""
+                    ProxyImportIdentity.sameCredentials(
+                        existing.hasCredentials,
+                        savedCredentials.first,
+                        savedCredentials.second,
+                        row.hasCredentials,
+                        row.username,
+                        row.password
+                    )
+                }
             }
             if (duplicate) {
                 duplicates++
@@ -57,10 +91,17 @@ class ProxyLibraryStore(context: Context) {
                         return@forEach
                     }
                 } else ""
+                val endpointOrdinal = entries.count {
+                    ProxyImportIdentity.sameEndpoint(
+                        it.type, it.host, it.port,
+                        row.type, row.host, row.port
+                    )
+                } + 1
+                val endpointName = "${row.type} ${row.host}:${row.port}"
                 entries.add(
                     ProxyEntry(
                         id = UUID.randomUUID().toString(),
-                        name = "${row.type} ${row.host}:${row.port}",
+                        name = if (endpointOrdinal == 1) endpointName else "$endpointName · #$endpointOrdinal",
                         type = row.type,
                         host = row.host,
                         port = row.port,
@@ -88,7 +129,84 @@ class ProxyLibraryStore(context: Context) {
     }
 
     @Synchronized
+    fun rename(id: String, newName: String): Boolean {
+        val cleanName = newName.trim()
+        if (cleanName.isBlank() || cleanName.length > 60) return false
+        val entries = loadAll().toMutableList()
+        val index = entries.indexOfFirst { it.id == id }
+        if (index < 0) return false
+        entries[index] = entries[index].copy(name = cleanName)
+        return save(entries)
+    }
+
+    @Synchronized
     fun delete(id: String): Boolean = save(loadAll().filterNot { it.id == id })
+
+    /** Atomically removes a set of library entries in one preferences commit. */
+    @Synchronized
+    fun deleteMany(ids: Set<String>): Boolean {
+        if (ids.isEmpty()) return true
+        return save(loadAll().filterNot { it.id in ids })
+    }
+
+    /**
+     * Merge portable backup entries and re-encrypt credentials with this install's Keystore key.
+     * Existing matching endpoints/credentials are reused; ID collisions are remapped safely.
+     */
+    @Synchronized
+    fun mergePortable(records: List<ProxyBackupRecord>): ProxyBackupMergeResult {
+        val entries = loadAll().toMutableList()
+        val mapping = linkedMapOf<String, String>()
+        var added = 0
+        records.forEach { record ->
+            val sameCredentials: (ProxyEntry) -> Boolean = { existing ->
+                val saved = credentials(existing)
+                val readable = !existing.hasCredentials || saved.first.isNotEmpty() || saved.second.isNotEmpty()
+                readable && saved.first == record.username && saved.second == record.password
+            }
+            val exactId = entries.firstOrNull { it.id == record.id }
+            val idMatch = exactId?.takeIf {
+                it.type == record.type && it.host.equals(record.host, true) &&
+                    it.port == record.port && sameCredentials(it)
+            }
+            val identityMatch = idMatch ?: entries.firstOrNull { existing ->
+                existing.type == record.type && existing.host.equals(record.host, true) &&
+                    existing.port == record.port && sameCredentials(existing)
+            }
+            if (identityMatch != null) {
+                mapping[record.id] = identityMatch.id
+                return@forEach
+            }
+            if (entries.size >= MAX_ENTRIES) return ProxyBackupMergeResult(false, emptyMap(), 0)
+            val encrypted = if (record.username.isNotEmpty() || record.password.isNotEmpty()) {
+                try {
+                    vault.encrypt(
+                        org.json.JSONObject()
+                            .put("username", record.username)
+                            .put("password", record.password)
+                            .toString()
+                    )
+                } catch (_: Exception) {
+                    return ProxyBackupMergeResult(false, emptyMap(), 0)
+                }
+            } else ""
+            val newId = if (entries.any { it.id == record.id }) UUID.randomUUID().toString() else record.id
+            entries += ProxyEntry(
+                id = newId,
+                name = record.name.trim().take(60),
+                type = record.type,
+                host = record.host,
+                port = record.port,
+                hasCredentials = record.username.isNotEmpty() || record.password.isNotEmpty(),
+                encryptedCredentials = encrypted,
+                createdAt = record.createdAt.takeIf { it > 0L } ?: System.currentTimeMillis()
+            )
+            mapping[record.id] = newId
+            added++
+        }
+        if (!save(entries)) return ProxyBackupMergeResult(false, emptyMap(), 0)
+        return ProxyBackupMergeResult(true, mapping, added)
+    }
 
     @Synchronized
     fun save(entries: List<ProxyEntry>): Boolean {

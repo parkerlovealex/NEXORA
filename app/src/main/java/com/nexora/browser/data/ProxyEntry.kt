@@ -14,11 +14,12 @@ data class ProxyEntry(
     val isValid: Boolean
         get() = host.isNotBlank() && port in 1..65535 && type in SUPPORTED_IMPORT_TYPES
 
-    val isSupportedByCurrentWebView: Boolean
-        get() = type in CURRENT_WEBVIEW_TYPES && !hasCredentials
+    /** Supported through NEXORA's loopback relay, not by WebView's native proxy auth. */
+    val isSupportedByProxyRelay: Boolean
+        get() = type in RELAY_SUPPORTED_TYPES
 
     companion object {
         val SUPPORTED_IMPORT_TYPES = setOf("SOCKS5", "SOCKS4", "HTTP", "HTTPS")
-        val CURRENT_WEBVIEW_TYPES = setOf("SOCKS5", "HTTP")
+        val RELAY_SUPPORTED_TYPES = setOf("SOCKS5", "HTTP", "HTTPS")
     }
 }
