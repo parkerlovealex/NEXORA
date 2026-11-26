@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nexora.browser">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.nexora.browser">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".NexoraApp"
@@ -13,7 +13,18 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.Nexora">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <activity
             android:name=".ui.MainActivity"
@@ -23,6 +34,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.ProfileStudioActivity"
+            android:exported="false"
+            android:label="Profile Studio"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.UserAgentGeneratorActivity"
+            android:exported="false"
+            android:label="User-Agent Generator"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".ui.BulkCreateActivity"
@@ -36,11 +59,46 @@
             android:label="Profile" />
 
         <activity
+            android:name=".ui.ProxyLibraryActivity"
+            android:exported="false"
+            android:label="Proxy Manager"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.CompatibilityLabActivity"
+            android:exported="false"
+            android:label="Compatibility Lab" />
+
+        <activity
+            android:name=".ui.PrivacyCenterActivity"
+            android:exported="false"
+            android:label="Privacy Center" />
+
+        <activity
             android:name=".ui.BrowserActivity"
             android:theme="@style/Theme.Nexora.Browser"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:hardwareAccelerated="true" />
+
+        <activity
+            android:name=".ui.FeatureCenterActivity"
+            android:exported="false"
+            android:label="Feature Center" />
+
+        <activity
+            android:name=".ui.FeaturePageActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.AutomationCenterActivity"
+            android:exported="false"
+            android:label="Automation Center" />
+
+        <activity
+            android:name=".ui.BackupRestoreActivity"
+            android:exported="false"
+            android:label="Backup &amp; Restore" />
 
         <activity
             android:name=".ui.SettingsActivity"
