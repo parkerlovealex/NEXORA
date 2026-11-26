@@ -1,674 +1,673 @@
 {
-  "uaTemplatesSchema": 1,
-  "dataVersion": "2026.11.25.5",
-  "updatedAt": "2026-11-25",
-  "deviceCatalogVersion": "2026.11.25.7",
-  "sourcePolicy": "Observed strings and candidate source formats remain distinct; collector never promotes status.",
-  "coverage": [
+ "uaTemplatesSchema": 1,
+ "dataVersion": "2026.11.25.6",
+ "updatedAt": "2026-11-26",
+ "deviceCatalogVersion": "2026.11.25.7",
+ "sourcePolicy": "Observed strings and candidate source formats remain distinct; collector never promotes status.",
+ "coverage": [
+  {
+   "app": "discord",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "facebook",
+   "platforms": {
+    "android": "pending",
+    "ios": "candidate"
+   }
+  },
+  {
+   "app": "fb_lite",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "instagram",
+   "platforms": {
+    "android": "candidate",
+    "ios": "candidate"
+   }
+  },
+  {
+   "app": "kik",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "line",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "linkedin",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "messenger",
+   "platforms": {
+    "android": "candidate",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "pinterest",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "reddit",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "snapchat",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "telegram",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "threads",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "tiktok",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "viber",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "wechat",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "weibo",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  },
+  {
+   "app": "x",
+   "platforms": {
+    "android": "not-collected",
+    "ios": "not-collected"
+   }
+  }
+ ],
+ "records": [
+  {
+   "id": "facebook-android-appua-kt-v1",
+   "app": "facebook",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; Android {osVersion}; {uaModel} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
+   "slots": {},
+   "unresolved_slots": [
+    "osVersion",
+    "uaModel",
+    "build",
+    "chromeVersion",
+    "appVersion"
+   ],
+   "review_notes": [
+    "Candidate from the app implementation, not observed traffic. Must be checked against an independent real UA source before normalization."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
     {
-      "app": "discord",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "facebook",
-      "platforms": {
-        "android": "pending",
-        "ios": "candidate"
-      }
-    },
-    {
-      "app": "fb_lite",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "instagram",
-      "platforms": {
-        "android": "candidate",
-        "ios": "candidate"
-      }
-    },
-    {
-      "app": "kik",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "line",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "linkedin",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "messenger",
-      "platforms": {
-        "android": "candidate",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "pinterest",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "reddit",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "snapchat",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "telegram",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "threads",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "tiktok",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "viber",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "wechat",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "weibo",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
-    },
-    {
-      "app": "x",
-      "platforms": {
-        "android": "not-collected",
-        "ios": "not-collected"
-      }
+     "source_id": "appua-kt-source",
+     "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
+     "quoted_text": "\"facebook\" -> base + \" [FB_IAB/FB4A;FBAV/$appVersion;IABMV/1;]\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
     }
-  ],
-  "records": [
+   ]
+  },
+  {
+   "id": "facebook-android-fb4a-observed-2026-v1",
+   "app": "facebook",
+   "platform": "android",
+   "status": "verified",
+   "template": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
+   "source_format": null,
+   "slots": {
+    "appVersion": "meta.apps.facebook.version"
+   },
+   "unresolved_slots": [],
+   "compatibility": {
+    "minOS": null,
+    "maxOS": null,
+    "notes": "One observed reduced-UA variant. Android 10; K is a literal reduced-UA token, not the handset's actual OS/model. Chrome/158.0.0.0 is held literal; do not replace it with the catalog's Chrome 159 value without a matching observation."
+   },
+   "review_notes": [
+    "The app version/build pair 588.0.0.42.55 / 707615019 exists together in the attached devices-2026.11.25.7.json current values. The UA emits FBAV but not FBBV; the build is joined from the exact catalog version record, not copied from the UA.",
+    "This is a distinct no-wv reduced-UA variant. Do not merge it with the older Motorola candidate containing '; wv)' or the Samsung device/build candidate.",
+    "Only appVersion is dynamic. The Android 10; K and Chrome/158.0.0.0 base is preserved literally from the observed variant. The current meta.versions.chrome is 159.0.8154.33, so a dynamic Chrome slot is not supported by this observation.",
+    "Baseline note resolved 2026-11-26: the spec baseline line was corrected to 2026.11.25.7 (authoritative); the version/build match stands against catalog .7."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
     {
-      "id": "facebook-android-appua-kt-v1",
-      "app": "facebook",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; Android {osVersion}; {uaModel} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
-      "slots": {},
-      "unresolved_slots": [
-        "osVersion",
-        "uaModel",
-        "build",
-        "chromeVersion",
-        "appVersion"
-      ],
-      "review_notes": [
-        "Candidate from the app implementation, not observed traffic. Must be checked against an independent real UA source before normalization."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "appua-kt-source",
-          "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
-          "quoted_text": "\"facebook\" -> base + \" [FB_IAB/FB4A;FBAV/$appVersion;IABMV/1;]\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
+     "source_id": "avidtrak-cid5791-2026-11-24",
+     "source_url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+     "source_ref": "log-row-2026-11-24T00:26:37Z",
+     "observed": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
+     "quoted_text": "24/Nov/2026 log row; FB_IAB/FB4A; FBAV/588.0.0.42.55; IABMV/1.",
+     "app_version": "588.0.0.42.55",
+     "app_build": "707615019",
+     "observed_at": "2026-11-24",
+     "fetched_at": "2026-11-25",
+     "kind": "observed-ua"
     },
     {
-      "id": "facebook-android-fb4a-observed-2026-v1",
-      "app": "facebook",
-      "platform": "android",
-      "status": "pending",
-      "template": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{appVersion};IABMV/1;]",
-      "source_format": null,
-      "slots": {
-        "appVersion": "meta.apps.facebook.version"
-      },
-      "unresolved_slots": [],
-      "compatibility": {
-        "minOS": null,
-        "maxOS": null,
-        "notes": "One observed reduced-UA variant. Android 10; K is a literal reduced-UA token, not the handset's actual OS/model. Chrome/158.0.0.0 is held literal; do not replace it with the catalog's Chrome 159 value without a matching observation."
-      },
-      "review_notes": [
-        "Pending official collector/validator run; this record is not added to the proposal or runtime catalog.",
-        "The app version/build pair 588.0.0.42.55 / 707615019 exists together in the attached devices-2026.11.25.7.json current values. The UA emits FBAV but not FBBV; the build is joined from the exact catalog version record, not copied from the UA.",
-        "This is a distinct no-wv reduced-UA variant. Do not merge it with the older Motorola candidate containing '; wv)' or the Samsung device/build candidate.",
-        "Only appVersion is dynamic. The Android 10; K and Chrome/158.0.0.0 base is preserved literally from the observed variant. The current meta.versions.chrome is 159.0.8154.33, so a dynamic Chrome slot is not supported by this observation.",
-        "The spec says the published device baseline is 2026.11.25.6, while PROJECT_CONTEXT.md and the attached device file identify 2026.11.25.7. The version/build match is provisional until that baseline discrepancy is resolved."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "avidtrak-cid5791-2026-11-24",
-          "source_url": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
-          "source_ref": "log-row-2026-11-24T00:26:37Z",
-          "observed": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
-          "quoted_text": "24/Nov/2026 log row; FB_IAB/FB4A; FBAV/588.0.0.42.55; IABMV/1.",
-          "app_version": "588.0.0.42.55",
-          "app_build": "707615019",
-          "observed_at": "2026-11-24",
-          "fetched_at": "2026-11-25",
-          "kind": "observed-ua"
-        },
-        {
-          "source_id": "user-agents-net-facebook-android-588",
-          "source_url": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
-          "source_ref": "facebook-android-row-cph2895",
-          "observed": "Mozilla/5.0 (Linux; Android 16; CPH2895 Build/BP2A.250605.031.A3) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.8127.62 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
-          "quoted_text": "FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1.",
-          "app_version": "588.0.0.42.55",
-          "app_build": "707615019",
-          "observed_at": null,
-          "fetched_at": "2026-11-25",
-          "kind": "published-dataset-entry"
-        },
-        {
-          "source_id": "hackernoon-inapp-detection-2026-11-25",
-          "source_url": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
-          "source_ref": "lines-82-100-and-117-120",
-          "observed": null,
-          "quoted_text": "Current Facebook Android uses FB_IAB/FB4A and no longer sends wv.",
-          "app_version": null,
-          "app_build": null,
-          "observed_at": null,
-          "fetched_at": "2026-11-25",
-          "kind": "technical-reference"
-        }
-      ]
+     "source_id": "hackernoon-inapp-detection-2026-11-25",
+     "source_url": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+     "source_ref": "lines-82-100-and-117-120",
+     "observed": null,
+     "quoted_text": "Current Facebook Android uses FB_IAB/FB4A and no longer sends wv.",
+     "app_version": null,
+     "app_build": null,
+     "observed_at": "2026-11-25",
+     "fetched_at": "2026-11-25",
+     "kind": "technical-reference"
     },
     {
-      "id": "facebook-android-motorola-script-v1",
-      "app": "facebook",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; {android}; {model} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{fb};IABMV/1;] OR [FB_IAB/FB4A;FBAV/{fb};]",
-      "slots": {},
-      "unresolved_slots": [
-        "android",
-        "model",
-        "build",
-        "chrome",
-        "fb",
-        "optional_IABMV"
-      ],
-      "review_notes": [
-        "Candidate only. Script randomizes app and Chrome versions, and creates build suffixes; no generated values are accepted as evidence."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/fb version/Motorola.txt",
-          "quoted_text": "return (f\"Mozilla/5.0 (Linux; {android}; {model} Build/{build}; wv) \" + \"AppleWebKit/537.36 ... Chrome/{chrome} Mobile Safari/537.36 {fb_addon}\")",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "facebook-android-samsung-script-v1",
-      "app": "facebook",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; {android_version}; {device_model} Build/{build_number}) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome_version} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{fb_version};IABMV/1;] OR [FB_IAB/FB4A;FBAV/{fb_version};]",
-      "slots": {},
-      "unresolved_slots": [
-        "android_version",
-        "device_model",
-        "build_number",
-        "chrome_version",
-        "fb_version",
-        "optional_IABMV"
-      ],
-      "review_notes": [
-        "Candidate only. This source variant omits the explicit ; wv marker used by the Motorola script; do not collapse the two shapes without observed corroboration."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/fb version/Samsung.txt",
-          "quoted_text": "f\"Mozilla/5.0 (Linux; {android_version}; {device_model} Build/{build_number}) \" + \"AppleWebKit/537.36 ... Chrome/{chrome_version} Mobile Safari/537.36 {fb_addon}\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "facebook-ios-appua-kt-v1",
-      "app": "facebook",
-      "platform": "ios",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersionUnderscored} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 [FBAN/FBIOS;FBAV/{appVersion};FBDV/{uaModel};FBMD/iPhone;]",
-      "slots": {},
-      "unresolved_slots": [
-        "iosVersionUnderscored",
-        "appVersion",
-        "uaModel"
-      ],
-      "review_notes": [
-        "Candidate only. The fixed Safari Version/17.5 and Mobile/15E148 values in this implementation are not established as universal current values."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "appua-kt-source",
-          "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
-          "quoted_text": "\"facebook\" -> safari + \" [FBAN/FBIOS;FBAV/$appVersion;FBDV/${preset.uaModel};FBMD/iPhone;]\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "facebook-ios-script-v1",
-      "app": "facebook",
-      "platform": "ios",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) AppleWebKit/{webkit_version} (KHTML, like Gecko) Mobile/{ios_build} Safari/604.1 [FBAN/FBIOS;FBAV/{fb_version};FBBV/{fb_build};FBDV/{device_model};FBMD/iPhone;FBSN/iOS;FBSV/{formatted_ios_version};FBSS/{fbss};FBID/phone;FBLC/{language};FBOP/5;FBRV/{fbrv};IABMV/1]",
-      "slots": {},
-      "unresolved_slots": [
-        "ios_version",
-        "webkit_version",
-        "ios_build",
-        "fb_version",
-        "fb_build",
-        "device_model",
-        "fbss",
-        "language",
-        "fbrv"
-      ],
-      "review_notes": [
-        "Candidate only. The script mints FBRV and selects randomized WebKit/app version values; these are not backed by the current device/app catalog."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/fb version/iPhone.txt",
-          "quoted_text": "f\"Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) \" + \"AppleWebKit/{webkit_version} ... [FBAN/FBIOS;FBAV/{fb_version};FBBV/{fb_build};...;FBRV/{fbrv};IABMV/1]\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "instagram-android-appua-kt-v1",
-      "app": "instagram",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Instagram {appVersion} Android ({sdkForOs}/{osVersion}; {roundedDprTimes160}dpi; {width}x{height}; {brandLower}; {uaModel}; en_US)",
-      "slots": {},
-      "unresolved_slots": [
-        "appVersion",
-        "sdkForOs",
-        "osVersion",
-        "roundedDprTimes160",
-        "width",
-        "height",
-        "brandLower",
-        "uaModel"
-      ],
-      "review_notes": [
-        "Candidate only. SDK mapping is hard-coded; DPR-derived dpi must not be substituted for a sourced logical-density value without validation."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "appua-kt-source",
-          "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
-          "quoted_text": "\"Instagram $appVersion Android (${sdkFor(osVersion)}/$osVersion; ${dpi}dpi; ${preset.widthPx}x${preset.heightPx}; ${preset.brand.lowercase()}; ${preset.uaModel}; en_US)\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "instagram-android-motorola-script-v1",
-      "app": "instagram",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; Android {android}; {model} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome} Mobile Safari/537.36 Instagram {ig_version} ({api_level_pair}; {density}; {resolution}; motorola; {model}; {chipset}; {locale}; {generated_id}; IABMV/1)",
-      "slots": {},
-      "unresolved_slots": [
-        "android",
-        "model",
-        "build",
-        "chrome",
-        "ig_version",
-        "api_level_pair",
-        "density",
-        "resolution",
-        "chipset",
-        "locale",
-        "generated_id"
-      ],
-      "review_notes": [
-        "Candidate only. The generated ID, app version prefix, chipset labels and density values require independent evidence; physical PPI is not interchangeable with Android logical density."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/instragram version/motorola.txt",
-          "quoted_text": "f\"Mobile Safari/537.36 Instagram {ig_ver} \" + \"({ver_pair}; {density}; {resolution}; motorola; {model}; {chipset}; {locale}; {id_10}; IABMV/1)\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "instagram-android-samsung-script-v1",
-      "app": "instagram",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; {android_full}; {model} Build/{build_number}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome_version} Mobile Safari/537.36 Instagram {instagram_version} Android ({api_level_pair}; {dpi}; {resolution}; {vendor}; {model}; {codename}; {chipset}; {lang}; {generated_id}; IABMV/1)",
-      "slots": {},
-      "unresolved_slots": [
-        "android_full",
-        "model",
-        "build_number",
-        "chrome_version",
-        "instagram_version",
-        "api_level_pair",
-        "dpi",
-        "resolution",
-        "vendor",
-        "codename",
-        "chipset",
-        "lang",
-        "generated_id"
-      ],
-      "review_notes": [
-        "Candidate only. Script generates a per-string identifier and selects random versions; exact device density and chipset token semantics need evidence."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/instragram version/sumsung.txt",
-          "quoted_text": "f\"Mozilla/5.0 (Linux; {android_full}; {model} Build/{build_number}; wv) \" + \"... Instagram {instagram_version} Android ({version_pair}; {dpi}; {resolution}; {vendor}; {model}; {codename}; {chipset}; {lang}; {unique_id}; IABMV/1)\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "instagram-ios-appua-kt-v1",
-      "app": "instagram",
-      "platform": "ios",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersionUnderscored} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 Instagram {appVersion} ({uaModel}; iOS {iosVersionUnderscored}; en_US; scale={dpr}; {width}x{height}; IABMV/1)",
-      "slots": {},
-      "unresolved_slots": [
-        "iosVersionUnderscored",
-        "appVersion",
-        "uaModel",
-        "dpr",
-        "width",
-        "height"
-      ],
-      "review_notes": [
-        "Candidate only. The base Safari values and app-specific token ordering require independent observed-UA corroboration."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "appua-kt-source",
-          "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
-          "quoted_text": "\"$safari Instagram $appVersion (${preset.uaModel}; iOS $os; en_US; scale=$scale; ${preset.widthPx}x${preset.heightPx}; IABMV/1)\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "instagram-ios-script-v1",
-      "app": "instagram",
-      "platform": "ios",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) AppleWebKit/{webkit_version} (KHTML, like Gecko) Mobile/{ios_build} Instagram {ig_version} ({device_model}; iOS {ios_version}; {language}; en-US; scale={scale}; {resolution}; IABMV/1 {generated_id})",
-      "slots": {},
-      "unresolved_slots": [
-        "ios_version",
-        "webkit_version",
-        "ios_build",
-        "ig_version",
-        "device_model",
-        "language",
-        "scale",
-        "resolution",
-        "generated_id"
-      ],
-      "review_notes": [
-        "Candidate only. The script uses randomized WebKit/app version selection and generates the trailing app build ID."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "user-uploaded-source-archive",
-          "source_ref": "data/source-materials/User-Agent.zip!/instragram version/iphone.txt",
-          "quoted_text": "f\"Instagram {ig_version} ({device_model}; iOS {ios_version_ua}; {language}; \" + \"en-US; scale={scale}; {resolution}; IABMV/1 {ig_build_id})\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
-    },
-    {
-      "id": "messenger-android-appua-kt-v1",
-      "app": "messenger",
-      "platform": "android",
-      "status": "candidate",
-      "template": null,
-      "source_format": "Mozilla/5.0 (Linux; Android {osVersion}; {uaModel} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 [FB_IAB/MESSENGER;FBAV/{appVersion};IABMV/1;]",
-      "slots": {},
-      "unresolved_slots": [
-        "osVersion",
-        "uaModel",
-        "build",
-        "chromeVersion",
-        "appVersion"
-      ],
-      "review_notes": [
-        "Candidate from app implementation only; needs observed Messenger Android UA and independent corroboration."
-      ],
-      "schemaVersion": 1,
-      "evidence": [
-        {
-          "source_id": "appua-kt-source",
-          "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
-          "quoted_text": "\"messenger\" -> base + \" [FB_IAB/MESSENGER;FBAV/$appVersion;IABMV/1;]\"",
-          "observed_at": null,
-          "kind": "candidate-script",
-          "fetched_at": "2026-11-25"
-        }
-      ]
+     "source_id": "goodbox-symfony-profiler-2026-11-24",
+     "source_url": "https://servientrega.goodbox.ec/_profiler/latest?type=request&limit=10&ip=57.141.22.9",
+     "source_ref": "profiler-request-2026-11-24T05:08:59Z",
+     "observed": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]",
+     "quoted_text": "HTTP_USER_AGENT Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]; HTTP_X_REQUESTED_WITH com.facebook.katana.",
+     "app_version": "588.0.0.42.55",
+     "app_build": "707615019",
+     "observed_at": "2026-11-24",
+     "fetched_at": "2026-11-25",
+     "kind": "observed-ua"
     }
-  ],
-  "sources": [
+   ]
+  },
+  {
+   "id": "facebook-android-motorola-script-v1",
+   "app": "facebook",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; {android}; {model} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{fb};IABMV/1;] OR [FB_IAB/FB4A;FBAV/{fb};]",
+   "slots": {},
+   "unresolved_slots": [
+    "android",
+    "model",
+    "build",
+    "chrome",
+    "fb",
+    "optional_IABMV"
+   ],
+   "review_notes": [
+    "Candidate only. Script randomizes app and Chrome versions, and creates build suffixes; no generated values are accepted as evidence."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
     {
-      "sourceId": "useragent-in-inapp-corpus",
-      "name": "useragent.in — In-App Browsers category",
-      "sourceUrl": "https://useragent.in/user-agents",
-      "termsUrl": "https://useragent.in/terms",
-      "category": "In-App Browsers",
-      "reportedRecordCount": 108,
-      "reportedCoverage": [
-        "Facebook",
-        "Instagram",
-        "TikTok",
-        "WeChat",
-        "LINE",
-        "Electron desktop apps"
-      ],
-      "datasetIndexUrl": "https://useragent.in/assets/data/index.json",
-      "datasetFile": "discover from index.json; do not guess a filename",
-      "retrievalStatus": "blocked-429-in-this-run",
-      "retrievedAt": null,
-      "sourceNotes": [
-        "The category page reports 108 in-app browser user-agent entries.",
-        "The site says in-app entries are transcribed from real observed traffic; desktop/mobile/tablet categories are generated from real components.",
-        "The page warns that not every generated cross-product row corresponds to a shipping configuration; retain row-level source classification.",
-        "The terms permit download, use, modification and redistribution including commercial use; attribution is appreciated but not required."
-      ],
-      "nextAction": "Fetch index.json, discover the exact In-App Browsers dataset filename, preserve raw JSON and decoder version, then ingest rows with source row IDs.",
-      "evidenceKind": "published-dataset-entry"
-    },
-    {
-      "sourceId": "github-inapp-debugger-issue-16",
-      "name": "GitHub inapp-debugger issue #16 — user-submitted observed examples",
-      "sourceUrl": "https://github.com/shalanah/inapp-debugger/issues/16",
-      "category": "technical-reference",
-      "reportedRecordCount": 2,
-      "retrievalStatus": "indexed-search-snippet-only",
-      "sourceNotes": [
-        "Contains user-submitted iOS Facebook and Instagram in-app UA examples; sample app versions are historical and must not be mixed with current app version/build pairs."
-      ]
-    },
-    {
-      "sourceId": "deviceatlas-mobile-ua-reference",
-      "name": "DeviceAtlas — mobile browser user-agent strings",
-      "sourceUrl": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
-      "category": "observed-ua",
-      "retrievalStatus": "opened-webpage",
-      "sourceNotes": [
-        "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews.",
-        "Contains a raw Facebook iOS in-app UA from DeviceAtlas traffic; the article identifies it as the Facebook in-app browser and describes its September 2026 traffic analysis."
-      ]
-    },
-    {
-      "sourceId": "appy-inapp-checker",
-      "name": "Appy — in-app browser checker",
-      "sourceUrl": "https://appy.to/tools/in-app-browser-checker",
-      "category": "technical-reference",
-      "retrievalStatus": "indexed-search-result",
-      "sourceNotes": [
-        "Describes in-app browser behavior and an Instagram sample shape; corroboration is still required for any verified NEXORA template."
-      ]
-    },
-    {
-      "sourceId": "avidtrak-cid5791-2026-11-24",
-      "name": "AvidTrak Wazalyzer access log — 24 Nov 2026",
-      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
-      "category": "observed-ua",
-      "retrievalStatus": "indexed-search-result-only",
-      "sourceNotes": [
-        "Public access-log rows expose Facebook Android and Facebook iOS User-Agent observations dated 2026-11-24.",
-        "Only UA evidence and row timestamps are retained; IP addresses, referrers and unrelated request data are omitted."
-      ]
-    },
-    {
-      "sourceId": "avidtrak-cid8590-2026-11-19",
-      "name": "AvidTrak Wazalyzer access log — 19 Nov 2026",
-      "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
-      "category": "observed-ua",
-      "retrievalStatus": "indexed-search-result-only",
-      "sourceNotes": [
-        "Public access-log rows expose an Instagram iOS User-Agent observation dated 2026-11-19.",
-        "Only UA evidence and row timestamp are retained; IP addresses and referrers are omitted."
-      ]
-    },
-    {
-      "sourceId": "user-agents-net-current-app-ua-rows",
-      "name": "User-Agents.net — Facebook and Instagram mobile app UA entries",
-      "sourceUrl": "https://user-agents.net/",
-      "category": "published-dataset-entry",
-      "retrievalStatus": "indexed-search-result-only",
-      "sourceNotes": [
-        "Published UA rows corroborate Facebook iOS and Instagram iOS app-token order and sample versions.",
-        "No per-row observation date is disclosed; these rows are not classified as raw telemetry."
-      ]
-    },
-    {
-      "sourceId": "user-agents-net-facebook-android-588",
-      "name": "User-Agents.net — Facebook Android 588.0.0.42.55 sample",
-      "sourceUrl": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
-      "category": "published-dataset-entry",
-      "retrievalStatus": "indexed-search-result-only",
-      "sourceNotes": [
-        "Shows FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1 on Android without a wv marker.",
-        "Published dataset entry; no observation date is disclosed."
-      ]
-    },
-    {
-      "sourceId": "hackernoon-inapp-detection-2026-11-25",
-      "name": "HackerNoon — How to Detect Instagram, Facebook, and TikTok In-App Browsers",
-      "sourceUrl": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
-      "category": "technical-reference",
-      "retrievalStatus": "opened-webpage",
-      "sourceNotes": [
-        "Published 2026-11-25; author says example strings were collected in October 2026.",
-        "Confirms current Facebook Android FB_IAB/FB4A token and that current Facebook Android builds no longer send wv.",
-        "Messenger, Threads, LinkedIn, Snapchat and X entries are explicitly attributed to inapp-spy rules and marked not tested in the article; treat them as token leads only."
-      ]
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/fb version/Motorola.txt",
+     "quoted_text": "return (f\"Mozilla/5.0 (Linux; {android}; {model} Build/{build}; wv) \" + \"AppleWebKit/537.36 ... Chrome/{chrome} Mobile Safari/537.36 {fb_addon}\")",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
     }
-  ]
+   ]
+  },
+  {
+   "id": "facebook-android-samsung-script-v1",
+   "app": "facebook",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; {android_version}; {device_model} Build/{build_number}) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome_version} Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/{fb_version};IABMV/1;] OR [FB_IAB/FB4A;FBAV/{fb_version};]",
+   "slots": {},
+   "unresolved_slots": [
+    "android_version",
+    "device_model",
+    "build_number",
+    "chrome_version",
+    "fb_version",
+    "optional_IABMV"
+   ],
+   "review_notes": [
+    "Candidate only. This source variant omits the explicit ; wv marker used by the Motorola script; do not collapse the two shapes without observed corroboration."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/fb version/Samsung.txt",
+     "quoted_text": "f\"Mozilla/5.0 (Linux; {android_version}; {device_model} Build/{build_number}) \" + \"AppleWebKit/537.36 ... Chrome/{chrome_version} Mobile Safari/537.36 {fb_addon}\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "facebook-ios-appua-kt-v1",
+   "app": "facebook",
+   "platform": "ios",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersionUnderscored} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 [FBAN/FBIOS;FBAV/{appVersion};FBDV/{uaModel};FBMD/iPhone;]",
+   "slots": {},
+   "unresolved_slots": [
+    "iosVersionUnderscored",
+    "appVersion",
+    "uaModel"
+   ],
+   "review_notes": [
+    "Candidate only. The fixed Safari Version/17.5 and Mobile/15E148 values in this implementation are not established as universal current values."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "appua-kt-source",
+     "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
+     "quoted_text": "\"facebook\" -> safari + \" [FBAN/FBIOS;FBAV/$appVersion;FBDV/${preset.uaModel};FBMD/iPhone;]\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "facebook-ios-script-v1",
+   "app": "facebook",
+   "platform": "ios",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) AppleWebKit/{webkit_version} (KHTML, like Gecko) Mobile/{ios_build} Safari/604.1 [FBAN/FBIOS;FBAV/{fb_version};FBBV/{fb_build};FBDV/{device_model};FBMD/iPhone;FBSN/iOS;FBSV/{formatted_ios_version};FBSS/{fbss};FBID/phone;FBLC/{language};FBOP/5;FBRV/{fbrv};IABMV/1]",
+   "slots": {},
+   "unresolved_slots": [
+    "ios_version",
+    "webkit_version",
+    "ios_build",
+    "fb_version",
+    "fb_build",
+    "device_model",
+    "fbss",
+    "language",
+    "fbrv"
+   ],
+   "review_notes": [
+    "Candidate only. The script mints FBRV and selects randomized WebKit/app version values; these are not backed by the current device/app catalog."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/fb version/iPhone.txt",
+     "quoted_text": "f\"Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) \" + \"AppleWebKit/{webkit_version} ... [FBAN/FBIOS;FBAV/{fb_version};FBBV/{fb_build};...;FBRV/{fbrv};IABMV/1]\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "instagram-android-appua-kt-v1",
+   "app": "instagram",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Instagram {appVersion} Android ({sdkForOs}/{osVersion}; {roundedDprTimes160}dpi; {width}x{height}; {brandLower}; {uaModel}; en_US)",
+   "slots": {},
+   "unresolved_slots": [
+    "appVersion",
+    "sdkForOs",
+    "osVersion",
+    "roundedDprTimes160",
+    "width",
+    "height",
+    "brandLower",
+    "uaModel"
+   ],
+   "review_notes": [
+    "Candidate only. SDK mapping is hard-coded; DPR-derived dpi must not be substituted for a sourced logical-density value without validation."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "appua-kt-source",
+     "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
+     "quoted_text": "\"Instagram $appVersion Android (${sdkFor(osVersion)}/$osVersion; ${dpi}dpi; ${preset.widthPx}x${preset.heightPx}; ${preset.brand.lowercase()}; ${preset.uaModel}; en_US)\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "instagram-android-motorola-script-v1",
+   "app": "instagram",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; Android {android}; {model} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome} Mobile Safari/537.36 Instagram {ig_version} ({api_level_pair}; {density}; {resolution}; motorola; {model}; {chipset}; {locale}; {generated_id}; IABMV/1)",
+   "slots": {},
+   "unresolved_slots": [
+    "android",
+    "model",
+    "build",
+    "chrome",
+    "ig_version",
+    "api_level_pair",
+    "density",
+    "resolution",
+    "chipset",
+    "locale",
+    "generated_id"
+   ],
+   "review_notes": [
+    "Candidate only. The generated ID, app version prefix, chipset labels and density values require independent evidence; physical PPI is not interchangeable with Android logical density."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/instragram version/motorola.txt",
+     "quoted_text": "f\"Mobile Safari/537.36 Instagram {ig_ver} \" + \"({ver_pair}; {density}; {resolution}; motorola; {model}; {chipset}; {locale}; {id_10}; IABMV/1)\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "instagram-android-samsung-script-v1",
+   "app": "instagram",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; {android_full}; {model} Build/{build_number}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chrome_version} Mobile Safari/537.36 Instagram {instagram_version} Android ({api_level_pair}; {dpi}; {resolution}; {vendor}; {model}; {codename}; {chipset}; {lang}; {generated_id}; IABMV/1)",
+   "slots": {},
+   "unresolved_slots": [
+    "android_full",
+    "model",
+    "build_number",
+    "chrome_version",
+    "instagram_version",
+    "api_level_pair",
+    "dpi",
+    "resolution",
+    "vendor",
+    "codename",
+    "chipset",
+    "lang",
+    "generated_id"
+   ],
+   "review_notes": [
+    "Candidate only. Script generates a per-string identifier and selects random versions; exact device density and chipset token semantics need evidence."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/instragram version/sumsung.txt",
+     "quoted_text": "f\"Mozilla/5.0 (Linux; {android_full}; {model} Build/{build_number}; wv) \" + \"... Instagram {instagram_version} Android ({version_pair}; {dpi}; {resolution}; {vendor}; {model}; {codename}; {chipset}; {lang}; {unique_id}; IABMV/1)\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "instagram-ios-appua-kt-v1",
+   "app": "instagram",
+   "platform": "ios",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {iosVersionUnderscored} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 Instagram {appVersion} ({uaModel}; iOS {iosVersionUnderscored}; en_US; scale={dpr}; {width}x{height}; IABMV/1)",
+   "slots": {},
+   "unresolved_slots": [
+    "iosVersionUnderscored",
+    "appVersion",
+    "uaModel",
+    "dpr",
+    "width",
+    "height"
+   ],
+   "review_notes": [
+    "Candidate only. The base Safari values and app-specific token ordering require independent observed-UA corroboration."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "appua-kt-source",
+     "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
+     "quoted_text": "\"$safari Instagram $appVersion (${preset.uaModel}; iOS $os; en_US; scale=$scale; ${preset.widthPx}x${preset.heightPx}; IABMV/1)\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "instagram-ios-script-v1",
+   "app": "instagram",
+   "platform": "ios",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (iPhone; CPU iPhone OS {ios_version} like Mac OS X) AppleWebKit/{webkit_version} (KHTML, like Gecko) Mobile/{ios_build} Instagram {ig_version} ({device_model}; iOS {ios_version}; {language}; en-US; scale={scale}; {resolution}; IABMV/1 {generated_id})",
+   "slots": {},
+   "unresolved_slots": [
+    "ios_version",
+    "webkit_version",
+    "ios_build",
+    "ig_version",
+    "device_model",
+    "language",
+    "scale",
+    "resolution",
+    "generated_id"
+   ],
+   "review_notes": [
+    "Candidate only. The script uses randomized WebKit/app version selection and generates the trailing app build ID."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "user-uploaded-source-archive",
+     "source_ref": "data/source-materials/User-Agent.zip!/instragram version/iphone.txt",
+     "quoted_text": "f\"Instagram {ig_version} ({device_model}; iOS {ios_version_ua}; {language}; \" + \"en-US; scale={scale}; {resolution}; IABMV/1 {ig_build_id})\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  },
+  {
+   "id": "messenger-android-appua-kt-v1",
+   "app": "messenger",
+   "platform": "android",
+   "status": "candidate",
+   "template": null,
+   "source_format": "Mozilla/5.0 (Linux; Android {osVersion}; {uaModel} Build/{build}; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/{chromeVersion} Mobile Safari/537.36 [FB_IAB/MESSENGER;FBAV/{appVersion};IABMV/1;]",
+   "slots": {},
+   "unresolved_slots": [
+    "osVersion",
+    "uaModel",
+    "build",
+    "chromeVersion",
+    "appVersion"
+   ],
+   "review_notes": [
+    "Candidate from app implementation only; needs observed Messenger Android UA and independent corroboration."
+   ],
+   "schemaVersion": 1,
+   "evidence": [
+    {
+     "source_id": "appua-kt-source",
+     "source_ref": "app/src/main/java/com/nexora/browser/util/AppUa.kt",
+     "quoted_text": "\"messenger\" -> base + \" [FB_IAB/MESSENGER;FBAV/$appVersion;IABMV/1;]\"",
+     "observed_at": null,
+     "kind": "candidate-script",
+     "fetched_at": "2026-11-25"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "sourceId": "useragent-in-inapp-corpus",
+   "name": "useragent.in — In-App Browsers category",
+   "sourceUrl": "https://useragent.in/user-agents",
+   "termsUrl": "https://useragent.in/terms",
+   "category": "In-App Browsers",
+   "reportedRecordCount": 108,
+   "reportedCoverage": [
+    "Facebook",
+    "Instagram",
+    "TikTok",
+    "WeChat",
+    "LINE",
+    "Electron desktop apps"
+   ],
+   "datasetIndexUrl": "https://useragent.in/assets/data/index.json",
+   "datasetFile": "discover from index.json; do not guess a filename",
+   "retrievalStatus": "blocked-429-in-this-run",
+   "retrievedAt": null,
+   "sourceNotes": [
+    "The category page reports 108 in-app browser user-agent entries.",
+    "The site says in-app entries are transcribed from real observed traffic; desktop/mobile/tablet categories are generated from real components.",
+    "The page warns that not every generated cross-product row corresponds to a shipping configuration; retain row-level source classification.",
+    "The terms permit download, use, modification and redistribution including commercial use; attribution is appreciated but not required."
+   ],
+   "nextAction": "Fetch index.json, discover the exact In-App Browsers dataset filename, preserve raw JSON and decoder version, then ingest rows with source row IDs.",
+   "evidenceKind": "published-dataset-entry"
+  },
+  {
+   "sourceId": "github-inapp-debugger-issue-16",
+   "name": "GitHub inapp-debugger issue #16 — user-submitted observed examples",
+   "sourceUrl": "https://github.com/shalanah/inapp-debugger/issues/16",
+   "category": "technical-reference",
+   "reportedRecordCount": 2,
+   "retrievalStatus": "indexed-search-snippet-only",
+   "sourceNotes": [
+    "Contains user-submitted iOS Facebook and Instagram in-app UA examples; sample app versions are historical and must not be mixed with current app version/build pairs."
+   ]
+  },
+  {
+   "sourceId": "deviceatlas-mobile-ua-reference",
+   "name": "DeviceAtlas — mobile browser user-agent strings",
+   "sourceUrl": "https://www.deviceatlas.com/blog/mobile-browser-user-agent-strings",
+   "category": "observed-ua",
+   "retrievalStatus": "opened-webpage",
+   "sourceNotes": [
+    "Search index exposes a Facebook iOS in-app sample and explains the distinction between Safari and embedded WebViews.",
+    "Contains a raw Facebook iOS in-app UA from DeviceAtlas traffic; the article identifies it as the Facebook in-app browser and describes its September 2026 traffic analysis."
+   ]
+  },
+  {
+   "sourceId": "appy-inapp-checker",
+   "name": "Appy — in-app browser checker",
+   "sourceUrl": "https://appy.to/tools/in-app-browser-checker",
+   "category": "technical-reference",
+   "retrievalStatus": "indexed-search-result",
+   "sourceNotes": [
+    "Describes in-app browser behavior and an Instagram sample shape; corroboration is still required for any verified NEXORA template."
+   ]
+  },
+  {
+   "sourceId": "avidtrak-cid5791-2026-11-24",
+   "name": "AvidTrak Wazalyzer access log — 24 Nov 2026",
+   "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=5791&type=day&value=24%2FNov%2F2026",
+   "category": "observed-ua",
+   "retrievalStatus": "indexed-search-result-only",
+   "sourceNotes": [
+    "Public access-log rows expose Facebook Android and Facebook iOS User-Agent observations dated 2026-11-24.",
+    "Only UA evidence and row timestamps are retained; IP addresses, referrers and unrelated request data are omitted."
+   ]
+  },
+  {
+   "sourceId": "avidtrak-cid8590-2026-11-19",
+   "name": "AvidTrak Wazalyzer access log — 19 Nov 2026",
+   "sourceUrl": "https://avidtrak.com/wazalyzer/deep_analysis_log?cid=8590&type=day&value=19%2FNov%2F2026",
+   "category": "observed-ua",
+   "retrievalStatus": "indexed-search-result-only",
+   "sourceNotes": [
+    "Public access-log rows expose an Instagram iOS User-Agent observation dated 2026-11-19.",
+    "Only UA evidence and row timestamp are retained; IP addresses and referrers are omitted."
+   ]
+  },
+  {
+   "sourceId": "user-agents-net-current-app-ua-rows",
+   "name": "User-Agents.net — Facebook and Instagram mobile app UA entries",
+   "sourceUrl": "https://user-agents.net/",
+   "category": "published-dataset-entry",
+   "retrievalStatus": "indexed-search-result-only",
+   "sourceNotes": [
+    "Published UA rows corroborate Facebook iOS and Instagram iOS app-token order and sample versions.",
+    "No per-row observation date is disclosed; these rows are not classified as raw telemetry."
+   ]
+  },
+  {
+   "sourceId": "user-agents-net-facebook-android-588",
+   "name": "User-Agents.net — Facebook Android 588.0.0.42.55 sample",
+   "sourceUrl": "https://user-agents.net/string/mozilla-5-0-linux-android-16-cph2895-build-bp2a-250605-031-a3-applewebkit-537-36-khtml-like-gecko-version-4-0-chrome-158-0-8127-62-mobile-safari-537-36-fb-iab-fb4a-fbav-588-0-0-42-55-iabmv-1",
+   "category": "published-dataset-entry",
+   "retrievalStatus": "indexed-search-result-only",
+   "sourceNotes": [
+    "Shows FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1 on Android without a wv marker.",
+    "Published dataset entry; no observation date is disclosed."
+   ]
+  },
+  {
+   "sourceId": "hackernoon-inapp-detection-2026-11-25",
+   "name": "HackerNoon — How to Detect Instagram, Facebook, and TikTok In-App Browsers",
+   "sourceUrl": "https://hackernoon.com/how-to-detect-instagram-facebook-and-tiktok-in-app-browsers",
+   "category": "technical-reference",
+   "retrievalStatus": "opened-webpage",
+   "sourceNotes": [
+    "Published 2026-11-25; author says example strings were collected in October 2026.",
+    "Confirms current Facebook Android FB_IAB/FB4A token and that current Facebook Android builds no longer send wv.",
+    "Messenger, Threads, LinkedIn, Snapchat and X entries are explicitly attributed to inapp-spy rules and marked not tested in the article; treat them as token leads only."
+   ]
+  }
+ ]
 }
