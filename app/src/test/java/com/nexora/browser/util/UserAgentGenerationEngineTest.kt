@@ -46,6 +46,18 @@ class UserAgentGenerationEngineTest {
         assertTrue(counts.maxOrNull()!! - counts.minOrNull()!! <= 1)
     }
 
+    @Test fun explicitOsVersionConstrainsRandomBalancedSelectedAndCustomPools() {
+        val requested = UserAgentGenerationRequest(androidCount = 0, iosCount = 12, iosOsVersion = "17")
+        for (mode in listOf("RANDOM", "BALANCED")) {
+            val rows = UserAgentGenerationEngine.generate(requested.copy(distributionMode = mode), presets, emptyList(), nativeUa, "db", seed = 4)
+            assertTrue(rows.all { it.deviceId == "iphone-15" && it.osVersion == "17" })
+        }
+        val incompatible = requested.copy(iosDeviceMode = "SELECTED", selectedIosDeviceIds = setOf("iphone-16"))
+        assertTrue(UserAgentGenerationEngine.validate(incompatible, presets, emptyList(), nativeUa).isNotEmpty())
+        val custom = requested.copy(distributionMode = "CUSTOM", customDeviceCounts = mapOf("iphone-16" to 12))
+        assertTrue(UserAgentGenerationEngine.validate(custom, presets, emptyList(), nativeUa).isNotEmpty())
+    }
+
     @Test fun customDistributionHonorsExactPerDeviceQuantities() {
         val request = UserAgentGenerationRequest(
             androidCount = 4, iosCount = 2, distributionMode = "CUSTOM",

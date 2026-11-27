@@ -343,11 +343,17 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         UiFeedback.install(savedBatchesPanel)
     }
 
+    private fun currentPool(isIos: Boolean, mode: String): List<DevicePreset> {
+        val selected = if (isIos) selectedIosIds else selectedAndroidIds
+        val version = versionValue(if (isIos) iosVersionSpinner else androidVersionSpinner)
+        return UserAgentGenerationEngine.eligiblePool(presets, isIos, mode, selected, version)
+    }
+
     private fun chooseDevices(isIos: Boolean) {
-        val pool = presets.filter { it.isIos == isIos }
+        val pool = currentPool(isIos, "RANDOM")
         val selected = if (isIos) selectedIosIds else selectedAndroidIds
         if (pool.isEmpty()) { toast("No ${if (isIos) "iOS" else "Android"} devices are available in the current database"); return }
-        val working = selected.toMutableSet()
+        val working = selected.intersect(pool.map { it.id }.toSet()).toMutableSet()
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(18), dp(8), dp(18), dp(8)) }
         val search = EditText(this).apply { hint = "Search brand or model"; textSize = 14f; setSingleLine(true) }
         container.addView(search, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
@@ -390,8 +396,8 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     private fun configureCustomDistribution() {
         val androidCount = androidCountField.text.toString().toIntOrNull() ?: 0
         val iosCount = iosCountField.text.toString().toIntOrNull() ?: 0
-        val androidPool = UserAgentGenerationEngine.eligiblePool(presets, false, if (androidDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM", selectedAndroidIds)
-        val iosPool = UserAgentGenerationEngine.eligiblePool(presets, true, if (iosDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM", selectedIosIds)
+        val androidPool = currentPool(false, if (androidDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM")
+        val iosPool = currentPool(true, if (iosDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM")
         val pools = androidPool + iosPool
         if (pools.isEmpty()) { toast("Choose a device pool first"); return }
         val container = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), dp(8)) }
@@ -429,8 +435,8 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     private fun updateCustomDistributionDefaults() {
         val aCount = androidCountField.text.toString().toIntOrNull() ?: 0
         val iCount = iosCountField.text.toString().toIntOrNull() ?: 0
-        val aPool = UserAgentGenerationEngine.eligiblePool(presets, false, if (androidDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM", selectedAndroidIds)
-        val iPool = UserAgentGenerationEngine.eligiblePool(presets, true, if (iosDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM", selectedIosIds)
+        val aPool = currentPool(false, if (androidDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM")
+        val iPool = currentPool(true, if (iosDeviceModeSpinner.selectedItemPosition == 1) "SELECTED" else "RANDOM")
         customDeviceCounts.clear()
         distributeDefaults(aPool, aCount)
         distributeDefaults(iPool, iCount)
@@ -446,7 +452,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         return spinner(parent, title, versions)
     }
 
-    private fun versionValue(spinner: Spinner): String = if (spinner.selectedItemPosition == 0) "LATEST" else spinner.selectedItem.toString()
+    private fun versionValue(spinner: Spinner): String = if (spinner.selectedItemPosition <= 0) "LATEST" else spinner.selectedItem.toString()
 
     private fun section(title: String, description: String): LinearLayout {
         val card = MaterialCardView(this).apply {

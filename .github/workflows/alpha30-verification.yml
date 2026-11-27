@@ -1,0 +1,44 @@
+name: Alpha30 verification
+on:
+  push:
+    branches: [verify/alpha30-checks]
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+          cache-read-only: true
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt httpx
+      - name: Check Android SDK
+        shell: bash
+        run: |
+          if [[ ! -f "$ANDROID_HOME/platforms/android-34/android.jar" || ! -d "$ANDROID_HOME/build-tools/34.0.0" ]]; then
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" < <(yes y)
+          fi
+      - name: Run parent regression and full candidate suites
+        run: python .github/alpha30_verification.py
+      - name: Save suite output and JUnit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha30-verification-${{ github.run_id }}
+          path: ${{ runner.temp }}/nexora-alpha30-logs
+          retention-days: 14

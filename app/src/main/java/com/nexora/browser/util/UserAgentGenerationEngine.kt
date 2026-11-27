@@ -40,23 +40,23 @@ object UserAgentGenerationEngine {
         if (request.totalCount !in 1..500) errors += "Generate between 1 and 500 User-Agent records."
         if (!validLocale.matches(request.locale.trim())) errors += "Enter a valid locale tag such as en-US or bn-BD."
         if (request.androidCount > 0) {
-            val pool = eligiblePool(presets, false, request.androidDeviceMode, request.selectedAndroidDeviceIds)
-            if (pool.isEmpty()) errors += "Select at least one available Android device, or use the random device pool."
+            val pool = eligiblePool(presets, false, request.androidDeviceMode, request.selectedAndroidDeviceIds, request.androidOsVersion)
+            if (pool.isEmpty()) errors += "No selected Android device supports the requested OS (${request.androidOsVersion}). Choose a compatible device or OS."
             if (request.androidBrowserFamilies.isEmpty() && request.inAppBrowserIds.isEmpty()) errors += "Select an Android browser family or an in-app browser template."
             if (request.androidBrowserFamilies.any { it != "Chrome" }) errors += "Only Chrome has a supported Android UA template in the current catalog/runtime."
             if ("Chrome" in request.androidBrowserFamilies && !nativeAndroidUserAgent.contains("Chrome/", ignoreCase = true)) errors += "The installed WebView did not report a Chromium version; an Android Chrome UA cannot be generated safely."
         }
         if (request.iosCount > 0) {
-            val pool = eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds)
-            if (pool.isEmpty()) errors += "Select at least one available iOS template device, or use the random iOS template pool."
+            val pool = eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds, request.iosOsVersion)
+            if (pool.isEmpty()) errors += "No selected iOS device supports the requested OS (${request.iosOsVersion}). Choose a compatible device or OS."
             if (request.iosBrowserFamilies.isEmpty() && request.inAppBrowserIds.isEmpty()) errors += "Select an iOS browser family or an in-app browser template."
             if (request.iosBrowserFamilies.any { it != "Safari" }) errors += "Only the Safari compatibility template is currently available for iOS."
         }
         if (request.distributionMode !in setOf("RANDOM", "BALANCED", "CUSTOM")) errors += "Choose a valid device distribution mode."
         if (request.distributionMode == "CUSTOM") {
             val eligibleIds = buildSet {
-                if (request.androidCount > 0) addAll(eligiblePool(presets, false, request.androidDeviceMode, request.selectedAndroidDeviceIds).map { it.id })
-                if (request.iosCount > 0) addAll(eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds).map { it.id })
+                if (request.androidCount > 0) addAll(eligiblePool(presets, false, request.androidDeviceMode, request.selectedAndroidDeviceIds, request.androidOsVersion).map { it.id })
+                if (request.iosCount > 0) addAll(eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds, request.iosOsVersion).map { it.id })
             }
             val invalidIds = request.customDeviceCounts.keys.filter { it !in eligibleIds }
             if (invalidIds.isNotEmpty()) errors += "Custom quantities include devices outside the selected device pool."
@@ -120,9 +120,10 @@ object UserAgentGenerationEngine {
         presets: List<DevicePreset>,
         isIos: Boolean,
         mode: String,
-        selectedIds: Set<String>
+        selectedIds: Set<String>,
+        osVersion: String = "LATEST"
     ): List<DevicePreset> {
-        val platform = presets.filter { it.isIos == isIos }
+        val platform = presets.filter { it.isIos == isIos && (osVersion == "LATEST" || osVersion in it.osVersions) }
         return if (mode == "SELECTED") platform.filter { it.id in selectedIds } else platform
     }
 
@@ -139,7 +140,8 @@ object UserAgentGenerationEngine {
         if (count <= 0) return emptyList()
         val mode = if (isIos) request.iosDeviceMode else request.androidDeviceMode
         val selected = if (isIos) request.selectedIosDeviceIds else request.selectedAndroidDeviceIds
-        val pool = eligiblePool(presets, isIos, mode, selected).sortedBy { it.id }
+        val osSelection = if (isIos) request.iosOsVersion else request.androidOsVersion
+        val pool = eligiblePool(presets, isIos, mode, selected, osSelection).sortedBy { it.id }
         val devices = when (request.distributionMode) {
             "RANDOM" -> List(count) { pool[random.nextInt(pool.size)] }
             "CUSTOM" -> pool.flatMap { device -> List(request.customDeviceCounts[device.id] ?: 0) { device } }.shuffled(random)
@@ -154,7 +156,7 @@ object UserAgentGenerationEngine {
             appTemplates.forEach { add("In-app WebView" to it) }
         }
         return devices.mapIndexed { index, device ->
-            val version = requestedVersion(if (isIos) request.iosOsVersion else request.androidOsVersion, device.osVersions)
+            val version = if (osSelection == "LATEST") device.osVersions.lastOrNull().orEmpty() else osSelection
             val (browser, appTemplate) = variants[index % variants.size]
             val ua = appTemplate?.render(device.id, version) ?: if (isIos) {
                 UaBuilder.buildIosSafariTemplate(version)
@@ -182,11 +184,5 @@ object UserAgentGenerationEngine {
                 }
             )
         }
-    }
-
-    private fun requestedVersion(requested: String, available: List<String>): String {
-        if (available.isEmpty()) return ""
-        if (requested != "LATEST" && requested in available) return requested
-        return available.last()
     }
 }
