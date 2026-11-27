@@ -460,3 +460,11 @@ On the owner's explicit approval, `facebook-android-fb4a-observed-2026-v1` was p
 ## Addendum — Kotlin UA Studio REMOVED (2026-11-26, owner order)
 
 The owner reviewed the live Advanced UA Studio and ordered it removed ("look not good"). Removed: the whole `web/ua-studio/` directory, the "Advanced UA Studio" sidebar link, its one CSS rule, and `tests/ua-studio-smoke.js`. Main cache-bust token → `20261126-11`. The main generator and the template catalog (2026.11.25.6, incl. the verified Facebook Android record in `web/ua_templates.json`) are untouched. The Studio files remain in git history (added in commits 8db1e8a..111, 2026-11-25) and can be restored from there if the owner ever wants them back. The ua-studio data-copy upkeep rule is retired with the page.
+
+## Alpha30 Wave 1 checkpoint (2026-11-27)
+
+The Alpha29 app sync on main is cd7e69a. Wave 1 on fix/alpha30 closes A01, A07–A10, A24–A26, A28, A32 and B03. The test-infrastructure findings A45, A46 and A48 are also fixed. The [register and per-commit test results](reports/alpha30-findings.md) cover all 74 findings. At this checkpoint, 14 are fixed, five are upload artifacts and 55 are open, including 11 High and zero Critical.
+
+On the final Wave 1 run, the debug APK assembled. Of 104 JVM tests, 102 passed and two failed (A22 and A47). Python had 76 passing tests, six passing subtests and one failure (C14). Desktop smoke passed. The published device and UA validators reported zero errors and warnings against web data. Web specs reported 110 warnings. The bundled catalog and strict specs still have outstanding failures recorded in the register. Live provider calls, production responses and physical-device behavior remain UNVERIFIED.
+
+Wave 2 begins with the Android published-template reader. The release target is 0.4.0-alpha30, versionCode 34. The app is still on 0.4.0-alpha29, versionCode 33.

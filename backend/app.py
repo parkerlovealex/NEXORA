@@ -547,7 +547,8 @@ def monitor_sources_job() -> dict:
                         meta = get_meta(db)
                         current = (meta.get("versions") or {}).get("chrome")
                         def key(v): return tuple(int(x) for x in v.split("."))
-                        if not current or key(latest) > key(current):
+                        db.refresh(source, attribute_names=["enabled", "trusted"], with_for_update=True)
+                        if source.enabled and source.trusted and (not current or key(latest) > key(current)):
                             meta.setdefault("versions", {})["chrome"] = latest
                             meta.setdefault("versionEvidence", {})["chrome"] = {"url": source.url, "field": "versions[0].version", "quote": latest}
                             bump_and_save_meta(db, meta)
