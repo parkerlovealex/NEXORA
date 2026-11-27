@@ -38,8 +38,10 @@ from urllib.parse import urlsplit
 
 if __package__:
     from .catalog_evidence import supports_version_pair
+    from .catalog_versions import merge_app_release
 else:
     from catalog_evidence import supports_version_pair
+    from catalog_versions import merge_app_release
 
 KNOWN_APPS = [
     "facebook", "instagram", "tiktok", "x", "threads", "linkedin",
@@ -96,10 +98,10 @@ def main() -> int:
         if not source_ok or not supports_version_pair(quote, version, build):
             rejected.append(f"{app}: an HTTPS source and a quote supporting the submitted version/build are required")
             continue
-        entry = {"version": version}
+        entry = {"version": version, "sourceUrl": source, "sourceEvidence": {"url": source, "quote": quote}}
         if build is not None:
             entry["build"] = build
-        apps_meta[app] = entry
+        apps_meta[app] = merge_app_release(apps_meta.get(app), entry)
         evidence["apps"][app] = {
             "version": version,
             "build": entry.get("build"),

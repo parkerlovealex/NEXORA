@@ -9,9 +9,9 @@ import pytest
 TOOL = Path(__file__).resolve().parents[1] / "tools/collect_app_versions.py"
 
 
-def collect(tmp_path, version, build, quote):
+def collect(tmp_path, version, build, quote, previous=None):
     catalog = tmp_path / "input.json"
-    catalog.write_text(json.dumps({"meta": {"apps": {"facebook": {"version": "previous"}}}}))
+    catalog.write_text(json.dumps({"meta": {"apps": {"facebook": previous or {"version": "previous"}}}}))
     findings = tmp_path / "findings.json"
     entry = {"version": version, "source_url": "https://example.org/releases", "quoted_text": quote}
     if build is not None:
@@ -47,3 +47,16 @@ def test_matching_pair_retains_its_original_excerpt(tmp_path, build, quote):
     assert entry["version"] == "1.2.3"
     assert entry.get("build") == build
     assert evidence["facebook"]["quoted_text"] == quote
+
+
+def test_collector_preserves_extended_history_and_metadata_on_repeat(tmp_path):
+    older = {"version": "0.9", "build": "90", "published": "fixture date"}
+    old = {"version": "1.0", "build": "100", "versions": [older],
+           "platforms": ["android", "ios"], "sourceUrl": "https://example.org/previous"}
+    _, saved, _ = collect(tmp_path, "2.0", "200", "Version 2.0 (build 200)", old)
+    assert saved["platforms"] == old["platforms"]
+    assert older in saved["versions"]
+    assert any(v["version"] == "1.0" and v["build"] == "100" and v["sourceUrl"] == old["sourceUrl"] for v in saved["versions"])
+    _, again, _ = collect(tmp_path, "2.0", None, "Version 2.0.", saved)
+    assert (again["version"], again["build"]) == ("2.0", "200")
+    assert sum(v["version"] == "2.0" for v in again["versions"]) == 1

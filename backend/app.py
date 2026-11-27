@@ -31,6 +31,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sess
 
 from tools.catalog_evidence import (checked_device_quotes, contains_value, device_field_values,
                                     supports_device_field, supports_version_pair)
+from tools.catalog_versions import merge_app_release
 
 ROOT = Path(__file__).resolve().parents[1]
 try:
@@ -790,7 +791,7 @@ def update_app_version(body: AppVersionBody, db: Session = Depends(get_db), acto
     entry = {"version": body.version, "sourceUrl": body.source_url, "sourceEvidence": proof}
     if body.token:
         entry["token"] = body.token
-    apps[body.app_id] = entry
+    apps[body.app_id] = merge_app_release(apps[body.app_id], entry)
     bump_and_save_meta(db, meta); audit(db, actor, "app_version_updated", body.app_id, {"version": body.version, "sourceUrl": body.source_url}); db.commit()
     return {"ok": True, "dataVersion": meta.get("dataVersion")}
 
@@ -878,7 +879,7 @@ def decide_proposal(proposal_id: int, decision: str = Query(pattern="^(approve|r
                 for field in ("build", "token"):
                     if p.get(field):
                         entry[field] = p[field]
-                meta["apps"][app_id] = entry
+                meta["apps"][app_id] = merge_app_release(meta["apps"][app_id], entry)
             bump_and_save_meta(db, meta)
         else: raise HTTPException(status_code=422, detail="Unsupported proposal type")
         proposal.status = "approved"

@@ -193,6 +193,41 @@ def test_device_approval_requires_a_quote_for_each_firmware_pair(official_source
         assert saved["fieldEvidence"]["builds.14"] == "Android 14 firmware FX99"
 
 
+def test_app_writes_preserve_previous_versions_builds_and_platform_metadata(official_source):
+    from backend.app import MetaRecord, SessionLocal
+    with client:
+        headers = admin_headers()
+        with SessionLocal.begin() as db:
+            row = db.get(MetaRecord, 1)
+            apps = dict(row.payload["apps"])
+            older = {"version": "audit.0", "build": "10", "note": "retained"}
+            apps["facebook"] = {"version": "audit.1", "build": "11", "versions": [older],
+                                "platforms": {"android": True}, "token": "saved token"}
+            row.payload = {**row.payload, "apps": apps}
+        url = "https://play.google.com/store/apps/details?id=com.facebook.katana"
+        official_source.extend(["Application version: audit.2", "Application version: audit.3 (build 13)"])
+        update = client.post("/api/v1/admin/app-versions", headers=headers, json={"app_id": "facebook", "version": "audit.2", "source_url": url})
+        assert update.status_code == 200, update.text
+        saved = client.get("/api/v1/data").json()["meta"]["apps"]["facebook"]
+        assert saved["platforms"] == {"android": True}
+        assert saved["token"] == "saved token"
+        assert older in saved["versions"]
+        assert {"version": "audit.1", "build": "11"} in saved["versions"]
+        assert "build" not in saved
+        proposed = client.post("/api/v1/admin/proposals", headers=headers, json={
+            "kind": "app_version", "title": "New application build",
+            "payload": {"app_id": "facebook", "version": "audit.3", "build": "13", "sourceUrl": url},
+        })
+        pid = proposed.json()["id"]
+        approval = client.post(f"/api/v1/admin/proposals/{pid}/decision?decision=approve", headers=headers)
+        assert approval.status_code == 200, approval.text
+        latest = client.get("/api/v1/data").json()["meta"]["apps"]["facebook"]
+        assert latest["build"] == "13"
+        assert latest["platforms"] == saved["platforms"]
+        assert any(v.get("version") == "audit.2" and "build" not in v and v.get("sourceEvidence") == saved["sourceEvidence"] for v in latest["versions"])
+        assert older in latest["versions"]
+
+
 def test_official_source_allowlist_and_evidence_quotes():
     from backend.app import quote_is_supported, validate_official_source_url
     validate_official_source_url("https://play.google.com/store/apps/details?id=com.instagram.android")
