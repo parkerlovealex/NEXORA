@@ -75,7 +75,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         batchStore = UserAgentBatchStore(this)
         buildUi()
         savedInstanceState?.getString(STATE_BATCH_ID)?.let { id ->
-            lastBatch = batchStore.find(id)
+            lastBatch = readLocalStore { batchStore.find(id) }.getOrElse { return }
             lastBatch?.let { renderResults(it.records, it.name) }
         }
     }
@@ -306,7 +306,10 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     private fun renderSavedBatches() {
         if (!::savedBatchesPanel.isInitialized) return
         if (savedBatchesPanel.childCount > 2) savedBatchesPanel.removeViews(2, savedBatchesPanel.childCount - 2)
-        val batches = batchStore.loadAll()
+        val batches = readLocalStore { batchStore.loadAll() }.getOrElse {
+            savedBatchesPanel.addView(text(it.message.orEmpty(), 11f, R.color.nexora_muted))
+            return
+        }
         if (batches.isEmpty()) {
             savedBatchesPanel.addView(text("No saved batches yet.", 11f, R.color.nexora_muted))
             UiFeedback.install(savedBatchesPanel)

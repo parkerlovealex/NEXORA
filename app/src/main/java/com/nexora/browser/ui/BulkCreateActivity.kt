@@ -432,7 +432,7 @@ class BulkCreateActivity : AppCompatActivity() {
         addNote(startup, "Startup tab count", "${BulkProfileValidator.parseStartupUrls(draft.startupUrlsText).size} URLs configured")
 
         val organization = section("Organization", "Choose an existing group or enter a new group name.")
-        val existingGroups = store.loadAll().map { it.groupName.trim() }.filter { it.isNotBlank() }.distinct().sorted()
+        val existingGroups = readLocalStore { store.loadAll() }.getOrElse { return }.map { it.groupName.trim() }.filter { it.isNotBlank() }.distinct().sorted()
         val groupOptions = listOf("No Group") + existingGroups + "Create new group…"
         val groupSelected = when {
             draft.groupName.isBlank() -> 0
@@ -816,12 +816,10 @@ class BulkCreateActivity : AppCompatActivity() {
     // ---------------------------------------------------------------------
     // Validation and creation
 
-    private fun validateDraft(): List<String> = BulkProfileValidator.validate(
-        draft,
-        store.loadAll(),
-        presets,
-        proxyEntries
-    )
+    private fun validateDraft(): List<String> {
+        val profiles = readLocalStore { store.loadAll() }.getOrElse { return listOf(it.message.orEmpty()) }
+        return BulkProfileValidator.validate(draft, profiles, presets, proxyEntries)
+    }
 
     private fun onNext() {
         if (step == 0) {
@@ -868,7 +866,7 @@ class BulkCreateActivity : AppCompatActivity() {
                 .show()
             return
         }
-        val existing = store.loadAll()
+        val existing = readLocalStore { store.loadAll() }.getOrElse { return }
         val now = System.currentTimeMillis()
         val startupUrls = BulkProfileValidator.parseStartupUrls(draft.startupUrlsText)
         val preset = presets.firstOrNull { it.id == draft.deviceId } ?: run { toast("Device preset is missing"); return }

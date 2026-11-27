@@ -86,7 +86,7 @@ class ProfileStudioActivity : AppCompatActivity() {
         profileStore = ProfileStore(this)
         proxyStore = ProxyLibraryStore(this)
         batchStore = UserAgentBatchStore(this)
-        savedBatches = batchStore.loadAll()
+        savedBatches = readLocalStore { batchStore.loadAll() }.getOrElse { finish(); return }
         proxies = proxyStore.loadAll()
         if (savedInstanceState != null) restoreState(savedInstanceState)
         intent.getStringExtra(EXTRA_UA_BATCH_ID)?.takeIf { it.isNotBlank() }?.let { id ->
@@ -99,7 +99,7 @@ class ProfileStudioActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::batchStore.isInitialized) {
-            val latest = batchStore.loadAll()
+            val latest = readLocalStore { batchStore.loadAll() }.getOrElse { return }
             val batchChanged = latest.map { it.id } != savedBatches.map { it.id }
             savedBatches = latest
             if (proxyManagerOpened && ::proxyStore.isInitialized) {
@@ -375,7 +375,7 @@ class ProfileStudioActivity : AppCompatActivity() {
         if (distributionMode == "CUSTOM" && uaSource == "AUTO") errors += validateCustomDistribution()
         val names = (1..(androidCount + iosCount)).map { "$namePrefix $it".trim().lowercase() }
         if (names.size != names.toSet().size) errors += "Generated profile names are not unique."
-        val existing = profileStore.loadAll().map { it.name.trim().lowercase() }.toSet()
+        val existing = readLocalStore { profileStore.loadAll() }.getOrElse { return listOf(it.message.orEmpty()) }.map { it.name.trim().lowercase() }.toSet()
         if (names.any { it in existing }) errors += "A profile name already exists. Change the prefix."
         return errors.filter { it.isNotBlank() }.distinct()
     }
@@ -413,7 +413,7 @@ class ProfileStudioActivity : AppCompatActivity() {
         }
         if (records.size != androidCount + iosCount) { toast("The selected UA batch did not provide enough records. No profiles were created."); return }
 
-        val existing = profileStore.loadAll()
+        val existing = readLocalStore { profileStore.loadAll() }.getOrElse { return }
         val now = System.currentTimeMillis()
         val usableProxies = if (assignProxies) proxies.filter { it.isSupportedByProxyRelay } else emptyList()
         val newProfiles = mutableListOf<BrowserProfile>()

@@ -104,7 +104,7 @@ class AutomationCenterActivity : AppCompatActivity() {
     }
 
     private fun previewProfileAudit() {
-        val profiles = profileStore.loadAll()
+        val profiles = readLocalStore { profileStore.loadAll() }.getOrElse { return }
         val preview = WorkflowPlanner.auditProfiles(profiles.map(::snapshot))
         val findings = preview.findings.take(15).joinToString("\n")
         val extra = if (preview.findings.size > 15) "\n…and ${preview.findings.size - 15} more finding(s)." else ""
@@ -133,7 +133,7 @@ class AutomationCenterActivity : AppCompatActivity() {
     }
 
     private fun previewProxyAssignment() {
-        val profiles = profileStore.loadAll()
+        val profiles = readLocalStore { profileStore.loadAll() }.getOrElse { return }
         val proxies = proxyStore.loadAll()
         val preview = WorkflowPlanner.assignUnassignedProxies(
             profiles.map(::snapshot), proxies.map(::snapshot)
@@ -162,7 +162,7 @@ class AutomationCenterActivity : AppCompatActivity() {
     }
 
     private fun applyProxyAssignment(previousPreview: WorkflowPreview) {
-        val profiles = profileStore.loadAll()
+        val profiles = readLocalStore { profileStore.loadAll() }.getOrElse { return }
         val proxies = proxyStore.loadAll()
         val currentPreview = WorkflowPlanner.assignUnassignedProxies(
             profiles.map(::snapshot), proxies.map(::snapshot)

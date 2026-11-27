@@ -38,14 +38,15 @@ class PrivacyCenterActivity : AppCompatActivity() {
 
         val profileId = intent.getStringExtra(EXTRA_PROFILE_ID).orEmpty()
         val store = ProfileStore(this)
-        val loaded = store.getById(profileId)
+        val profiles = readLocalStore { store.loadAll() }.getOrElse { finish(); return }
+        val loaded = profiles.firstOrNull { it.id == profileId }
         if (loaded == null) {
             Toast.makeText(this, "Profile not found", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
         profile = loaded
-        val collisions = ProfileIsolationGuard.collidingProfiles(profile, store.loadAll())
+        val collisions = ProfileIsolationGuard.collidingProfiles(profile, profiles)
         if (collisions.size > 1) {
             setContentView(messagePage(
                 "Profile storage collision",

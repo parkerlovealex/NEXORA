@@ -221,7 +221,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchMostRecentProfile() {
-        val profile = store.loadAll().maxByOrNull { it.lastUsedAt }
+        val profile = readLocalStore { store.loadAll() }.getOrElse { return }.maxByOrNull { it.lastUsedAt }
         if (profile == null) {
             toast("Create a profile before opening the browser.")
             startActivity(Intent(this, EditProfileActivity::class.java))
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun withRequiredProfile(action: (BrowserProfile) -> Unit) {
-        val profile = store.loadAll().maxByOrNull { it.lastUsedAt }
+        val profile = readLocalStore { store.loadAll() }.getOrElse { return }.maxByOrNull { it.lastUsedAt }
         if (profile == null) {
             toast("Create a browser profile first.")
             startActivity(Intent(this, EditProfileActivity::class.java))
@@ -280,7 +280,12 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------ list
 
     private fun refresh() {
-        allProfiles = store.loadAll().sortedByDescending { it.lastUsedAt }
+        allProfiles = readLocalStore { store.loadAll() }.getOrElse {
+            binding.emptyText.text = it.message
+            binding.emptyText.visibility = View.VISIBLE
+            binding.profileList.visibility = View.GONE
+            return
+        }.sortedByDescending { it.lastUsedAt }
         adapter.retainSelection(allProfiles.map { it.id }.toSet())
         val cutoff = System.currentTimeMillis() - RECENT_WINDOW_MS
         binding.tvProfileCount.text = allProfiles.size.toString()
@@ -321,7 +326,10 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------ actions
 
     private fun launchProfile(profile: BrowserProfile) {
-        store.update(profile.copy(lastUsedAt = System.currentTimeMillis()))
+        if (!store.update(profile.copy(lastUsedAt = System.currentTimeMillis()))) {
+            toast("Could not save profile changes. Check device storage and retry.")
+            return
+        }
         refresh()
         val intent = Intent(this, BrowserActivity::class.java)
         intent.putExtra(BrowserActivity.EXTRA_PROFILE_ID, profile.id)

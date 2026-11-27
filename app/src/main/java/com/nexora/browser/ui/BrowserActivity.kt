@@ -144,14 +144,15 @@ class BrowserActivity : AppCompatActivity() {
 
         store = ProfileStore(this)
         val profileId = intent.getStringExtra(EXTRA_PROFILE_ID).orEmpty()
-        val loaded = store.getById(profileId)
+        val profiles = readLocalStore { store.loadAll() }.getOrElse { finish(); return }
+        val loaded = profiles.firstOrNull { it.id == profileId }
         if (loaded == null) {
             toast("Profile not found")
             finish()
             return
         }
         profile = loaded
-        val storageKeyOwners = ProfileIsolationGuard.collidingProfiles(profile, store.loadAll())
+        val storageKeyOwners = ProfileIsolationGuard.collidingProfiles(profile, profiles)
         if (storageKeyOwners.size > 1) {
             AlertDialog.Builder(this)
                 .setTitle("Profile storage collision detected")

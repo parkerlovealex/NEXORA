@@ -60,7 +60,10 @@ class CompatibilityLabActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val profileId = intent.getStringExtra(EXTRA_PROFILE_ID).orEmpty()
-        val loadedProfile = ProfileStore(this).getById(profileId)
+        val loadedProfile = readLocalStore { ProfileStore(this).getById(profileId) }.getOrElse {
+            setContentView(buildMessageView(it.message.orEmpty()))
+            return
+        }
         if (loadedProfile == null) {
             setContentView(buildMessageView("Profile not found. Return to NEXORA and open Compatibility Lab from an active profile."))
             return

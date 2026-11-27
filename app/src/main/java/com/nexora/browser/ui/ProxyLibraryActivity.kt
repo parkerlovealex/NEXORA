@@ -29,8 +29,6 @@ import com.nexora.browser.data.ProxyEntry
 import com.nexora.browser.data.ProxyLibraryStore
 import com.nexora.browser.util.ProxyImporter
 import com.nexora.browser.util.ProxyTester
-import org.json.JSONArray
-import java.io.File
 
 /** Dedicated local proxy-library manager. Credentials are decrypted only in memory for an explicit test. */
 class ProxyLibraryActivity : AppCompatActivity() {
@@ -450,22 +448,8 @@ class ProxyLibraryActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * ProfileStore.loadAll intentionally returns an empty list on corrupt JSON.
-     * Destructive proxy cleanup must distinguish that from a genuinely empty profile set.
-     */
-    private fun profilesForReferenceCheck(): List<BrowserProfile>? {
-        val base = File(filesDir, "profiles.json")
-        val backup = File(filesDir, "profiles.json.bak")
-        if (!base.exists() && !backup.exists()) return emptyList()
-        return try {
-            val readableFile = if (base.exists()) base else backup
-            JSONArray(readableFile.readText(Charsets.UTF_8))
-            profileStore.loadAll()
-        } catch (_: Exception) {
-            null
-        }
-    }
+    private fun profilesForReferenceCheck(): List<BrowserProfile>? =
+        readLocalStore { profileStore.loadAll() }.getOrNull()
 
     private fun label(value: String) = TextView(this).apply {
         text = value

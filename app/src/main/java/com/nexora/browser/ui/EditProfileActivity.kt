@@ -72,7 +72,7 @@ class EditProfileActivity : AppCompatActivity() {
         setupListeners()
 
         val editId = intent.getStringExtra(EXTRA_PROFILE_ID)
-        editing = editId?.let { store.getById(it) }
+        editing = readLocalStore { editId?.let { store.getById(it) } }.getOrElse { finish(); return }
         if (!editId.isNullOrBlank() && editing == null) {
             toast("Profile not found")
             finish()
@@ -758,7 +758,8 @@ class EditProfileActivity : AppCompatActivity() {
             }
         }
         val form = formProfile(editing?.id ?: UUID.randomUUID().toString())
-        val errors = ProfileEditorValidator.validate(form, store.loadAll(), presets, proxyEntries)
+        val profiles = readLocalStore { store.loadAll() }.getOrElse { return }
+        val errors = ProfileEditorValidator.validate(form, profiles, presets, proxyEntries)
         if (errors.isNotEmpty()) {
             AlertDialog.Builder(this)
                 .setTitle("Check profile settings")

@@ -157,24 +157,24 @@ class FeaturePageActivity : AppCompatActivity() {
             FeatureAction.PROXY_MANAGER -> startActivity(Intent(this, ProxyLibraryActivity::class.java))
             FeatureAction.SETTINGS -> startActivity(Intent(this, SettingsActivity::class.java))
             FeatureAction.OPEN_BROWSER -> {
-                val profile = preferredProfile() ?: return createProfileFirst()
+                val profile = readLocalStore { preferredProfile() }.getOrElse { return } ?: return createProfileFirst()
                 startActivity(Intent(this, BrowserActivity::class.java).putExtra(BrowserActivity.EXTRA_PROFILE_ID, profile.id))
             }
             FeatureAction.PROFILE_EDITOR -> {
-                val profile = preferredProfile()
+                val profile = readLocalStore { preferredProfile() }.getOrElse { return }
                 val intent = Intent(this, EditProfileActivity::class.java)
                 if (profile != null) intent.putExtra(EditProfileActivity.EXTRA_PROFILE_ID, profile.id)
                 startActivity(intent)
             }
             FeatureAction.COMPATIBILITY_LAB -> {
-                val profile = preferredProfile() ?: return createProfileFirst()
+                val profile = readLocalStore { preferredProfile() }.getOrElse { return } ?: return createProfileFirst()
                 startActivity(
                     Intent(this, CompatibilityLabActivity::class.java)
                         .putExtra(CompatibilityLabActivity.EXTRA_PROFILE_ID, profile.id)
                 )
             }
             FeatureAction.PRIVACY_CENTER -> {
-                val profile = preferredProfile() ?: return createProfileFirst()
+                val profile = readLocalStore { preferredProfile() }.getOrElse { return } ?: return createProfileFirst()
                 startActivity(
                     Intent(this, PrivacyCenterActivity::class.java)
                         .putExtra(PrivacyCenterActivity.EXTRA_PROFILE_ID, profile.id)
@@ -185,9 +185,9 @@ class FeaturePageActivity : AppCompatActivity() {
         }
     }
 
-    private fun preferredProfile() =
-        ProfileStore(this).loadAll().firstOrNull { it.id == preferredProfileId }
-            ?: ProfileStore(this).loadAll().maxByOrNull { it.lastUsedAt }
+    private fun preferredProfile() = ProfileStore(this).loadAll().let { profiles ->
+        profiles.firstOrNull { it.id == preferredProfileId } ?: profiles.maxByOrNull { it.lastUsedAt }
+    }
 
     private fun createProfileFirst() {
         Toast.makeText(this, "Create a browser profile first.", Toast.LENGTH_SHORT).show()
