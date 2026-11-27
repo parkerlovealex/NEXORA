@@ -422,6 +422,8 @@ class ProfileStudioActivity : AppCompatActivity() {
                 val preset = presets.firstOrNull { it.id == record.deviceId }
                     ?: throw IllegalStateException("${record.deviceName} is no longer in the active database.")
                 val proxy = usableProxies.getOrNull(index)
+                val defaultLanguage = Locale.getDefault().toLanguageTag()
+                val profileLanguage = record.locale.ifBlank { defaultLanguage }
                 newProfiles += BrowserProfile(
                     id = UUID.randomUUID().toString(),
                     name = "$namePrefix ${index + 1}".trim(),
@@ -437,7 +439,7 @@ class ProfileStudioActivity : AppCompatActivity() {
                     proxyPass = "",
                     proxyEntryId = proxy?.id.orEmpty(),
                     timezoneId = "",
-                    language = record.locale.ifBlank { Locale.getDefault().toLanguageTag() },
+                    language = profileLanguage,
                     webrtcBlock = true,
                     canvasNoise = true,
                     webglSpoof = true,
@@ -449,7 +451,7 @@ class ProfileStudioActivity : AppCompatActivity() {
                     targetOs = record.targetOs,
                     userAgentMode = if (uaSource == "AUTO") "AUTO" else "CUSTOM",
                     timezoneMode = "DEVICE",
-                    languageMode = if (record.locale == Locale.getDefault().toLanguageTag()) "DEVICE" else "CUSTOM",
+                    languageMode = if (profileLanguage == defaultLanguage) "DEVICE" else "CUSTOM",
                     webrtcMode = "DISABLED",
                     mediaDevicesNoise = false,
                     clientRectsNoise = false,

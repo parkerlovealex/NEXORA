@@ -177,22 +177,14 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
 
         val locale = section("05  /  Country & locale", "Search a country to suggest a locale, then edit the language tag if needed. Locale is metadata, not part of the UA string.")
         locale.addView(text("Country / region", 11f, R.color.nexora_muted, true).apply { setPadding(0, dp(7), 0, dp(3)) })
-        val countryPairs = Locale.getISOCountries().map { code -> code to Locale("", code).getDisplayCountry(Locale.getDefault()) }
-            .filter { it.second.isNotBlank() }.sortedBy { it.second }
-        val countryLabels = listOf("Use device default") + countryPairs.map { "${it.second} (${it.first})" }
-        val countryCodes = mapOf("Use device default" to "") + countryPairs.associate { "${it.second} (${it.first})" to it.first }
+        val countries = CountryChoice.choices(Locale.getDefault())
         countryField = AutoCompleteTextView(this).apply {
             hint = "Search country..."; threshold = 1; setTextColor(color(R.color.nexora_text)); setHintTextColor(color(R.color.nexora_muted))
             background = rounded(color(R.color.nexora_raised), color(R.color.nexora_line)); setPadding(dp(12), dp(10), dp(12), dp(10))
-            setAdapter(android.widget.ArrayAdapter(this@UserAgentGeneratorActivity, android.R.layout.simple_dropdown_item_1line, countryLabels))
-            setOnItemClickListener { _, _, position, _ ->
-                val selected = countryLabels.getOrNull(position).orEmpty()
-                val code = countryCodes[selected].orEmpty()
-                if (code.isBlank()) localeField.setText(Locale.getDefault().toLanguageTag())
-                else {
-                    val language = Locale.getDefault().language.takeIf { it.isNotBlank() && it != "und" } ?: "en"
-                    localeField.setText(Locale.Builder().setLanguage(language).setRegion(code).build().toLanguageTag())
-                }
+            setAdapter(android.widget.ArrayAdapter(this@UserAgentGeneratorActivity, android.R.layout.simple_dropdown_item_1line, countries))
+            setOnItemClickListener { parent, _, position, _ ->
+                val selected = parent.getItemAtPosition(position) as? CountryChoice ?: return@setOnItemClickListener
+                localeField.setText(selected.languageTag(Locale.getDefault()))
             }
         }
         locale.addView(countryField, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
