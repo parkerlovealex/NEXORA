@@ -6,30 +6,42 @@ import org.json.JSONArray
 import java.io.File
 
 /** Stores profile metadata atomically in the app's private files directory. */
-class ProfileStore internal constructor(private val file: LocalStoreFile) {
+class ProfileStore internal constructor(
+    private val file: LocalStoreFile,
+    private val encrypt: (String) -> String,
+    private val decrypt: (String) -> String
+) {
+    internal constructor(file: LocalStoreFile, vault: SecretVault = SecretVault()) :
+        this(file, vault::encrypt, vault::decrypt)
     constructor(context: Context) : this(LocalStoreFile.android(File(context.filesDir, "profiles.json")))
 
-    private val secretVault = SecretVault()
-
-    private fun readProfiles(migrate: Boolean): MutableList<BrowserProfile> {
-        var needsMigration = false
-        val profiles = file.readRows { obj ->
-            require((obj.opt("id") as? String)?.isNotBlank() == true) { "Missing profile ID" }
-            val decoded = ProfileCredentialCodec.decode(obj, secretVault::decrypt, secretVault::decrypt)
-            if (decoded.needsMigration) needsMigration = true
-            decoded.profile
-        }.toMutableList()
-        if (migrate && needsMigration) writeProfiles(profiles)
-        return profiles
+    private fun readRows() = file.readRows { obj ->
+        require((obj.opt("id") as? String)?.isNotBlank() == true) { "Missing profile ID" }
+        ProfileCredentialCodec.decode(obj, decrypt, decrypt)
     }
 
     @Synchronized
-    fun loadAll(): MutableList<BrowserProfile> = readProfiles(migrate = true)
+    fun loadAll(): MutableList<BrowserProfile> {
+        val original = readRows()
+        val profiles = original.map { it.profile }.toMutableList()
+        if (original.any { it.needsMigration }) writeProfiles(profiles, original)
+        return profiles
+    }
 
-    private fun writeProfiles(profiles: List<BrowserProfile>): Boolean {
+    private fun writeProfiles(
+        profiles: List<BrowserProfile>, original: List<ProfileCredentialCodec.Decoded>,
+        explicitDeletions: Set<String> = emptySet()
+    ): Boolean {
+        val retained = original.filter { it.preservedSource != null }.associateBy { it.profile.id }
+        val remainingIds = profiles.mapTo(mutableSetOf()) { it.id }
+        if (retained.keys.any { it !in remainingIds && it !in explicitDeletions }) return false
         val rows = JSONArray()
         try {
-            profiles.forEach { rows.put(ProfileCredentialCodec.encode(it, secretVault::encrypt)) }
+            for (profile in profiles) {
+                val locked = retained[profile.id]
+                if (locked != null && locked.profile != profile) return false
+                rows.put(locked?.preservedSource ?: ProfileCredentialCodec.encode(profile, encrypt))
+            }
         } catch (_: Exception) {
             return false
         }
@@ -39,12 +51,12 @@ class ProfileStore internal constructor(private val file: LocalStoreFile) {
     /** Validate the committed file even when a caller brings its own list. */
     @Synchronized
     fun saveAllChecked(profiles: List<BrowserProfile>): Boolean {
-        try {
-            readProfiles(migrate = false)
+        val original = try {
+            readRows()
         } catch (_: LocalStoreReadException) {
             return false
         }
-        return writeProfiles(profiles)
+        return writeProfiles(profiles, original)
     }
 
     @Synchronized
@@ -52,13 +64,14 @@ class ProfileStore internal constructor(private val file: LocalStoreFile) {
         check(saveAllChecked(profiles)) { "Could not save profiles" }
     }
 
-    private fun edit(change: (MutableList<BrowserProfile>) -> Boolean): Boolean {
-        val profiles = try {
-            readProfiles(migrate = false)
+    private fun edit(explicitDeletions: Set<String> = emptySet(), change: (MutableList<BrowserProfile>) -> Boolean): Boolean {
+        val original = try {
+            readRows()
         } catch (_: LocalStoreReadException) {
             return false
         }
-        return change(profiles) && writeProfiles(profiles)
+        val profiles = original.map { it.profile }.toMutableList()
+        return change(profiles) && writeProfiles(profiles, original, explicitDeletions)
     }
 
     @Synchronized
@@ -79,11 +92,15 @@ class ProfileStore internal constructor(private val file: LocalStoreFile) {
     }
 
     @Synchronized
-    fun deleteMany(ids: Set<String>): Boolean = ids.isEmpty() || edit { rows ->
+    fun deleteMany(ids: Set<String>): Boolean = ids.isEmpty() || edit(explicitDeletions = ids) { rows ->
         rows.removeAll { it.id in ids }
         true
     }
 
     @Synchronized
-    fun getById(id: String): BrowserProfile? = loadAll().firstOrNull { it.id == id }
+    fun getById(id: String): BrowserProfile? {
+        val profile = loadAll().firstOrNull { it.id == id }
+        if (profile?.proxyCredentialsLocked == true) throw LocalStoreReadException(ProfileCredentialCodec.LOCKED_MESSAGE)
+        return profile
+    }
 }

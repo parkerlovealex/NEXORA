@@ -13,13 +13,15 @@ object ProfileCredentialCodec {
 
     data class Decoded(
         val profile: BrowserProfile,
-        val needsMigration: Boolean
+        val needsMigration: Boolean,
+        internal val preservedSource: JSONObject? = null
     )
 
     fun encode(
         profile: BrowserProfile,
         encryptPayload: (String) -> String
     ): JSONObject {
+        check(!profile.proxyCredentialsLocked) { LOCKED_MESSAGE }
         val json = profile.toJson()
         val username = profile.proxyUser
         val password = profile.proxyPass
@@ -46,34 +48,30 @@ object ProfileCredentialCodec {
         decryptLegacyPassword: (String) -> String
     ): Decoded {
         val normalized = JSONObject(source.toString())
-        val encryptedCredentials = normalized.optString(KEY_ENCRYPTED_CREDENTIALS)
-
-        if (encryptedCredentials.isNotBlank()) {
+        if (source.has(KEY_ENCRYPTED_CREDENTIALS) || source.has(KEY_LEGACY_ENCRYPTED_PASSWORD)) {
             try {
-                val payload = JSONObject(decryptPayload(encryptedCredentials))
-                normalized.put(KEY_USERNAME, payload.optString("username"))
-                normalized.put(KEY_PASSWORD, payload.optString("password"))
-            } catch (_: Exception) {
-                // Match the existing safe fallback: unreadable credentials are
-                // never surfaced as plaintext or allowed to crash profile loading.
-                normalized.put(KEY_USERNAME, "")
-                normalized.put(KEY_PASSWORD, "")
-            }
-            return Decoded(BrowserProfile.fromJson(normalized), false)
-        }
-
-        val legacyEncryptedPassword = normalized.optString(KEY_LEGACY_ENCRYPTED_PASSWORD)
-        if (legacyEncryptedPassword.isNotBlank()) {
-            normalized.put(
-                KEY_PASSWORD,
-                try {
-                    decryptLegacyPassword(legacyEncryptedPassword)
-                } catch (_: Exception) {
-                    ""
+                if (source.has(KEY_ENCRYPTED_CREDENTIALS)) {
+                    val encrypted = source.get(KEY_ENCRYPTED_CREDENTIALS) as String
+                    require(encrypted.isNotBlank())
+                    val payload = JSONObject(decryptPayload(encrypted))
+                    val user = payload.get("username") as String
+                    val password = payload.get("password") as String
+                    require(user.isNotEmpty() || password.isNotEmpty())
+                    normalized.put(KEY_USERNAME, user)
+                    normalized.put(KEY_PASSWORD, password)
+                    return Decoded(BrowserProfile.fromJson(normalized), false)
                 }
-            )
-            normalized.remove(KEY_LEGACY_ENCRYPTED_PASSWORD)
-            return Decoded(BrowserProfile.fromJson(normalized), true)
+                val encrypted = source.get(KEY_LEGACY_ENCRYPTED_PASSWORD) as String
+                require(encrypted.isNotBlank())
+                val password = decryptLegacyPassword(encrypted)
+                require(password.isNotEmpty())
+                normalized.put(KEY_PASSWORD, password)
+                return Decoded(BrowserProfile.fromJson(normalized), true)
+            } catch (_: Exception) {
+                normalized.remove(KEY_USERNAME)
+                normalized.remove(KEY_PASSWORD)
+                return Decoded(BrowserProfile.fromJson(normalized).copy(proxyCredentialsLocked = true), false, source)
+            }
         }
 
         val hasLegacyPlaintext =
@@ -82,6 +80,7 @@ object ProfileCredentialCodec {
         return Decoded(BrowserProfile.fromJson(normalized), hasLegacyPlaintext)
     }
 
+    const val LOCKED_MESSAGE = "Saved proxy credentials could not be unlocked. Unlock the device and retry."
     private const val KEY_USERNAME = "proxyUser"
     private const val KEY_PASSWORD = "proxyPass"
     private const val KEY_LEGACY_ENCRYPTED_PASSWORD = "proxyPassEncrypted"

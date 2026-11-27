@@ -35,6 +35,9 @@ object ProfileBackupManager {
         password: CharArray
     ): ByteArray {
         val profiles = profileStore.loadAll()
+        check(profiles.none { it.proxyCredentialsLocked }) {
+            com.nexora.browser.data.ProfileCredentialCodec.LOCKED_MESSAGE
+        }
         val proxies = proxyStore.loadAll()
         require(profiles.size <= MAX_PROFILES) { "There are too many profiles for this backup format." }
         require(proxies.size <= MAX_PROXIES) { "There are too many saved proxies for this backup format." }

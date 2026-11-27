@@ -11,8 +11,9 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.LinkOption
 
-internal class LocalStoreReadException(file: File, cause: Exception) :
-    IOException("Could not read " + file.name + ". Your saved data was kept.", cause)
+internal class LocalStoreReadException(message: String, cause: Exception? = null) : IOException(message, cause) {
+    constructor(file: File, cause: Exception) : this("Could not read " + file.name + ". Your saved data was kept.", cause)
+}
 
 internal class LocalStoreFile(
     val path: File,

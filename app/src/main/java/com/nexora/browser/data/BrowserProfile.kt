@@ -45,7 +45,9 @@ data class BrowserProfile(
     /** Stable per-profile seed for the fingerprint noise (canvas/audio). */
     var seed: Int = 0,
     var createdAt: Long = 0L,
-    var lastUsedAt: Long = 0L
+    var lastUsedAt: Long = 0L,
+    /** In-memory state only. The store retains the original encrypted row until it can be read. */
+    val proxyCredentialsLocked: Boolean = false
 ) {
     /** Key used for the androidx.webkit per-profile data store. */
     val webViewProfileKey: String get() = "nx_" + id.take(8)

@@ -151,6 +151,11 @@ class BrowserActivity : AppCompatActivity() {
             finish()
             return
         }
+        if (loaded.proxyCredentialsLocked) {
+            toast(com.nexora.browser.data.ProfileCredentialCodec.LOCKED_MESSAGE)
+            finish()
+            return
+        }
         profile = loaded
         val storageKeyOwners = ProfileIsolationGuard.collidingProfiles(profile, profiles)
         if (storageKeyOwners.size > 1) {
