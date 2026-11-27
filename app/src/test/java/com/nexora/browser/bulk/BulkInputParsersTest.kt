@@ -27,6 +27,18 @@ class BulkInputParsersTest {
     }
 
     @Test
+    fun proxyImporterKeepsProviderSessionIdsInSeparateParsedRows() {
+        val rows = (1..6).map { index ->
+            "gate.example:8080:user-country-gb-sid-session$index:password"
+        }.joinToString("\n")
+        val parsed = ProxyImporter.parse(rows, "HTTP")
+
+        assertEquals(6, parsed.size)
+        assertTrue(parsed.all { it.valid && it.type == "HTTP" && it.hasCredentials })
+        assertEquals(6, parsed.map { it.username }.distinct().size)
+    }
+
+    @Test
     fun proxyImporterParsesSupportedFormsAndRejectsInvalidPort() {
         val rows = ProxyImporter.parse(
             listOf(
