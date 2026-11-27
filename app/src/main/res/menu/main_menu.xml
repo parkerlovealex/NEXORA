@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/itemSelectProfiles"
+        android:title="Select profiles" />
+    <item
+        android:id="@+id/itemFeatureCenter"
+        android:title="Anti-detect Center" />
+    <item
         android:id="@+id/itemBulkCreate"
-        android:title="Bulk profile creation" />
+        android:title="Profile Studio" />
+    <item
+        android:id="@+id/itemUserAgentGenerator"
+        android:title="User-Agent Generator" />
+    <item
+        android:id="@+id/itemProxyManager"
+        android:title="Proxy Manager" />
+    <item
+        android:id="@+id/itemAutomationCenter"
+        android:title="Automation Center" />
     <item
         android:id="@+id/itemSettings"
         android:title="Settings" />

@@ -12,7 +12,7 @@
         android:title="Find in page" />
     <item
         android:id="@+id/itemCheckFp"
-        android:title="Check fingerprint" />
+        android:title="Privacy diagnostics" />
     <item
         android:id="@+id/itemProfileInfo"
         android:title="Profile info" />
