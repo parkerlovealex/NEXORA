@@ -84,6 +84,8 @@ Do not assume `display.ppi` is Android logical density. Do not infer chipset tok
 
 ## 5. Evidence and verification gate
 
+Install the validator dependency with `python -m pip install -r requirements-ua.txt`. It includes the Public Suffix List so subdomains and port variants of one publisher count once during offline verification.
+
 Evidence kinds are `observed-ua`, `official-doc`, `published-dataset-entry`, `technical-reference` and `candidate-script`. A curated corpus row is `published-dataset-entry`; it is not silently promoted to raw telemetry.
 
 A record may be marked `verified` only when all conditions hold:

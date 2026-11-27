@@ -10,7 +10,9 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
+from publicsuffixlist import PublicSuffixList
 
+PUBLISHER_DOMAINS = PublicSuffixList()
 STATUSES = {"candidate", "pending", "verified", "outdated", "rejected"}
 KINDS = {"observed-ua", "official-doc", "published-dataset-entry", "technical-reference", "candidate-script"}
 PLATFORMS = {"android", "ios"}
@@ -74,6 +76,26 @@ def template_matches_observed(template: str, observed: str) -> bool:
         return re.fullmatch("".join(pieces), observed) is not None
     except re.error:
         return False
+
+
+def corroborates(template: str, slots: dict, app: str, evidence: dict) -> bool:
+    if not template or evidence.get("kind") not in KINDS - {"candidate-script"}:
+        return False
+    expected = template
+    for slot, path in slots.items():
+        for field in ("version", "build"):
+            if path in (f"meta.apps.{app}.{field}", f"meta.apps.{app}.versions[].{field}"):
+                supplied = evidence.get(f"app_{field}")
+                if supplied:
+                    expected = expected.replace("{" + slot + "}", str(supplied))
+    observed = evidence.get("observed")
+    if isinstance(observed, str) and observed:
+        return template_matches_observed(expected, observed)
+    # An official specification may quote the complete format instead of a sample.
+    quote = evidence.get("quoted_text")
+    return evidence.get("kind") == "official-doc" and isinstance(quote, str) and (
+        template in quote or expected in quote
+    )
 
 
 def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], dict[str, int]]:
@@ -156,11 +178,8 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             duplicate_templates.add(key)
 
         evidence = row.get("evidence") if isinstance(row.get("evidence"), list) else []
-        source_ids: set[str] = set()
-        observed_sources: set[str] = set()
-        has_observed_or_official = False
+        matching_sources: list[tuple[str, str, bool]] = []
         has_version_pair = False
-        observed_values: list[str] = []
         for ev_index, ev in enumerate(evidence):
             ep = f"{prefix}.evidence[{ev_index}]"
             if not isinstance(ev, dict):
@@ -169,24 +188,26 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             kind = ev.get("kind")
             if kind not in KINDS:
                 errors.append(f"{ep} has invalid kind {kind!r}")
-            source_id = str(ev.get("source_id") or "")
-            if source_id:
-                source_ids.add(source_id)
+            source_id = str(ev.get("source_id") or "").strip().casefold()
+            publisher = None
             source_url = str(ev.get("source_url") or "")
             source_ref = str(ev.get("source_ref") or "")
             if source_url:
-                parsed = urlparse(source_url)
-                if parsed.scheme != "https" or not parsed.netloc:
+                try:
+                    parsed = urlparse(source_url)
+                    if parsed.scheme == "https" and parsed.hostname and parsed.username is None:
+                        publisher = PUBLISHER_DOMAINS.privatesuffix(parsed.hostname.rstrip(".").encode("idna").decode("ascii"))
+                except (ValueError, UnicodeError):
+                    pass
+                if not publisher:
                     errors.append(f"{ep} source_url must be https")
-                else:
-                    observed_sources.add(parsed.netloc.lower())
             elif not (kind == "candidate-script" and source_ref):
                 errors.append(f"{ep} requires https source_url (or source_ref for candidate-script)")
             if not str(ev.get("quoted_text") or "").strip():
                 errors.append(f"{ep} quoted_text is required")
-            observed = ev.get("observed")
-            if isinstance(observed, str) and observed:
-                observed_values.append(observed)
+            matches = bool(source_id and publisher and isinstance(template, str) and corroborates(template, slots, app, ev))
+            if matches:
+                matching_sources.append((source_id, publisher, kind in {"observed-ua", "official-doc"}))
             fetched_at = ev.get("fetched_at")
             try:
                 date.fromisoformat(str(fetched_at or ""))
@@ -200,15 +221,13 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
                     errors.append(f"{ep} observed_at must be YYYY-MM-DD when supplied")
             elif status == "verified":
                 errors.append(f"{ep} verified evidence requires an actual observed_at date")
-            if kind in {"observed-ua", "official-doc"}:
-                has_observed_or_official = True
             ev_version = ev.get("app_version")
             ev_build = ev.get("app_build")
             if ev_version and ev_build and app in apps:
                 pairs = {(str(x.get("version")), str(x.get("build"))) for x in apps[app].get("versions", []) if isinstance(x, dict)}
                 pairs.add((str(apps[app].get("version")), str(apps[app].get("build"))))
                 if (str(ev_version), str(ev_build)) in pairs:
-                    has_version_pair = True
+                    has_version_pair = has_version_pair or matches
                 elif status == "verified":
                     errors.append(f"{ep} app version/build pair is absent from devices.meta.apps.{app}")
 
@@ -217,14 +236,14 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             if pair in current_verified:
                 errors.append(f"{prefix} creates more than one current verified template for {app}/{platform}")
             current_verified.add(pair)
-            if len(source_ids) < 2 or len(observed_sources) < 2:
-                errors.append(f"{prefix} verified status requires two independent source IDs and two HTTPS domains")
-            if not has_observed_or_official:
+            if not any(primary and first_id != other_id and first_site != other_site
+                       for first_id, first_site, primary in matching_sources
+                       for other_id, other_site, _ in matching_sources):
+                errors.append(f"{prefix} verified status requires two independent source IDs on distinct HTTPS domains that each match the template")
+            if not any(primary for _, _, primary in matching_sources):
                 errors.append(f"{prefix} verified status requires observed-ua or official-doc evidence")
             if not has_version_pair:
                 errors.append(f"{prefix} verified status requires a matching app_version/app_build pair")
-            if not isinstance(template, str) or not any(template_matches_observed(template, value) for value in observed_values):
-                errors.append(f"{prefix} verified template does not match any exact observed UA")
 
     # Coverage is a separate inventory; it never makes an app selectable.
     coverage = data.get("coverage", [])

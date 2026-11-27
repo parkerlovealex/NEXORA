@@ -183,6 +183,40 @@ class UaTemplateValidatorTests(unittest.TestCase):
         errors, _, _ = validator.validate(data, devices_fixture())
         self.assertTrue(any("two independent source IDs" in error for error in errors))
 
+    def test_only_sources_that_independently_match_count_as_corroboration(self):
+        for change in [
+            {"observed": None},
+            {"observed": "Mozilla/5.0 (Linux; Android 15; PixelTest) Other/1.2.0"},
+            {"observed": "Mozilla/5.0 (Linux; Android 15; PixelTest) App/9.9"},
+            {"kind": "candidate-script"},
+            {"source_id": "UA-DB"},
+            {"source_url": "https://www.useragent.in:443/another-path"},
+        ]:
+            with self.subTest(change=change):
+                data = self.valid_verified_catalog()
+                data["records"][0]["evidence"][1].update(change)
+                errors, _, _ = validator.validate(data, devices_fixture())
+                self.assertTrue(any("two independent source IDs" in error for error in errors))
+
+    def test_only_a_matching_source_can_establish_the_primary_observation(self):
+        data = self.valid_verified_catalog()
+        evidence_rows = data["records"][0]["evidence"]
+        evidence_rows.append(evidence("third", "https://third.example/ua", "technical-reference"))
+        evidence_rows[0]["observed"] = "unrelated"
+        errors, _, _ = validator.validate(data, devices_fixture())
+        self.assertTrue(any("requires observed-ua or official-doc evidence" in error for error in errors))
+
+    def test_independence_uses_the_registrable_domain_of_matching_evidence(self):
+        data = self.valid_verified_catalog()
+        first, second = data["records"][0]["evidence"]
+        first["source_url"] = "https://logs.first.co.uk/sample"
+        second["source_url"] = "https://archive.first.co.uk/sample"
+        errors, _, _ = validator.validate(data, devices_fixture())
+        self.assertTrue(any("two independent source IDs" in error for error in errors))
+        second["source_url"] = "https://archive.second.co.uk/sample"
+        errors, _, _ = validator.validate(data, devices_fixture())
+        self.assertEqual([], errors)
+
     def test_fetch_date_cannot_substitute_for_observation_date(self):
         data = self.valid_verified_catalog()
         for item in data["records"][0]["evidence"]:
