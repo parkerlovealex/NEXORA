@@ -28,11 +28,15 @@ class ProfileCredentialCodecTest {
 
     @Test
     fun encodedProfileDoesNotPersistProxyCredentialsInPlaintext() {
-        val encoded = ProfileCredentialCodec.encode(profile()) { "wrapped:$it" }
+        val encoded = ProfileCredentialCodec.encode(profile()) { payload ->
+            assertEquals("proxy-user", JSONObject(payload).getString("username"))
+            assertEquals("proxy-secret", JSONObject(payload).getString("password"))
+            "opaque-test-ciphertext"
+        }
         assertFalse(encoded.has("proxyUser"))
         assertFalse(encoded.has("proxyPass"))
         assertFalse(encoded.has("proxyPassEncrypted"))
-        assertTrue(encoded.has("proxyCredentialsEncrypted"))
+        assertEquals("opaque-test-ciphertext", encoded.getString("proxyCredentialsEncrypted"))
         assertFalse(encoded.toString().contains("proxy-user"))
         assertFalse(encoded.toString().contains("proxy-secret"))
     }
