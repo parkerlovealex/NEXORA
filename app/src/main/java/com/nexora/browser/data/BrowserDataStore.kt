@@ -1,6 +1,7 @@
 package com.nexora.browser.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import java.security.MessageDigest
 import org.json.JSONArray
 import org.json.JSONObject
@@ -44,39 +45,12 @@ data class BrowserSessionSnapshot(
  * Per-profile browser metadata. Web content storage itself remains in the
  * AndroidX WebKit profile data store; this class stores UI metadata only.
  */
-class BrowserDataStore(context: Context, profileId: String) {
-    private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences(
-        profilePrefsName(profileId),
-        Context.MODE_PRIVATE
-    )
+class BrowserDataStore internal constructor(profileId: String, openPreferences: (String) -> SharedPreferences) {
+    constructor(context: Context, profileId: String) : this(profileId, { name ->
+        context.applicationContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+    })
 
-    init {
-        migrateLegacyPreferences(profileId)
-    }
-
-    /**
-     * SHA-256 prevents unrelated profile IDs with equal String.hashCode() values
-     * from sharing browser metadata. The previous namespace is copied forward
-     * once so existing bookmarks, history and sessions survive the upgrade.
-     */
-    private fun migrateLegacyPreferences(profileId: String) {
-        if (prefs.getBoolean(KEY_NAMESPACE_MIGRATED, false)) return
-        val legacy = appContext.getSharedPreferences(legacyPrefsName(profileId), Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        legacy.all.forEach { (key, value) ->
-            if (prefs.contains(key)) return@forEach
-            when (value) {
-                is String -> editor.putString(key, value)
-                is Boolean -> editor.putBoolean(key, value)
-                is Int -> editor.putInt(key, value)
-                is Long -> editor.putLong(key, value)
-                is Float -> editor.putFloat(key, value)
-                is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
-            }
-        }
-        editor.putBoolean(KEY_NAMESPACE_MIGRATED, true).commit()
-    }
+    private val prefs = activePreferences(profileId, openPreferences)
 
     @Synchronized
     fun tabGroups(): List<BrowserTabGroup> {
@@ -456,6 +430,22 @@ class BrowserDataStore(context: Context, profileId: String) {
 
     companion object {
         private const val KEY_NAMESPACE_MIGRATED = "__nexora_namespace_migrated_v2"
+
+        private const val KEY_QUARANTINED = "__nexora_quarantined_legacy_v3"
+
+        private fun activePreferences(profileId: String, open: (String) -> SharedPreferences): SharedPreferences {
+            val previousName = profilePrefsName(profileId)
+            val previous = open(previousName)
+            val fresh = open(previousName.replaceFirst("nexora_browser_v2_", "nexora_browser_v3_"))
+            if (fresh.contains(KEY_QUARANTINED)) return fresh
+            // Alpha29 recorded completion even when it could not identify the legacy owner.
+            // Copied entries and later user edits in that namespace cannot be separated.
+            if (previous.contains(KEY_NAMESPACE_MIGRATED) || open(legacyPrefsName(profileId)).all.isNotEmpty()) {
+                fresh.edit().putBoolean(KEY_QUARANTINED, true).apply()
+                return fresh
+            }
+            return previous
+        }
 
         fun profilePrefsName(profileId: String): String {
             val digest = MessageDigest.getInstance("SHA-256")
