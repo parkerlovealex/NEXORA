@@ -2,6 +2,8 @@
 import re
 
 MEASUREMENT_LABELS = {
+    "osVersions": r"\b(?:Android|iOS|OS(?:\s+version)?)\b",
+    "display.ppi": r"\b(?:ppi|pixels per inch)\b",
     "cores": r"\bcores?\b",
     "display.dpr": r"\b(?:dpr|(?:device\s+)?pixel\s+ratio|scale\s+factor)\b",
     "ramGb": r"\b(?:ram(?:gb)?|memory)\b",
@@ -38,44 +40,66 @@ def supports_version_pair(quote, version, build=None):
                for line in quote.splitlines())
 
 
-def checked_device_quotes(record, evidence, source_text):
-    """Return each affected field's source quote, or None if any fact is unsupported."""
-    if not isinstance(record, dict) or not isinstance(evidence, dict) or not isinstance(source_text, str):
-        return None
+def device_field_values(record):
+    """Keep paired firmware claims together and address nested facts by their field path."""
     fields = {}
     for key, value in record.items():
         if key == "builds" and isinstance(value, dict):
             for os_version, build in value.items():
                 fields[f"builds.{os_version}"] = [os_version, build]
+        elif key == "buildsRecent" and isinstance(value, list):
+            for index, pair in enumerate(value):
+                fields[f"buildsRecent.{index}"] = ([pair.get("version"), pair.get("build")]
+                                                   if isinstance(pair, dict) else [None])
         elif isinstance(value, dict):
             for name, nested in value.items():
                 fields[f"{key}.{name}"] = [nested]
-        else:
+        elif value not in (None, [], ""):
             fields[key] = value if isinstance(value, list) else [value]
+    return fields
+
+
+def supports_device_field(record, key, values, quote):
+    if key.startswith(("builds.", "buildsRecent.")):
+        if len(values) != 2 or not all(contains_value(quote, value) for value in values):
+            return False
+        os_version, build = (re.escape(str(v)) for v in values)
+        version = rf"(?<![\w.+-]){os_version}(?![\w.+-])"
+        firmware = rf"(?<![\w.+-]){build}(?![\w+-]|\.\w)"
+        sep = r"""[\s:="'(),|–—-]+"""
+        label = r"(?:build(?:\s*(?:id|number))?|firmware(?:\s*version)?)"
+        os_label = r"(?:Android|iOS|OS(?:\s+version)?)"
+        return bool(re.search(rf"{version}{sep}(?:{label}{sep})?{firmware}|{firmware}{sep}{os_label}{sep}{version}", quote, re.I))
+    label = MEASUREMENT_LABELS.get(key)
+    if label and not re.search(label, quote, re.I):
+        return False
+    if key in {"display.w", "display.h"}:
+        display = record["display"]
+        dimensions = rf"(?<!\d){re.escape(str(display.get('w')))}\s*[x×]\s*{re.escape(str(display.get('h')))}(?!\d)"
+        if re.search(dimensions, quote, re.I):
+            return True
+        label = "width" if key == "display.w" else "height"
+        if not re.search(rf"\b{label}\b", quote, re.I):
+            return False
+    if key == "id" and len(values) == 1:
+        for name in ("model", "uaModel", "id"):
+            item = record.get(name)
+            if isinstance(item, str) and contains_value(quote, item):
+                if re.sub(r"[^a-z0-9]+", "-", item.lower()).strip("-") == values[0]:
+                    return True
+    return bool(values) and all(contains_value(quote, item) for item in values)
+
+
+def checked_device_quotes(record, evidence, source_text):
+    """Check the supplied excerpt for every extracted fact, including any firmware pairs."""
+    if not isinstance(record, dict) or not isinstance(evidence, dict) or not isinstance(source_text, str):
+        return None
     result = {}
-    for key, values in fields.items():
-        quote = evidence.get(key)
+    for key, values in device_field_values(record).items():
+        quote = evidence.get(key, evidence.get(key.split(".")[0]))
         if not isinstance(quote, str) or not quote.strip() or quote not in source_text:
             return None
-        if key in MEASUREMENT_LABELS and not re.search(MEASUREMENT_LABELS[key], quote, re.I):
-            return None
-        if key in {"display.w", "display.h"}:
-            display = record["display"]
-            dimensions = rf"(?<!\d){re.escape(str(display.get('w')))}\s*[x×]\s*{re.escape(str(display.get('h')))}(?!\d)"
-            if re.search(dimensions, quote, re.I):
-                result[key] = quote
-                continue
-            label = "width" if key == "display.w" else "height"
-            if not re.search(rf"\b{label}\b", quote, re.I):
-                return None
-        if key == "id" and len(values) == 1:
-            # The local key can be the deterministic slug of the quoted model or model code.
-            identities = [record.get(k) for k in ("model", "uaModel", "id")]
-            if any(isinstance(item, str) and contains_value(quote, item) and
-                   re.sub(r"[^a-z0-9]+", "-", item.lower()).strip("-") == values[0] for item in identities):
-                result[key] = quote
-                continue
-        if not values or not all(contains_value(quote, item) for item in values):
+        if not supports_device_field(record, key, values, quote):
             return None
         result[key] = quote
     return result

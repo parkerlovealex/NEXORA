@@ -1,5 +1,4 @@
 import os
-import tempfile
 import pytest
 
 # The test command sets DATABASE_URL, NEXORA_ADMIN_PASSWORD and NEXORA_SECRET_KEY
@@ -8,6 +7,27 @@ from fastapi.testclient import TestClient
 from backend.app import app
 
 client = TestClient(app)
+
+
+@pytest.fixture
+def official_source(monkeypatch):
+    lines = [
+        "Brand: NEXORA Test", "Model: Test One", "Model: Test One Updated",
+        "Model code: NX-TEST-1", "Brand: Proposal", "Model: Review Device",
+        "Model code: PR-1", "SoC: Test SoC", "GPU: Test GPU", "SoC: Example SoC",
+        "GPU: Example GPU", "CPU cores: 8", "Resolution: 1080 x 2400",
+        "Device pixel ratio: 3.0", "Device pixel ratio: 3", "RAM: 8 GB",
+        "Storage: 128 GB", "Android 15 is supported", "Android 14 is supported",
+        "Markets: US", "Application version: test.1",
+    ]
+    monkeypatch.setattr("backend.app.fetch_source_text", lambda url: "\n".join(lines))
+    return lines
+
+
+@pytest.fixture(autouse=True)
+def independent_client_windows(monkeypatch):
+    monkeypatch.setattr("backend.app._login_attempts", {})
+    monkeypatch.setattr("backend.app._api_windows", {})
 
 
 def admin_headers():
@@ -45,7 +65,7 @@ def test_public_data_and_stats():
         assert stats["devices"] == len(payload["android"]) + len(payload["ios_emulation"])
 
 
-def test_admin_auth_and_device_crud():
+def test_admin_auth_and_device_crud(official_source):
     with client:
         assert client.get("/api/v1/admin/overview").status_code == 401
         headers = admin_headers()
@@ -61,6 +81,12 @@ def test_admin_auth_and_device_crud():
         changed = dict(record); changed["model"] = "Test One Updated"
         updated = client.put("/api/v1/admin/devices/test-nexora-device", headers=headers, json={"platform": "android", "record": changed})
         assert updated.status_code == 200, updated.text
+        official_source.clear()
+        before = client.get("/api/v1/data").json()
+        changed["soc"] = "Undocumented chip"
+        rejected = client.put("/api/v1/admin/devices/test-nexora-device", headers=headers, json={"platform": "android", "record": changed})
+        assert rejected.status_code == 422
+        assert client.get("/api/v1/data").json() == before
         deleted = client.delete("/api/v1/admin/devices/test-nexora-device", headers=headers)
         assert deleted.status_code == 200, deleted.text
 
@@ -72,7 +98,7 @@ def test_validation_rejects_incomplete_device():
         assert response.status_code == 422
 
 
-def test_proposal_requires_admin_and_approval_publishes():
+def test_proposal_requires_admin_and_approval_publishes(official_source):
     with client:
         headers = admin_headers()
         record = {
@@ -89,7 +115,7 @@ def test_proposal_requires_admin_and_approval_publishes():
         assert any(x["id"] == "proposal-device" for x in client.get("/api/v1/devices").json())
 
 
-def test_application_version_update_requires_official_source():
+def test_application_version_update_requires_official_source(official_source):
     with client:
         headers = admin_headers()
         bad = client.post("/api/v1/admin/app-versions", headers=headers, json={"app_id": "instagram", "version": "test.1", "source_url": "https://example.com/version"})
@@ -98,6 +124,73 @@ def test_application_version_update_requires_official_source():
         assert good.status_code == 200, good.text
         data = client.get("/api/v1/data").json()
         assert data["meta"]["apps"]["instagram"]["version"] == "test.1"
+        assert data["meta"]["apps"]["instagram"]["sourceEvidence"]["quote"] == "Application version: test.1"
+
+
+def test_manual_publish_rejects_an_unmatched_or_unavailable_source(monkeypatch, official_source):
+    with client:
+        headers = admin_headers()
+        before = client.get("/api/v1/data").json()["meta"]
+        edit = {"app_id": "instagram", "version": "2.3", "source_url": "https://play.google.com/store/apps/details?id=com.instagram.android"}
+        official_source[:] = ["Application version: 2.3.4", "Rated 2.3 out of 5"]
+        rejected = client.post("/api/v1/admin/app-versions", headers=headers, json=edit)
+        assert rejected.status_code == 422
+        assert client.get("/api/v1/data").json()["meta"] == before
+        def unavailable(url):
+            raise OSError("source offline")
+        monkeypatch.setattr("backend.app.fetch_source_text", unavailable)
+        assert client.post("/api/v1/admin/app-versions", headers=headers, json=edit).status_code == 502
+        assert client.get("/api/v1/data").json()["meta"] == before
+
+
+@pytest.mark.parametrize("kind,payload", [
+    ("app_version", {"app_id": "firefox", "version": "800.0", "target": "versions"}),
+    ("chrome_version", {"version": "800.0.1.1"}),
+])
+def test_unsupported_browser_proposal_remains_pending(official_source, kind, payload):
+    with client:
+        headers = admin_headers()
+        before = client.get("/api/v1/data").json()["meta"]
+        evidence = [{"url": "https://product-details.mozilla.org/releases", "quote": "Browser version: 7.0"}]
+        official_source[:] = [evidence[0]["quote"]]
+        created = client.post("/api/v1/admin/proposals", headers=headers, json={
+            "kind": kind, "title": "Review browser version", "payload": payload, "evidence": evidence,
+        })
+        pid = created.json()["id"]
+        assert client.post(f"/api/v1/admin/proposals/{pid}/decision?decision=approve", headers=headers).status_code == 422
+        assert any(p["id"] == pid for p in client.get("/api/v1/admin/proposals", headers=headers).json())
+        assert client.get("/api/v1/data").json()["meta"] == before
+        browser = "chrome" if kind == "chrome_version" else "firefox"
+        official_source[:] = [f"{browser.title()} version: {payload['version']}"]
+        approved = client.post(f"/api/v1/admin/proposals/{pid}/decision?decision=approve", headers=headers)
+        assert approved.status_code == 200, approved.text
+        meta = client.get("/api/v1/data").json()["meta"]
+        assert meta["versions"][browser] == payload["version"]
+        assert meta["versionEvidence"][browser] == {"quote": official_source[0], "url": evidence[0]["url"]}
+
+
+def test_device_approval_requires_a_quote_for_each_firmware_pair(official_source):
+    with client:
+        headers = admin_headers()
+        record = {
+            "id": "firmware-proof", "brand": "Proposal", "model": "Review Device",
+            "uaModel": "PR-1", "soc": "Example SoC", "gpu": "Example GPU", "cores": 8,
+            "display": {"w": 1080, "h": 2400, "dpr": 3}, "ramGb": [8], "storageGb": [128],
+            "osVersions": ["14"], "builds": {"14": "FX99"}, "source_url": "https://www.samsung.com/test",
+        }
+        created = client.post("/api/v1/admin/proposals", headers=headers, json={
+            "kind": "device", "title": "Verify firmware", "payload": {"platform": "android", "record": record},
+        })
+        decision = f"/api/v1/admin/proposals/{created.json()['id']}/decision?decision=approve"
+        before = client.get("/api/v1/data").json()
+        official_source.append("Android 13 firmware FX99")
+        assert client.post(decision, headers=headers).status_code == 422
+        assert client.get("/api/v1/data").json() == before
+        official_source.append("Android 14 firmware FX99")
+        accepted = client.post(decision, headers=headers)
+        assert accepted.status_code == 200, accepted.text
+        saved = next(d for d in client.get("/api/v1/data").json()["android"] if d["id"] == record["id"])
+        assert saved["fieldEvidence"]["builds.14"] == "Android 14 firmware FX99"
 
 
 def test_official_source_allowlist_and_evidence_quotes():
