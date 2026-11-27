@@ -1,5 +1,6 @@
 import os
 import tempfile
+import pytest
 
 # The test command sets DATABASE_URL, NEXORA_ADMIN_PASSWORD and NEXORA_SECRET_KEY
 # before importing the application module.
@@ -13,6 +14,20 @@ def admin_headers():
     response = client.post("/api/v1/admin/login", json={"password": os.environ["NEXORA_ADMIN_PASSWORD"]})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['accessToken']}"}
+
+
+@pytest.mark.parametrize("short_key", [None, "x" * 31])
+def test_admin_sessions_require_a_configured_signing_key(monkeypatch, short_key):
+    with client:
+        headers = admin_headers()
+        assert client.get("/api/v1/admin/overview", headers=headers).status_code == 200
+        if short_key is None:
+            monkeypatch.delenv("NEXORA_SECRET_KEY")
+        else:
+            monkeypatch.setenv("NEXORA_SECRET_KEY", short_key)
+        unavailable = client.get("/api/v1/admin/overview", headers=headers)
+        assert unavailable.status_code == 503
+        assert "NEXORA_SECRET_KEY" in unavailable.json()["detail"]
 
 
 def test_public_data_and_stats():

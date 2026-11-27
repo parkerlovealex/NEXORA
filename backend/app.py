@@ -308,13 +308,18 @@ def validate_official_source_url(url: str) -> None:
         raise ValueError("Only allowlisted official-source domains are accepted")
 
 
-def token_for(subject: str) -> str:
+def admin_signing_key() -> bytes:
     secret = os.getenv("NEXORA_SECRET_KEY", "")
     if len(secret) < 32:
         raise HTTPException(status_code=503, detail="Set NEXORA_SECRET_KEY to at least 32 characters before enabling admin login.")
+    return secret.encode()
+
+
+def token_for(subject: str) -> str:
+    key = admin_signing_key()
     payload = json.dumps({"sub": subject, "exp": int(time.time()) + 60 * 60 * 12}, separators=(",", ":")).encode()
     encoded = base64.urlsafe_b64encode(payload).decode().rstrip("=")
-    signature = hmac.new(secret.encode(), encoded.encode(), hashlib.sha256).digest()
+    signature = hmac.new(key, encoded.encode(), hashlib.sha256).digest()
     return encoded + "." + base64.urlsafe_b64encode(signature).decode().rstrip("=")
 
 
@@ -322,10 +327,10 @@ def verify_token(authorization: str | None) -> str:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Admin authentication required")
     token = authorization[7:]
+    key = admin_signing_key()
     try:
         encoded, signature = token.split(".", 1)
-        secret = os.getenv("NEXORA_SECRET_KEY", "")
-        expected = hmac.new(secret.encode(), encoded.encode(), hashlib.sha256).digest()
+        expected = hmac.new(key, encoded.encode(), hashlib.sha256).digest()
         supplied = base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4))
         if not hmac.compare_digest(expected, supplied): raise ValueError("signature")
         payload = json.loads(base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4)))
