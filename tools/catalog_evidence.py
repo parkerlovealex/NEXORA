@@ -20,6 +20,24 @@ def contains_value(quote, value):
     return re.search(pattern, quote, re.IGNORECASE) is not None
 
 
+def supports_version_pair(quote, version, build=None):
+    if not contains_value(quote, version):
+        return False
+    if build is None:
+        return True
+    if not contains_value(quote, build):
+        return False
+    version_token = rf"(?<![\w.+-]){re.escape(str(version))}(?![\w+-]|\.\w)"
+    build_token = rf"(?<![\w.+-]){re.escape(str(build))}(?![\w+-]|\.\w)"
+    separator = r"[\s:()|,=\[\]\"'–—-]+"
+    build_label = r"(?:build(?:\s*(?:id|number|code))?|version\s*code|fbbv|cfbundleversion)"
+    version_first = rf"{version_token}{separator}(?:{build_label}{separator})?{build_token}"
+    build_first = rf"^\s*{build_label}{separator}{build_token}{separator}(?:version|release){separator}{version_token}"
+    # Each line is one release entry. A neighboring release cannot supply its build.
+    return any(re.search(version_first, line, re.I) or re.search(build_first, line, re.I)
+               for line in quote.splitlines())
+
+
 def checked_device_quotes(record, evidence, source_text):
     """Return each affected field's source quote, or None if any fact is unsupported."""
     if not isinstance(record, dict) or not isinstance(evidence, dict) or not isinstance(source_text, str):

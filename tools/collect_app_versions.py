@@ -34,6 +34,12 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
+
+if __package__:
+    from .catalog_evidence import supports_version_pair
+else:
+    from catalog_evidence import supports_version_pair
 
 KNOWN_APPS = [
     "facebook", "instagram", "tiktok", "x", "threads", "linkedin",
@@ -75,15 +81,24 @@ def main() -> int:
         if not fnd:
             gaps.append(app)
             continue
+        if not isinstance(fnd, dict):
+            rejected.append(f"{app}: finding must be an object")
+            continue
         version = str(fnd.get("version") or "").strip()
+        build = str(fnd["build"]).strip() if fnd.get("build") is not None else None
         source = str(fnd.get("source_url") or "").strip()
         quote = str(fnd.get("quoted_text") or "").strip()
-        if not version or not source.startswith("https://") or not quote:
-            rejected.append(f"{app}: finding lacks version, https source_url or quoted_text")
+        try:
+            url = urlsplit(source)
+            source_ok = url.scheme == "https" and url.hostname and url.username is None and url.password is None
+        except ValueError:
+            source_ok = False
+        if not source_ok or not supports_version_pair(quote, version, build):
+            rejected.append(f"{app}: an HTTPS source and a quote supporting the submitted version/build are required")
             continue
         entry = {"version": version}
-        if fnd.get("build"):
-            entry["build"] = str(fnd["build"])
+        if build is not None:
+            entry["build"] = build
         apps_meta[app] = entry
         evidence["apps"][app] = {
             "version": version,
