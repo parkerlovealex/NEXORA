@@ -326,7 +326,7 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------ actions
 
     private fun launchProfile(profile: BrowserProfile) {
-        if (!store.update(profile.copy(lastUsedAt = System.currentTimeMillis()))) {
+        if (!store.updateIfUnchanged(profile, profile.copy(lastUsedAt = System.currentTimeMillis()))) {
             toast("Could not save profile changes. Check device storage and retry.")
             return
         }

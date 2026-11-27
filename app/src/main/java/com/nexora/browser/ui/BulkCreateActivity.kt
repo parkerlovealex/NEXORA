@@ -954,7 +954,7 @@ class BulkCreateActivity : AppCompatActivity() {
             toast("Could not provision isolated WebView storage: ${e.message ?: "unknown error"}. No profiles were saved.")
             return
         }
-        if (!store.saveAllChecked(existing + newProfiles)) {
+        if (!store.replaceIfUnchanged(existing, existing + newProfiles)) {
             toast("Could not save profiles. No success was reported; check device storage and retry.")
             return
         }

@@ -15,17 +15,18 @@ class ProfileStore internal constructor(
         this(file, vault::encrypt, vault::decrypt)
     constructor(context: Context) : this(LocalStoreFile.android(File(context.filesDir, "profiles.json")))
 
+    internal fun <T> withLock(action: () -> T): T = synchronized(file.lock, action)
+
     private fun readRows() = file.readRows { obj ->
         require((obj.opt("id") as? String)?.isNotBlank() == true) { "Missing profile ID" }
         ProfileCredentialCodec.decode(obj, decrypt, decrypt)
     }
 
-    @Synchronized
-    fun loadAll(): MutableList<BrowserProfile> {
+    fun loadAll(): MutableList<BrowserProfile> = withLock {
         val original = readRows()
         val profiles = original.map { it.profile }.toMutableList()
         if (original.any { it.needsMigration }) writeProfiles(profiles, original)
-        return profiles
+        profiles
     }
 
     private fun writeProfiles(
@@ -48,56 +49,46 @@ class ProfileStore internal constructor(
         return file.write(rows)
     }
 
-    /** Validate the committed file even when a caller brings its own list. */
-    @Synchronized
-    fun saveAllChecked(profiles: List<BrowserProfile>): Boolean {
+    /** Refuse a replacement computed from an out-of-date screen or restore snapshot. */
+    fun replaceIfUnchanged(expected: List<BrowserProfile>, replacement: List<BrowserProfile>): Boolean = withLock {
         val original = try {
             readRows()
         } catch (_: LocalStoreReadException) {
-            return false
+            return@withLock false
         }
-        return writeProfiles(profiles, original)
+        original.map { it.profile } == expected && writeProfiles(replacement, original)
     }
 
-    @Synchronized
-    fun saveAll(profiles: List<BrowserProfile>) {
-        check(saveAllChecked(profiles)) { "Could not save profiles" }
-    }
-
-    private fun edit(explicitDeletions: Set<String> = emptySet(), change: (MutableList<BrowserProfile>) -> Boolean): Boolean {
+    private fun edit(explicitDeletions: Set<String> = emptySet(), change: (MutableList<BrowserProfile>) -> Boolean): Boolean = withLock {
         val original = try {
             readRows()
         } catch (_: LocalStoreReadException) {
-            return false
+            return@withLock false
         }
         val profiles = original.map { it.profile }.toMutableList()
-        return change(profiles) && writeProfiles(profiles, original, explicitDeletions)
+        change(profiles) && writeProfiles(profiles, original, explicitDeletions)
     }
 
-    @Synchronized
     fun add(profile: BrowserProfile): Boolean = edit { rows ->
         rows.none { it.id == profile.id } && rows.add(profile)
     }
 
-    @Synchronized
-    fun update(profile: BrowserProfile): Boolean = edit { rows ->
-        val index = rows.indexOfFirst { it.id == profile.id }
-        if (index < 0) rows.add(profile) else rows[index] = profile
+    fun updateIfUnchanged(expected: BrowserProfile, replacement: BrowserProfile): Boolean = edit { rows ->
+        val index = rows.indexOfFirst { it.id == expected.id }
+        if (index < 0 || expected.id != replacement.id || rows[index] != expected) return@edit false
+        rows[index] = replacement
         true
     }
 
-    @Synchronized
     fun delete(id: String) {
         check(deleteMany(setOf(id))) { "Could not remove profile" }
     }
 
-    @Synchronized
     fun deleteMany(ids: Set<String>): Boolean = ids.isEmpty() || edit(explicitDeletions = ids) { rows ->
         rows.removeAll { it.id in ids }
         true
     }
 
-    @Synchronized
     fun getById(id: String): BrowserProfile? {
         val profile = loadAll().firstOrNull { it.id == id }
         if (profile?.proxyCredentialsLocked == true) throw LocalStoreReadException(ProfileCredentialCodec.LOCKED_MESSAGE)

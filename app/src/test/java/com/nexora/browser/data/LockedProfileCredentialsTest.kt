@@ -29,9 +29,9 @@ class LockedProfileCredentialsTest {
         val listed = store.loadAll()
         assertEquals(listOf(true, true, false), listed.map { it.proxyCredentialsLocked })
         assertThrows(LocalStoreReadException::class.java) { store.getById("locked") }
-        assertFalse(store.update(listed[0].copy(proxyUser = "replacement")))
-        assertFalse(store.saveAllChecked(listOf(listed[2])))
-        assertTrue(store.update(listed[2].copy(name = "renamed")))
+        assertFalse(store.updateIfUnchanged(listed[0], listed[0].copy(proxyUser = "replacement")))
+        assertFalse(store.replaceIfUnchanged(listed, listOf(listed[2])))
+        assertTrue(store.updateIfUnchanged(listed[2], listed[2].copy(name = "renamed")))
         val stored = JSONArray(path.readText())
         assertEquals(combined.toString(), stored.getJSONObject(0).toString())
         assertEquals(legacy.toString(), stored.getJSONObject(1).toString())

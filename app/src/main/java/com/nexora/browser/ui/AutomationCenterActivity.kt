@@ -200,7 +200,7 @@ class AutomationCenterActivity : AppCompatActivity() {
             )
         }
         val result = profiles.map { updates[it.id] ?: it }
-        val saved = profileStore.saveAllChecked(result)
+        val saved = profileStore.replaceIfUnchanged(profiles, result)
         val summary = if (saved) {
             "Assigned ${updates.size} saved proxy/proxy pair(s). No network test was run."
         } else {

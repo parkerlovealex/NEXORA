@@ -10,6 +10,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.util.concurrent.ConcurrentHashMap
 
 internal class LocalStoreReadException(message: String, cause: Exception? = null) : IOException(message, cause) {
     constructor(file: File, cause: Exception) : this("Could not read " + file.name + ". Your saved data was kept.", cause)
@@ -20,6 +21,8 @@ internal class LocalStoreFile(
     private val openRead: () -> InputStream,
     private val replace: (ByteArray) -> Unit
 ) {
+    val lock: Any = locks.computeIfAbsent(path.canonicalFile) { Any() }
+
     fun <T> readRows(decode: (JSONObject) -> T): List<T> {
         val contents = try {
             openRead().bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -50,6 +53,8 @@ internal class LocalStoreFile(
     }
 
     companion object {
+        private val locks = ConcurrentHashMap<File, Any>()
+
         fun android(path: File): LocalStoreFile {
             val atomic = AtomicFile(path)
             return LocalStoreFile(path, atomic::openRead) { bytes ->

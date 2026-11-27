@@ -28,9 +28,9 @@ class LocalStoreReadTest {
             path.writeText(value)
             assertThrows(LocalStoreReadException::class.java) { store.loadAll() }
             assertFalse(store.add(profile("new")))
-            assertFalse(store.update(profile("keep")))
+            assertFalse(store.updateIfUnchanged(profile("keep"), profile("keep")))
             assertFalse(store.deleteMany(setOf("keep")))
-            assertFalse(store.saveAllChecked(emptyList()))
+            assertFalse(store.replaceIfUnchanged(emptyList(), emptyList()))
             assertArrayEquals(value.toByteArray(), path.readBytes())
         }
     }
@@ -64,7 +64,7 @@ class LocalStoreReadTest {
             error("write attempted after read failure")
         })
         assertThrows(LocalStoreReadException::class.java) { store.loadAll() }
-        assertFalse(store.saveAllChecked(emptyList()))
+        assertFalse(store.replaceIfUnchanged(emptyList(), emptyList()))
         File(directory.root, "profiles.json.bak").writeText("original bytes")
         assertThrows(LocalStoreReadException::class.java) { ProfileStore(storeFile(path)).loadAll() }
     }

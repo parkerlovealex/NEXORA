@@ -30,9 +30,10 @@ class ProxyLibraryStore(context: Context) {
     private val prefs = context.getSharedPreferences("nexora_proxy_library_v1", Context.MODE_PRIVATE)
     private val vault = SecretVault()
 
-    @Synchronized
-    fun loadAll(): List<ProxyEntry> {
-        return try {
+    internal fun <T> withLock(action: () -> T): T = synchronized(prefs, action)
+
+    fun loadAll(): List<ProxyEntry> = withLock {
+        try {
             val array = JSONArray(prefs.getString(KEY_ENTRIES, "[]") ?: "[]")
             buildList {
                 for (i in 0 until array.length()) {
@@ -55,8 +56,7 @@ class ProxyLibraryStore(context: Context) {
         }
     }
 
-    @Synchronized
-    fun import(rows: List<ParsedProxy>): Pair<Int, Int> {
+    fun import(rows: List<ParsedProxy>): Pair<Int, Int> = withLock {
         val entries = loadAll().toMutableList()
         var added = 0
         var duplicates = 0
@@ -113,11 +113,10 @@ class ProxyLibraryStore(context: Context) {
                 added++
             }
         }
-        if (!save(entries)) return 0 to duplicates
-        return added to duplicates
+        if (!save(entries)) return@withLock 0 to duplicates
+        added to duplicates
     }
 
-    @Synchronized
     fun credentials(entry: ProxyEntry): Pair<String, String> {
         if (!entry.hasCredentials || entry.encryptedCredentials.isBlank()) return "" to ""
         return try {
@@ -128,33 +127,29 @@ class ProxyLibraryStore(context: Context) {
         }
     }
 
-    @Synchronized
-    fun rename(id: String, newName: String): Boolean {
+    fun rename(id: String, newName: String): Boolean = withLock {
         val cleanName = newName.trim()
-        if (cleanName.isBlank() || cleanName.length > 60) return false
+        if (cleanName.isBlank() || cleanName.length > 60) return@withLock false
         val entries = loadAll().toMutableList()
         val index = entries.indexOfFirst { it.id == id }
-        if (index < 0) return false
+        if (index < 0) return@withLock false
         entries[index] = entries[index].copy(name = cleanName)
-        return save(entries)
+        save(entries)
     }
 
-    @Synchronized
-    fun delete(id: String): Boolean = save(loadAll().filterNot { it.id == id })
+    fun delete(id: String): Boolean = deleteMany(setOf(id))
 
     /** Atomically removes a set of library entries in one preferences commit. */
-    @Synchronized
-    fun deleteMany(ids: Set<String>): Boolean {
-        if (ids.isEmpty()) return true
-        return save(loadAll().filterNot { it.id in ids })
+    fun deleteMany(ids: Set<String>): Boolean = withLock {
+        if (ids.isEmpty()) return@withLock true
+        save(loadAll().filterNot { it.id in ids })
     }
 
     /**
      * Merge portable backup entries and re-encrypt credentials with this install's Keystore key.
      * Existing matching endpoints/credentials are reused; ID collisions are remapped safely.
      */
-    @Synchronized
-    fun mergePortable(records: List<ProxyBackupRecord>): ProxyBackupMergeResult {
+    fun mergePortable(records: List<ProxyBackupRecord>): ProxyBackupMergeResult = withLock {
         val entries = loadAll().toMutableList()
         val mapping = linkedMapOf<String, String>()
         var added = 0
@@ -177,7 +172,7 @@ class ProxyLibraryStore(context: Context) {
                 mapping[record.id] = identityMatch.id
                 return@forEach
             }
-            if (entries.size >= MAX_ENTRIES) return ProxyBackupMergeResult(false, emptyMap(), 0)
+            if (entries.size >= MAX_ENTRIES) return@withLock ProxyBackupMergeResult(false, emptyMap(), 0)
             val encrypted = if (record.username.isNotEmpty() || record.password.isNotEmpty()) {
                 try {
                     vault.encrypt(
@@ -187,7 +182,7 @@ class ProxyLibraryStore(context: Context) {
                             .toString()
                     )
                 } catch (_: Exception) {
-                    return ProxyBackupMergeResult(false, emptyMap(), 0)
+                    return@withLock ProxyBackupMergeResult(false, emptyMap(), 0)
                 }
             } else ""
             val newId = if (entries.any { it.id == record.id }) UUID.randomUUID().toString() else record.id
@@ -204,12 +199,11 @@ class ProxyLibraryStore(context: Context) {
             mapping[record.id] = newId
             added++
         }
-        if (!save(entries)) return ProxyBackupMergeResult(false, emptyMap(), 0)
-        return ProxyBackupMergeResult(true, mapping, added)
+        if (!save(entries)) return@withLock ProxyBackupMergeResult(false, emptyMap(), 0)
+        ProxyBackupMergeResult(true, mapping, added)
     }
 
-    @Synchronized
-    fun save(entries: List<ProxyEntry>): Boolean {
+    fun save(entries: List<ProxyEntry>): Boolean = withLock {
         val array = JSONArray()
         entries.forEach { entry ->
             array.put(
@@ -224,7 +218,7 @@ class ProxyLibraryStore(context: Context) {
                     .put("createdAt", entry.createdAt)
             )
         }
-        return prefs.edit().putString(KEY_ENTRIES, array.toString()).commit()
+        prefs.edit().putString(KEY_ENTRIES, array.toString()).commit()
     }
 
     fun find(id: String?): ProxyEntry? = if (id.isNullOrBlank()) null else loadAll().firstOrNull { it.id == id }

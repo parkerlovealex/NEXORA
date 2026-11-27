@@ -795,7 +795,7 @@ class EditProfileActivity : AppCompatActivity() {
             form.createdAt = existing.createdAt
             form.seed = existing.seed
             form.lastUsedAt = existing.lastUsedAt
-            store.update(form)
+            store.updateIfUnchanged(existing, form)
         } else {
             form.createdAt = System.currentTimeMillis()
             form.seed = Random.nextInt(1, Int.MAX_VALUE)
@@ -803,7 +803,7 @@ class EditProfileActivity : AppCompatActivity() {
             store.add(form)
         }
         if (!saved) {
-            toast("Could not save the profile. Check device storage and try again.")
+            toast("Could not save the profile. Reopen it to load recent changes and check device storage.")
             return
         }
         toast("Profile saved")

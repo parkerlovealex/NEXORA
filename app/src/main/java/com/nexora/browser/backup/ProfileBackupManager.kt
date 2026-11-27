@@ -93,6 +93,14 @@ object ProfileBackupManager {
         proxyStore: ProxyLibraryStore
     ): ProfileBackupRestoreResult {
         val backup = decode(bytes, password)
+        return profileStore.withLock {
+            proxyStore.withLock { mergeBackup(backup, profileStore, proxyStore) }
+        }
+    }
+
+    private fun mergeBackup(
+        backup: DecodedBackup, profileStore: ProfileStore, proxyStore: ProxyLibraryStore
+    ): ProfileBackupRestoreResult {
         val existingProfiles = profileStore.loadAll()
         val existingIds = existingProfiles.map { it.id }.toSet()
         val toAdd = backup.profiles.filterNot { it.id in existingIds }
@@ -123,7 +131,7 @@ object ProfileBackupManager {
             profile.copy(proxyEntryId = newProxyId)
         }
 
-        if (remappedProfiles.isNotEmpty() && !profileStore.saveAllChecked(existingProfiles + remappedProfiles)) {
+        if (remappedProfiles.isNotEmpty() && !profileStore.replaceIfUnchanged(existingProfiles, existingProfiles + remappedProfiles)) {
             val rollbackSucceeded = proxyStore.save(oldProxyEntries)
             val suffix = if (rollbackSucceeded) " The proxy-library update was rolled back." else
                 " Warning: proxy-library rollback also failed; inspect the proxy library before continuing."
