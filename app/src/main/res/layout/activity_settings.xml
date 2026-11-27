@@ -88,6 +88,71 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/nexora_surface"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/nexora_line"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Interaction &amp; notifications"
+                    android:textColor="@color/nexora_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="Choose how NEXORA responds to taps and completed downloads. Android system sound and vibration settings still apply."
+                    android:textColor="@color/nexora_muted"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSoundEffects"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Touch sounds"
+                    android:textColor="@color/nexora_text" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchHapticFeedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Touch vibration"
+                    android:textColor="@color/nexora_text" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchDownloadNotifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Download notifications"
+                    android:textColor="@color/nexora_text" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Notification permission is requested only when needed. Downloads continue even if alerts are denied."
+                    android:textColor="@color/nexora_muted"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -166,19 +231,95 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Browser behavior"
+                    android:text="NEXORA catalog sync"
                     android:textColor="@color/nexora_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvSettingsNote"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/settings_note"
+                    android:layout_marginTop="6dp"
+                    android:text="Connect to your deployed NEXORA website API. The bundled catalog remains available offline."
                     android:textColor="@color/nexora_muted"
                     android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/etCatalogApiBase"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:hint="https://your-nexora-domain.com"
+                    android:inputType="textUri"
+                    android:singleLine="true"
+                    android:textColor="@color/nexora_text"
+                    android:textColorHint="@color/nexora_muted"
+                    android:backgroundTint="@color/nexora_line"
+                    android:padding="10dp" />
+
+                <TextView
+                    android:id="@+id/tvDataVersion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Catalog version: bundled"
+                    android:textColor="@color/nexora_muted"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnUpdateData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Check for catalog updates" />
+
+                <Button
+                    android:id="@+id/btnRollbackData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Restore previous catalog" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/nexora_surface"
+            app:cardCornerRadius="16dp"
+            app:strokeColor="@color/nexora_line"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Profile backup &amp; restore"
+                    android:textColor="@color/nexora_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Create a password-encrypted portable backup of profile configuration and saved proxy entries. Website data and browsing history are excluded."
+                    android:textColor="@color/nexora_muted"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnBackupRestore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Open Backup &amp; Restore" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -200,26 +341,19 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Device data"
+                    android:text="Browser behavior"
                     android:textColor="@color/nexora_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvDataVersion"
+                    android:id="@+id/tvSettingsNote"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Data version: -"
+                    android:text="@string/settings_note"
                     android:textColor="@color/nexora_muted"
                     android:textSize="12sp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnUpdateData"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Check for data update" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
