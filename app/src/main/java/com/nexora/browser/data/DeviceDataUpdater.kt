@@ -77,15 +77,9 @@ object DeviceDataUpdater {
         prefs.edit().putString(NexoraApp.KEY_CATALOG_API_BASE, normalizedBase)
             .putLong(NexoraApp.KEY_DATA_LAST_CHECK, System.currentTimeMillis()).apply()
 
-        val payload = try {
-            download(catalogUrl(normalizedBase))
-        } catch (_: Exception) {
-            return Result.OFFLINE_OR_ERROR
-        } ?: return Result.OFFLINE_OR_ERROR
-
-        val newVersion = validateAndVersion(payload) ?: return Result.INVALID_DATA
-        val currentVersion = DeviceDb.dataVersion(context)
-        if (compareVersions(newVersion, currentVersion) <= 0) return Result.ALREADY_CURRENT
+        val active = activeDataText(context) ?: DeviceDb.readBundledText(context) ?: return Result.INVALID_DATA
+        val (result, payload) = fetchUpdate(normalizedBase, active, DeviceDb.readBundledText(context, "ua_templates.json"), ::download)
+        if (payload == null) return result
 
         val temp = File(context.filesDir, FILE_TMP)
         val current = updatedFile(context)
@@ -131,7 +125,45 @@ object DeviceDataUpdater {
         }
     }
 
-    private fun catalogUrl(base: String): URL {
+    internal fun activeTemplates(devices: String, bundled: String?): String? {
+        val saved = runCatching { JSONObject(devices).optJSONObject("publishedUaTemplates")?.toString() }.getOrNull()
+        val savedVersion = PublishedUserAgentTemplates.version(saved) ?: return bundled
+        val bundledVersion = PublishedUserAgentTemplates.version(bundled) ?: return saved
+        return if (compareVersions(savedVersion, bundledVersion) >= 0) saved else bundled
+    }
+
+    /** Both catalogs travel in the same snapshot, even when only the template revision advances. */
+    internal fun fetchUpdate(
+        base: String, active: String, bundledTemplates: String?, fetch: (URL) -> String?
+    ): Pair<Result, String?> {
+        val devices: String
+        val templates: String
+        try {
+            devices = fetch(catalogUrl(base, "/api/v1/data")) ?: return Result.OFFLINE_OR_ERROR to null
+            templates = fetch(catalogUrl(base, "/ua_templates.json")) ?: return Result.OFFLINE_OR_ERROR to null
+        } catch (_: Exception) {
+            return Result.OFFLINE_OR_ERROR to null
+        }
+        val remoteVersion = validateAndVersion(devices) ?: return Result.INVALID_DATA to null
+        val newTemplateVersion = PublishedUserAgentTemplates.version(templates) ?: return Result.INVALID_DATA to null
+        val oldVersion = validateAndVersion(active).orEmpty()
+        val oldTemplates = activeTemplates(active, bundledTemplates)
+        val oldTemplateVersion = PublishedUserAgentTemplates.version(oldTemplates).orEmpty()
+        val newerDevices = compareVersions(remoteVersion, oldVersion) > 0
+        val newerTemplates = compareVersions(newTemplateVersion, oldTemplateVersion) > 0
+        if (!newerDevices && !newerTemplates) return Result.ALREADY_CURRENT to null
+
+        val deviceText = if (newerDevices) devices else active
+        val selected = JSONObject(if (newerTemplates) templates else oldTemplates ?: templates)
+        val rows = selected.getJSONArray("records")
+        val verified = (0 until rows.length()).count { rows.optJSONObject(it)?.optString("status") == "verified" }
+        val deviceVersion = if (newerDevices) remoteVersion else oldVersion
+        if (compareVersions(selected.getString("deviceCatalogVersion"), deviceVersion) > 0 ||
+            PublishedUserAgentTemplates.read(selected.toString(), deviceText).size != verified) return Result.INVALID_DATA to null
+        return Result.UPDATED to JSONObject(deviceText).put("publishedUaTemplates", selected).toString()
+    }
+
+    private fun catalogUrl(base: String, path: String): URL {
         val uri = URI(base)
         if (uri.scheme != "https" || uri.host.isNullOrBlank() ||
             uri.rawUserInfo != null || uri.port !in listOf(-1, 443) ||
@@ -139,7 +171,7 @@ object DeviceDataUpdater {
         ) {
             throw IllegalArgumentException("Enter an HTTPS API origin, for example https://nexora.example.com")
         }
-        return URL("${base.trimEnd('/')}/api/v1/data")
+        return URL("${base.trimEnd('/')}$path")
     }
 
     private fun download(url: URL): String? {

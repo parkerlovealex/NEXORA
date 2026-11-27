@@ -25,31 +25,9 @@ object DeviceDb {
 
     /** Only templates with explicit evidence metadata are exposed to the generator. */
     fun loadVerifiedUserAgentTemplates(context: Context): List<UserAgentTemplate> {
-        val text = DeviceDataUpdater.activeDataText(context) ?: readBundledText(context) ?: return emptyList()
-        return try {
-            val array = JSONObject(text).optJSONArray("uaTemplates") ?: return emptyList()
-            buildList {
-                for (i in 0 until array.length()) {
-                    val row = array.optJSONObject(i) ?: continue
-                    val template = UserAgentTemplate(
-                        id = row.optString("id"),
-                        appId = row.optString("appId"),
-                        displayName = row.optString("displayName"),
-                        targetOs = row.optString("targetOs").uppercase(),
-                        userAgent = row.optString("userAgent"),
-                        sourceUrl = row.optString("sourceUrl"),
-                        evidenceQuote = row.optString("evidenceQuote"),
-                        verified = row.optBoolean("verified", false)
-                    )
-                    if (template.id.isNotBlank() && template.appId.isNotBlank() &&
-                        template.displayName.isNotBlank() && template.targetOs in setOf("ANDROID", "IOS") &&
-                        template.userAgent.contains("Mozilla/", ignoreCase = true) &&
-                        template.sourceUrl.startsWith("https://") && template.evidenceQuote.isNotBlank() &&
-                        template.verified
-                    ) add(template)
-                }
-            }
-        } catch (_: Exception) { emptyList() }
+        val devices = DeviceDataUpdater.activeDataText(context) ?: readBundledText(context) ?: return emptyList()
+        val templates = DeviceDataUpdater.activeTemplates(devices, readBundledText(context, "ua_templates.json"))
+        return PublishedUserAgentTemplates.read(templates, devices)
     }
 
     fun invalidateCache() {
@@ -75,9 +53,9 @@ object DeviceDb {
         return JSONObject()
     }
 
-    private fun readBundledText(context: Context): String? {
+    internal fun readBundledText(context: Context, asset: String = "devices.json"): String? {
         return try {
-            context.assets.open("devices.json").bufferedReader().use { it.readText() }
+            context.assets.open(asset).bufferedReader().use { it.readText() }
         } catch (_: Exception) {
             null
         }

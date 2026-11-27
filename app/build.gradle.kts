@@ -101,12 +101,21 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { viewBinding = true }
 }
+
+val publishedTemplateAssets = tasks.register<Sync>("syncPublishedTemplateAssets") {
+    from(rootProject.file("web/ua_templates.json"))
+    into(layout.buildDirectory.dir("generated/publishedTemplateAssets"))
+}
+android.sourceSets["main"].assets.srcDir(publishedTemplateAssets)
+tasks.named("preBuild") { dependsOn(publishedTemplateAssets) }
+
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.webkit:webkit:1.11.0")
+    implementation("com.google.guava:guava:33.5.0-android")
     implementation("androidx.activity:activity-ktx:1.9.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.vaadin.external.google:android-json:0.0.20131108.vaadin1")

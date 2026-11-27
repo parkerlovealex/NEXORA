@@ -44,7 +44,7 @@ object UserAgentGenerationEngine {
             if (pool.isEmpty()) errors += "Select at least one available Android device, or use the random device pool."
             if (request.androidBrowserFamilies.isEmpty() && request.inAppBrowserIds.isEmpty()) errors += "Select an Android browser family or an in-app browser template."
             if (request.androidBrowserFamilies.any { it != "Chrome" }) errors += "Only Chrome has a supported Android UA template in the current catalog/runtime."
-            if (!nativeAndroidUserAgent.contains("Chrome/", ignoreCase = true)) errors += "The installed WebView did not report a Chromium version; an Android Chrome UA cannot be generated safely."
+            if ("Chrome" in request.androidBrowserFamilies && !nativeAndroidUserAgent.contains("Chrome/", ignoreCase = true)) errors += "The installed WebView did not report a Chromium version; an Android Chrome UA cannot be generated safely."
         }
         if (request.iosCount > 0) {
             val pool = eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds)
@@ -156,7 +156,7 @@ object UserAgentGenerationEngine {
         return devices.mapIndexed { index, device ->
             val version = requestedVersion(if (isIos) request.iosOsVersion else request.androidOsVersion, device.osVersions)
             val (browser, appTemplate) = variants[index % variants.size]
-            val ua = appTemplate?.userAgent ?: if (isIos) {
+            val ua = appTemplate?.render(device.id, version) ?: if (isIos) {
                 UaBuilder.buildIosSafariTemplate(version)
             } else {
                 UaBuilder.build(device, version, nativeAndroidUserAgent)
