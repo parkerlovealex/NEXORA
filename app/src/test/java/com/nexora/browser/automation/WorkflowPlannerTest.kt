@@ -35,6 +35,27 @@ class WorkflowPlannerTest {
     }
 
     @Test
+    fun alreadyAssignedProxiesAreNotPairedAgain() {
+        // p3 already holds library proxy x1 (proxyEntryId). A fresh
+        // one-to-one run for the unassigned profiles must skip x1 even
+        // though it is a valid library entry — pairing it again would
+        // put two profiles on one proxy.
+        val withAssignment = listOf(
+            WorkflowProfileSnapshot("p1", "Alpha", "NONE", "", 0, "", "pixel"),
+            WorkflowProfileSnapshot("p2", "Beta", "NONE", "", 0, "", "pixel"),
+            WorkflowProfileSnapshot("p3", "Gamma", "HTTP", "one.example", 8080, "x1", "pixel")
+        )
+        val proxies = listOf(
+            WorkflowProxySnapshot("x1", "HTTP", "HTTP", "one.example", 8080, 1L),
+            WorkflowProxySnapshot("x3", "SOCKS5", "SOCKS5", "two.example", 1080, 3L)
+        )
+        val preview = WorkflowPlanner.assignUnassignedProxies(withAssignment, proxies)
+        assertEquals(1, preview.assignments.size)
+        assertEquals("x3", preview.assignments.single().proxyId)
+        assertTrue(preview.assignments.none { it.proxyId == "x1" })
+    }
+
+    @Test
     fun profilesWithExistingProxyAreNeverOverwritten() {
         val preview = WorkflowPlanner.assignUnassignedProxies(
             profiles,
