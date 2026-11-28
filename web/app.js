@@ -1191,6 +1191,10 @@ function batchFacts(batch) {
 }
 let trackOpenId = null;
 let trackConfirmDeleteId = null;
+async function trackCopy(text, message) {
+  try { await navigator.clipboard.writeText(text); showToast(message); playUiSound("success"); }
+  catch { showToast("Clipboard access is unavailable in this browser.", "error"); }
+}
 function renderTrack() {
   const batches = trackBatches();
   const stats = $("trackStats");
@@ -1274,7 +1278,7 @@ function handleTrackAction(event) {
   const batch = batches.find(b => b.id === button.dataset.trackId);
   if (action === "open" && batch) { trackOpenId = batch.id; trackConfirmDeleteId = null; renderTrack(); }
   else if (action === "close") { trackOpenId = null; renderTrack(); }
-  else if (action === "copy" && batch) copyText((batch.records || []).map(r => r.userAgent).join("\n"), "Batch copied.");
+  else if (action === "copy" && batch) trackCopy((batch.records || []).map(r => r.userAgent).join("\n"), "Batch copied.");
   else if (action === "export" && batch) downloadText("nexora-user-agents.json", JSON.stringify({ meta: { dataVersion: batch.records?.[0]?.catalogDataVersion || null, exportedAt: new Date().toISOString(), count: (batch.records || []).length, batch: batch.name }, records: batch.records || [] }, null, 2), "application/json");
   else if (action === "delete" && batch) { trackConfirmDeleteId = batch.id; renderTrack(); }
   else if (action === "delete-cancel") { trackConfirmDeleteId = null; renderTrack(); }
@@ -1289,7 +1293,7 @@ function handleTrackAction(event) {
   }
   else if (action === "copy-one" && batch) {
     const record = (batch.records || [])[Number(button.dataset.trackIndex)];
-    if (record) copyText(record.userAgent, "User-Agent copied.");
+    if (record) trackCopy(record.userAgent, "User-Agent copied.");
   }
   else if (action === "analyse" && batch) {
     const record = (batch.records || [])[Number(button.dataset.trackIndex)];
