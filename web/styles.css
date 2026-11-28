@@ -426,6 +426,7 @@ body.is-admin .mobile-menu{display:grid}
 .version-chip{border:1px solid var(--nx-line);border-radius:999px;background:#0e1611;color:#c8d8cc;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .version-chip:hover{color:#e2f0e5;border-color:#46664d}
 .version-chip.active{background:#263b2b;border-color:#46664d;color:#e0f2e4}
+.analyser-link-row{display:flex;justify-content:flex-end;margin:2px 0 10px}
 .analyser-card{max-width:860px}
 .analyser-actions{display:flex;gap:8px;margin:12px 0}
 .analyser-result{border-top:1px solid var(--nx-line);padding-top:10px}
