@@ -1,1 +1,371 @@
-{"$defs":{"coverageRow":{"additionalProperties":false,"properties":{"app":{"minLength":1,"type":"string"},"platforms":{"additionalProperties":false,"properties":{"android":{"$ref":"#/$defs/coverageState"},"ios":{"$ref":"#/$defs/coverageState"}},"required":["android","ios"],"type":"object"}},"required":["app","platforms"],"type":"object"},"coverageState":{"enum":["verified","candidate","pending","outdated","rejected","not-collected"]},"evidence":{"additionalProperties":false,"properties":{"app_build":{"type":["string","null"]},"app_version":{"type":["string","null"]},"fetched_at":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"},"kind":{"enum":["observed-ua","official-doc","published-dataset-entry","technical-reference","candidate-script"]},"observed":{"type":["string","null"]},"observed_at":{"type":["string","null"]},"quoted_text":{"minLength":1,"type":"string"},"source_id":{"minLength":1,"type":"string"},"source_ref":{"type":"string"},"source_url":{"pattern":"^https://","type":"string"}},"required":["source_id","kind","quoted_text"],"type":"object"},"record":{"additionalProperties":false,"allOf":[{"if":{"properties":{"status":{"const":"verified"}},"required":["status"]},"then":{"properties":{"source_format":{"type":"null"},"template":{"minLength":1,"type":"string"}}}},{"if":{"properties":{"status":{"const":"candidate"}},"required":["status"]},"then":{"properties":{"source_format":{"minLength":1,"type":"string"},"template":{"type":"null"}}}}],"properties":{"app":{"minLength":1,"type":"string"},"compatibility":{"additionalProperties":false,"properties":{"maxOS":{"type":["string","null"]},"minOS":{"type":["string","null"]},"notes":{"type":"string"}},"type":"object"},"evidence":{"items":{"$ref":"#/$defs/evidence"},"minItems":1,"type":"array"},"id":{"minLength":1,"type":"string"},"platform":{"enum":["android","ios"]},"review_notes":{"items":{"type":"string"},"type":"array"},"schemaVersion":{"const":1},"slots":{"additionalProperties":{"type":"string"},"type":"object"},"source_format":{"type":["string","null"]},"status":{"enum":["candidate","pending","verified","outdated","rejected"]},"template":{"type":["string","null"]},"unresolved_slots":{"items":{"type":"string"},"type":"array","uniqueItems":true}},"required":["id","app","platform","status","template","source_format","slots","unresolved_slots","review_notes","schemaVersion","evidence"],"type":"object"}},"$id":"https://nexorauser.vercel.app/catalog/ua-templates.schema.json","$schema":"https://json-schema.org/draft/2020-12/schema","additionalProperties":false,"description":"Canonical NEXORA in-app UA template catalog. The website schema is canonical; other consumers (Android, Windows) adapt to it. Structural contract only — evidence quality, slot resolution, coverage consistency and the verified-fixture build are enforced by tools/validate_ua_templates.py. See docs/UA-TEMPLATE-SCHEMA.md.","properties":{"catalogReleaseId":{"pattern":"^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$","type":"string"},"coverage":{"items":{"$ref":"#/$defs/coverageRow"},"type":"array"},"dataVersion":{"pattern":"^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$","type":"string"},"deviceCatalogVersion":{"pattern":"^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$","type":"string"},"records":{"items":{"$ref":"#/$defs/record"},"type":"array"},"sourcePolicy":{"type":"string"},"sources":{"items":{"additionalProperties":true,"properties":{"name":{"type":"string"},"sourceId":{"type":"string"},"sourceUrl":{"type":"string"}},"required":["sourceId","name","sourceUrl"],"type":"object"},"type":"array"},"uaTemplatesSchema":{"const":1},"updatedAt":{"pattern":"^\\d{4}-\\d{2}-\\d{2}$","type":"string"}},"required":["uaTemplatesSchema","dataVersion","updatedAt","deviceCatalogVersion","catalogReleaseId","sourcePolicy","coverage","records","sources"],"title":"NEXORA UA Templates Catalog","type":"object"}
+{
+ "$defs": {
+  "coverageRow": {
+   "additionalProperties": false,
+   "properties": {
+    "app": {
+     "minLength": 1,
+     "type": "string"
+    },
+    "platforms": {
+     "additionalProperties": false,
+     "properties": {
+      "android": {
+       "$ref": "#/$defs/coverageState"
+      },
+      "ios": {
+       "$ref": "#/$defs/coverageState"
+      }
+     },
+     "required": [
+      "android",
+      "ios"
+     ],
+     "type": "object"
+    }
+   },
+   "required": [
+    "app",
+    "platforms"
+   ],
+   "type": "object"
+  },
+  "coverageState": {
+   "enum": [
+    "verified",
+    "candidate",
+    "pending",
+    "outdated",
+    "rejected",
+    "not-collected"
+   ]
+  },
+  "evidence": {
+   "additionalProperties": false,
+   "properties": {
+    "app_build": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "app_version": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "fetched_at": {
+     "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+     "type": "string"
+    },
+    "kind": {
+     "enum": [
+      "observed-ua",
+      "official-doc",
+      "published-dataset-entry",
+      "technical-reference",
+      "candidate-script"
+     ]
+    },
+    "observed": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "observed_at": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "quoted_text": {
+     "minLength": 1,
+     "type": "string"
+    },
+    "source_id": {
+     "minLength": 1,
+     "type": "string"
+    },
+    "source_ref": {
+     "type": "string"
+    },
+    "source_url": {
+     "pattern": "^https://",
+     "type": "string"
+    }
+   },
+   "required": [
+    "source_id",
+    "kind",
+    "quoted_text"
+   ],
+   "type": "object"
+  },
+  "record": {
+   "additionalProperties": false,
+   "allOf": [
+    {
+     "if": {
+      "properties": {
+       "status": {
+        "const": "verified"
+       }
+      },
+      "required": [
+       "status"
+      ]
+     },
+     "then": {
+      "properties": {
+       "source_format": {
+        "type": "null"
+       },
+       "template": {
+        "minLength": 1,
+        "type": "string"
+       }
+      }
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "status": {
+        "const": "candidate"
+       }
+      },
+      "required": [
+       "status"
+      ]
+     },
+     "then": {
+      "properties": {
+       "source_format": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "template": {
+        "type": "null"
+       }
+      }
+     }
+    }
+   ],
+   "properties": {
+    "app": {
+     "minLength": 1,
+     "type": "string"
+    },
+    "compatibility": {
+     "additionalProperties": false,
+     "properties": {
+      "maxOS": {
+       "type": [
+        "string",
+        "null"
+       ]
+      },
+      "minOS": {
+       "type": [
+        "string",
+        "null"
+       ]
+      },
+      "notes": {
+       "type": "string"
+      }
+     },
+     "type": "object"
+    },
+    "evidence": {
+     "items": {
+      "$ref": "#/$defs/evidence"
+     },
+     "minItems": 1,
+     "type": "array"
+    },
+    "engine": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "family": {
+       "type": "string",
+       "enum": [
+        "chromium",
+        "gecko",
+        "webkit"
+       ]
+      },
+      "major": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "basis": {
+       "type": "string",
+       "const": "evidence"
+      },
+      "evidenceRefs": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "type": "string",
+        "minLength": 1
+       }
+      }
+     },
+     "required": [
+      "family",
+      "major",
+      "basis",
+      "evidenceRefs"
+     ]
+    },
+    "id": {
+     "minLength": 1,
+     "type": "string"
+    },
+    "platform": {
+     "enum": [
+      "android",
+      "ios"
+     ]
+    },
+    "review_notes": {
+     "items": {
+      "type": "string"
+     },
+     "type": "array"
+    },
+    "schemaVersion": {
+     "const": 1
+    },
+    "slots": {
+     "additionalProperties": {
+      "type": "string"
+     },
+     "type": "object"
+    },
+    "source_format": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "status": {
+     "enum": [
+      "candidate",
+      "pending",
+      "verified",
+      "outdated",
+      "rejected"
+     ]
+    },
+    "template": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "unresolved_slots": {
+     "items": {
+      "type": "string"
+     },
+     "type": "array",
+     "uniqueItems": true
+    }
+   },
+   "required": [
+    "id",
+    "app",
+    "platform",
+    "status",
+    "template",
+    "source_format",
+    "slots",
+    "unresolved_slots",
+    "review_notes",
+    "schemaVersion",
+    "evidence"
+   ],
+   "type": "object"
+  }
+ },
+ "$id": "https://nexorauser.vercel.app/catalog/ua-templates.schema.json",
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "additionalProperties": false,
+ "description": "Canonical NEXORA in-app UA template catalog. The website schema is canonical; other consumers (Android, Windows) adapt to it. Structural contract only — evidence quality, slot resolution, coverage consistency and the verified-fixture build are enforced by tools/validate_ua_templates.py. See docs/UA-TEMPLATE-SCHEMA.md.",
+ "properties": {
+  "catalogReleaseId": {
+   "pattern": "^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$",
+   "type": "string"
+  },
+  "coverage": {
+   "items": {
+    "$ref": "#/$defs/coverageRow"
+   },
+   "type": "array"
+  },
+  "dataVersion": {
+   "pattern": "^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$",
+   "type": "string"
+  },
+  "deviceCatalogVersion": {
+   "pattern": "^\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+$",
+   "type": "string"
+  },
+  "records": {
+   "items": {
+    "$ref": "#/$defs/record"
+   },
+   "type": "array"
+  },
+  "sourcePolicy": {
+   "type": "string"
+  },
+  "sources": {
+   "items": {
+    "additionalProperties": true,
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "sourceId": {
+      "type": "string"
+     },
+     "sourceUrl": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "sourceId",
+     "name",
+     "sourceUrl"
+    ],
+    "type": "object"
+   },
+   "type": "array"
+  },
+  "uaTemplatesSchema": {
+   "const": 1
+  },
+  "updatedAt": {
+   "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+   "type": "string"
+  }
+ },
+ "required": [
+  "uaTemplatesSchema",
+  "dataVersion",
+  "updatedAt",
+  "deviceCatalogVersion",
+  "catalogReleaseId",
+  "sourcePolicy",
+  "coverage",
+  "records",
+  "sources"
+ ],
+ "title": "NEXORA UA Templates Catalog",
+ "type": "object"
+}
