@@ -54,7 +54,7 @@ data class EngineDescriptor(
         fun detect(context: Context): EngineDescriptor {
             val pkg = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 try {
-                    WebView.getCurrentWebViewPackage(context)?.versionName
+                    WebView.getCurrentWebViewPackage()?.versionName
                 } catch (e: Exception) {
                     null
                 }
