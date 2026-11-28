@@ -1,0 +1,178 @@
+name: NEXORA Build Evidence Refresh
+
+# C11 (owner decision 2026-11-28): the Android-build and IPSW collectors
+# previously had no scheduled lane, so published firmware/build pairs
+# aged without new evidence being collected. This workflow runs both
+# collectors monthly and opens a DRAFT pull request with their
+# proposals and evidence. It never modifies the live catalog and never
+# merges: a human reviews the evidence and decides what, if anything,
+# is applied. The app version/build collector stays manual by design —
+# it only merges findings a browser lane actually read.
+
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_path:
+        description: "Optional path to the canonical devices.json"
+        required: false
+        type: string
+  schedule:
+    - cron: "40 5 1 * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: nexora-builds-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout database repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve canonical database path
+        id: paths
+        env:
+          INPUT_PATH: ${{ inputs.catalog_path }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_PATH:-}" ] && [ -f "$INPUT_PATH" ]; then
+            CATALOG_PATH="$INPUT_PATH"
+          elif [ -f "web/devices.json" ]; then
+            CATALOG_PATH="web/devices.json"
+          elif [ -f "app/src/main/assets/devices.json" ]; then
+            CATALOG_PATH="app/src/main/assets/devices.json"
+          else
+            echo "::error::Could not find web/devices.json or app/src/main/assets/devices.json"
+            exit 1
+          fi
+          echo "catalog_path=$CATALOG_PATH" >> "$GITHUB_OUTPUT"
+          echo "CATALOG_PATH=$CATALOG_PATH" >> "$GITHUB_ENV"
+          mkdir -p output data/evidence/builds data/proposals/builds reports/builds
+
+      - name: Collect Android platform builds
+        id: android
+        continue-on-error: true
+        run: |
+          set +e
+          python tools/collect_android_builds.py \
+            --input "$CATALOG_PATH" \
+            --out output/devices.android-builds.json \
+            --evidence output/android-builds-evidence.json \
+            --report output/REPORT-android-builds.md \
+            --report-json output/android-builds-report.json
+          RC=$?
+          echo "exit_code=$RC" >> "$GITHUB_OUTPUT"
+          echo "Android collector exit code: $RC"
+          # Report the collector's real outcome (C13 rule): the step
+          # shows failed when collection failed; continue-on-error
+          # keeps the lane running so the iOS collection still happens.
+          exit $RC
+
+      - name: Collect iOS firmware pairs
+        id: ipsw
+        continue-on-error: true
+        run: |
+          set +e
+          python tools/collect_ipsw_builds.py \
+            --input "$CATALOG_PATH" \
+            --out output/devices.ipsw-builds.json \
+            --evidence output/ipsw-evidence.json \
+            --report output/REPORT-ipsw-builds.md \
+            --report-json output/ipsw-report.json
+          RC=$?
+          echo "exit_code=$RC" >> "$GITHUB_OUTPUT"
+          echo "IPSW collector exit code: $RC"
+          exit $RC
+
+      - name: Gate on collection alarms
+        id: gate
+        run: |
+          set -euo pipefail
+          ANDROID_RC="${{ steps.android.outputs.exit_code }}"
+          IPSW_RC="${{ steps.ipsw.outputs.exit_code }}"
+          echo "Android=$ANDROID_RC IPSW=$IPSW_RC"
+          # Exit 1 = invalid input/arguments; exit 2 = zero usable data
+          # collected (data alarm). Both fail the lane loudly instead of
+          # opening a review PR built on a broken collection.
+          if [ "$ANDROID_RC" = "1" ] || [ "$ANDROID_RC" = "2" ] || [ "$IPSW_RC" = "1" ] || [ "$IPSW_RC" = "2" ]; then
+            echo "::error::A collector raised a data alarm (exit 1 or 2); no draft PR will be opened."
+            exit 1
+          fi
+          # Exit 3 = partial failure or conflicting pairs: the draft PR
+          # is exactly the review vehicle for those, so the lane
+          # proceeds and the PR body flags it.
+
+      - name: Prepare review files
+        run: |
+          set -euo pipefail
+          cp output/devices.android-builds.json data/proposals/builds/devices.android-builds.json
+          cp output/devices.ipsw-builds.json data/proposals/builds/devices.ipsw-builds.json
+          cp output/android-builds-evidence.json data/evidence/builds/android.json
+          cp output/ipsw-evidence.json data/evidence/builds/ipsw.json
+          cp output/REPORT-android-builds.md reports/builds/android-latest.md
+          cp output/REPORT-ipsw-builds.md reports/builds/ipsw-latest.md
+          cat > output/PR_BODY.md <<EOF
+          ## NEXORA build evidence refresh
+
+          This is an automatically generated **draft** proposal. It is not
+          auto-merged, and nothing in it modifies the live catalog.
+
+          - Android collector exit code: ${{ steps.android.outputs.exit_code }}
+          - IPSW collector exit code: ${{ steps.ipsw.outputs.exit_code }}
+          - Exit 3 from a collector means partial data or conflicting
+            pairs that need a human decision (for example, an iOS version
+            Apple shipped with two build IDs).
+
+          Review:
+          - \`reports/builds/android-latest.md\`
+          - \`reports/builds/ipsw-latest.md\`
+          - \`data/evidence/builds/android.json\`
+          - \`data/evidence/builds/ipsw.json\`
+
+          Honest limits:
+          - The Android proposal carries Google's canonical platform
+            build IDs. Where the catalog already stores an OEM firmware
+            string, the OEM string is the better value — do not merge
+            the Android proposal over OEM builds without checking.
+          - The IPSW proposal never picks a winner between conflicting
+            builds; resolving a conflict is a review decision.
+
+          A blocked source is reported as blocked. No anti-bot challenge
+          bypass is attempted. Review the evidence before applying
+          anything to the catalog.
+          EOF
+
+      - name: Upload collection artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-builds-refresh-${{ github.run_id }}
+          path: |
+            output/
+            reports/builds/
+            data/evidence/builds/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Open draft evidence update PR
+        if: steps.gate.outcome == 'success'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: automation/nexora-builds-refresh
+          delete-branch: true
+          draft: true
+          title: "data: refresh firmware build evidence (proposals)"
+          body-path: output/PR_BODY.md
+          commit-message: "data: refresh firmware build evidence proposals"
