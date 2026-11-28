@@ -544,3 +544,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — C18 verified app-version counts (2026-11-28, Muse takeover)
 
 **C18:** `/api/v1/stats` now counts an app version as verified only when the stored entry retains the provenance quote from a server-verified save or proposal approval; seeded/legacy entries count as present, not verified (the published catalog's 18 seeded apps honestly report 0 verified until re-saved through a verified path). The AI assistant's coverage map uses the same rule. Proof: `tests/test_stats_verified_apps.py` fails pre-fix, passes post-fix; Python suite 105 passed / 0 failed.
+
+## Alpha30 Wave 5 — C17 catalog payload guard (2026-11-28, Muse takeover)
+
+**C17:** the website's data loader now accepts an API response only when it has the catalog shape (device arrays + meta); a misrouted 200 HTML response falls back to the bundled catalog instead of rendering an empty "API connected" state. Proof: `tests/catalog-payload.test.js` fails pre-fix, passes post-fix; other node tests and desktop smoke pass; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
