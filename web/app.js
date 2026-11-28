@@ -84,9 +84,21 @@ async function api(path, options = {}) {
   return body;
 }
 
+function isCatalogPayload(data) {
+  // C17: a 200 response is not necessarily a catalog — a misrouted
+  // deployment can answer with an HTML page, which the JSON parser
+  // turns into a detail object. Accept the API result only when it has
+  // the catalog shape; anything else falls back to the bundled file.
+  return Boolean(data) && typeof data === "object"
+    && Array.isArray(data.android) && Array.isArray(data.ios_emulation)
+    && Boolean(data.meta) && typeof data.meta === "object";
+}
+
 async function loadData() {
   try {
-    state.data = await api("/api/v1/data");
+    const payload = await api("/api/v1/data");
+    if (!isCatalogPayload(payload)) throw new Error("API returned an unexpected response; using the bundled catalog.");
+    state.data = payload;
     state.apiOnline = true; state.apiError = "";
   } catch (error) {
     state.apiOnline = false; state.apiError = error.message;
