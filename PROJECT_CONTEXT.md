@@ -548,3 +548,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — C17 catalog payload guard (2026-11-28, Muse takeover)
 
 **C17:** the website's data loader now accepts an API response only when it has the catalog shape (device arrays + meta); a misrouted 200 HTML response falls back to the bundled catalog instead of rendering an empty "API connected" state. Proof: `tests/catalog-payload.test.js` fails pre-fix, passes post-fix; other node tests and desktop smoke pass; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
+
+## Alpha30 Wave 5 — C16 iOS build fallback labelling (2026-11-28, Muse takeover)
+
+**C16:** iOS records generated without a catalog build for the OS version now carry `buildSource: "fallback"` and a note disclosing that the Mobile build token is the generic fallback; records with a catalog build say `buildSource: "database"`. Proof: `tests/ios-build-fallback.test.js` fails pre-fix, passes post-fix; other node tests and desktop smoke pass; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
