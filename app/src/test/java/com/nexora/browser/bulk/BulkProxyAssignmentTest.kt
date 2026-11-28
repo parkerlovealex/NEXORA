@@ -38,17 +38,33 @@ class BulkProxyAssignmentTest {
             perProfiles += PerProfileDraft("Profile 1")
         }
         val proxies = listOf(
-            ProxyEntry("auth", "Auth", "HTTP", "auth.example", 8080, true, "encrypted", 1L),
+            ProxyEntry("socks4", "Imported SOCKS4", "SOCKS4", "proxy.example", 1080, false, "", 1L),
             ProxyEntry("plain", "Plain", "HTTP", "plain.example", 8080, false, "", 2L)
         )
 
         val result = draft.assignSavedProxiesInOrder(proxies)
 
-        assertEquals("auth", draft.perProfiles.single().proxySelection)
+        assertEquals("socks4", draft.perProfiles.single().proxySelection)
         assertEquals(1, result.unsupportedAssignments)
         assertEquals(1, result.unusedSavedProxies)
     }
 
+    @Test
+    fun authenticatedHttpHttpsAndSocks5EntriesCanEachBeAssigned() {
+        val types = listOf("HTTP", "HTTPS", "SOCKS5")
+        val draft = BulkProfileDraft().apply { count = types.size }
+        val entries = types.map { type ->
+            ProxyEntry(type, type, type, "proxy.example", 8080, true, "fixture", 1L)
+        }
+
+        val result = draft.assignSavedProxiesInOrder(entries)
+
+        assertEquals(types, draft.perProfiles.map { it.proxySelection })
+        assertEquals(types.size, result.assignedProfiles)
+        assertEquals(0, result.directProfiles)
+        assertEquals(0, result.unsupportedAssignments)
+        assertEquals(0, result.unusedSavedProxies)
+    }
 
     @Test
     fun assignsTenAuthenticatedSessionsOneToOneWithoutReusingAnEntry() {

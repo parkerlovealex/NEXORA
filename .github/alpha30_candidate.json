@@ -1,16 +1,12 @@
 {
-  "finding": "A20",
-  "parent": "30c5bbb24a505f3dab9f270e79fc60d3cafe5298",
+  "finding": "A22",
+  "parent": "4dbd5df6a3c985d8adbb20e23b8adbccf53787ba",
   "files": {
-    "app/src/main/java/com/nexora/browser/util/ProxyRelayServer.kt": "55d55d82a4adf4f1b0edd9dbfc05bc82d6cdb55b",
-    "app/src/test/java/com/nexora/browser/util/ProxyRelaySchedulingTest.kt": "2c11741a963088ce7dbf2b191d074fe2b119c3f8",
-    "app/src/test/java/com/nexora/browser/util/RelayTunnelLifetimeTest.kt": "4813c39dc9fb5b4b87ceb8c9e520e4483758f59f"
+    "app/src/test/java/com/nexora/browser/bulk/BulkProxyAssignmentTest.kt": "5081af7b70aee8583c0cb7c19ef9887217d3e609"
   },
-  "tests": [
-    "app/src/test/java/com/nexora/browser/util/ProxyRelaySchedulingTest.kt"
-  ],
+  "tests": [],
   "focus": {
     "kind": "jvm",
-    "selector": "com.nexora.browser.util.ProxyRelaySchedulingTest.independentWorkStartsWhileTwoWorkersAreOccupied"
+    "selector": "com.nexora.browser.bulk.BulkProxyAssignmentTest.reportsUnsupportedAndUnusedSavedProxyEntries"
   }
 }
