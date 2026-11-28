@@ -2434,28 +2434,39 @@ class BrowserActivity : AppCompatActivity() {
             .setTitle("Clear profile data")
             .setMessage("Remove cookies, site storage and cache for \"${profile.name}\"? Bookmarks and history metadata are separate.")
             .setPositiveButton("Clear") { _, _ ->
-                clearProfileData()
-                toast("Profile data cleared")
-                finish()
+                // A12: success is claimed only when cleanup actually
+                // completed; a failure keeps the screen open and says so.
+                if (clearProfileData()) {
+                    toast("Profile data cleared")
+                    finish()
+                } else {
+                    toast("Some profile data could not be cleared")
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun clearProfileData() {
+    private fun clearProfileData(): Boolean {
         clearSessionOnExit = true
         sessionPersistHandler.removeCallbacks(sessionPersistRunnable)
         dataStore.clearSession()
         activeTab?.webView?.stopLoading()
-        try {
+        return try {
             val webProfile = androidx.webkit.ProfileStore.getInstance()
                 .getProfile(profile.webViewProfileKey)
-            webProfile?.cookieManager?.removeAllCookies(null)
+            // A12: cookie removal now has a completion callback; a
+            // failed removal is reported instead of silently assumed.
+            webProfile?.cookieManager?.removeAllCookies { removed ->
+                if (!removed) runOnUiThread { toast("Cookies could not be removed") }
+            }
             webProfile?.cookieManager?.flush()
             webProfile?.webStorage?.deleteAllData()
             tabs.forEach { it.webView.clearCache(true); it.webView.clearHistory(); it.webView.clearFormData() }
+            true
         } catch (e: Exception) {
             toast("Some website data could not be cleared: ${e.message ?: "unknown error"}")
+            false
         }
     }
 
