@@ -35,7 +35,13 @@ def norm(value):
 
 
 def host_allowed(source, url, source_class):
-    host = (urlparse(url).hostname or "").lower()
+    # A44: match the merger's policy — evidence URLs must be HTTPS,
+    # not merely on an approved host. Standalone validation previously
+    # accepted http:// (or any scheme) on an approved hostname.
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        return False
+    host = (parsed.hostname or "").lower()
     table = PRIMARY if source_class == "primary" else SECONDARY
     return host in table.get(source, set())
 
