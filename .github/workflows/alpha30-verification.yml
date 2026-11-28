@@ -7,6 +7,24 @@ permissions:
 
 jobs:
   verify:
+    name: Verify committed ${{ matrix.finding }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - finding: A16
+            commit: 60123738025a212f4ec90a963f281f553969e766
+          - finding: A18
+            commit: 30c5bbb24a505f3dab9f270e79fc60d3cafe5298
+          - finding: A20
+            commit: 4dbd5df6a3c985d8adbb20e23b8adbccf53787ba
+          - finding: A22
+            commit: 259bf7a1878adf13b5e0207e290d2e20bf7110ac
+          - finding: A36
+            commit: e8f9a80954e9b35703831e2e91f8ecf33c710f5b
+    env:
+      VERIFY_FINDING: ${{ matrix.finding }}
+      VERIFY_COMMIT: ${{ matrix.commit }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -49,12 +67,12 @@ jobs:
           if [[ ! -f "$ANDROID_HOME/platforms/android-34/android.jar" || ! -d "$ANDROID_HOME/build-tools/34.0.0" ]]; then
             "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" < <(yes y)
           fi
-      - name: Run parent regression and full candidate suites
+      - name: Run full suites against exact committed tree
         run: python .github/alpha30_verification.py
       - name: Save suite output and JUnit results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: alpha30-verification-${{ github.run_id }}
+          name: alpha30-committed-${{ matrix.finding }}-${{ github.run_id }}
           path: ${{ runner.temp }}/nexora-alpha30-logs
           retention-days: 14

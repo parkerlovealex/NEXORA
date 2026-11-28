@@ -2,7 +2,7 @@
 
 **Purpose:** Persistent project memory for ChatGPT, coding agents,
 researchers and developers.\
-**Last updated:** 2026-11-25 (website redesign package)\
+**Last updated:** 2026-11-28 (Alpha30 Wave 2 checkpoint)\
 **Status:** Living document --- update after every meaningful milestone.
 
 > Read this file before planning or changing NEXORA. Distinguish
@@ -468,3 +468,11 @@ The Alpha29 app sync on main is cd7e69a. Wave 1 on fix/alpha30 closes A01, A07â€
 On the final Wave 1 run, the debug APK assembled. Of 104 JVM tests, 102 passed and two failed (A22 and A47). Python had 76 passing tests, six passing subtests and one failure (C14). Desktop smoke passed. The published device and UA validators reported zero errors and warnings against web data. Web specs reported 110 warnings. The bundled catalog and strict specs still have outstanding failures recorded in the register. Live provider calls, production responses and physical-device behavior remain UNVERIFIED.
 
 Wave 2 begins with the Android published-template reader. The release target is 0.4.0-alpha30, versionCode 34. The app is still on 0.4.0-alpha29, versionCode 33.
+
+## Alpha30 Wave 2 checkpoint (2026-11-28)
+
+A06, A16, A17, A18, A20, A22 and A36 are FIXED on `fix/alpha30`. Locale selection and explicit OS selection now survive generation. Android reads the published UA templates. Missing catalog hardware stays unknown. If the active catalog supplies no Safari version, the user can explicitly enter a version labelled manual. The relay starts independent requests promptly, applies a shared five-minute idle limit and a one-hour maximum, and direct browsing waits for WebView to confirm proxy clearance.
+
+The register contains 74 findings, including 21 FIXED, 5 UPLOAD ARTIFACT and 48 OPEN. 9 High and 0 Critical findings are open. The final debug APK assembled. JVM ran 120 tests with 119 passing, 1 failing (A47) and 0 skipped. Python reported 1 failed, 76 passed, 1 warning, 6 subtests passed (C14). Desktop smoke passed. Published web devices and UA templates had zero errors and warnings. Web specs and the bundled device, spec and UA checks still have the failures recorded in the register. [Full suite results](https://github.com/parkerlovealex/NEXORA/actions/runs/46114824341) Â· [Findings register](reports/alpha30-findings.md)
+
+Handset latency, installed WebView routing, manual-entry interaction on a phone and production behavior are UNVERIFIED. Wave 3 awaits owner approval. The version at this checkpoint is 0.4.0-alpha29, versionCode 33.

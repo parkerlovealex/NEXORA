@@ -11,12 +11,12 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-repo = Path.cwd()
 temp = Path(os.environ["RUNNER_TEMP"])
+repo = temp / "nexora-committed-tree"
+subprocess.run(["git", "worktree", "add", "--detach", str(repo), os.environ["VERIFY_COMMIT"]], check=True)
 logs = temp / "nexora-alpha30-logs"
 logs.mkdir()
-manifest = json.loads((repo / ".github/alpha30_candidate.json").read_text())
-parent = manifest["parent"]
+manifest = {"finding": os.environ["VERIFY_FINDING"]}
 gradle = ["gradle", "--no-daemon", "--console=plain", "--max-workers=2",
           "-Dorg.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=768m -XX:ActiveProcessorCount=4",
           "-Pkotlin.compiler.execution.strategy=in-process"]
@@ -54,45 +54,10 @@ def junit(root, label):
     skipped = sum(int(s.get("skipped", "0")) for s in suites)
     return {"tests": count, "failures": failing, "skipped": skipped}
 
-sources = dict(manifest["files"])
-harness = {".github/workflows/alpha30-verification.yml", ".github/alpha30_verification.py", ".github/alpha30_candidate.json"}
-changed = set(git("diff", "--name-only", parent, "HEAD").splitlines()) - harness
-assert changed == set(sources), (changed, set(sources))
-for path, sha in sources.items():
-    assert git("hash-object", path) == sha, path
-result = {"finding": manifest["finding"], "parent": parent, "sources": sources}
-before = temp / "nexora-parent"
-git("worktree", "add", "--detach", str(before), parent)
-for path in manifest.get("tests", []):
-    dest = before / path
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(repo / path, dest)
-if manifest["finding"] == "A36":
-    # Run the actual previous supported-provider try/catch as plain Kotlin.
-    # Replace only the Android API invocation, preserving both callback paths.
-    activity = before / "app/src/main/java/com/nexora/browser/ui/BrowserActivity.kt"
-    source = activity.read_text()
-    method = re.search(r"    private fun clearProxy\(onCleared:[\s\S]*?\n    }", source).group(0)
-    branch = method[method.index("        try {"):method.rindex("\n    }")]
-    dispatch = "ProxyController.getInstance().clearProxyOverride(\n                ContextCompat.getMainExecutor(this),"
-    assert branch.count(dispatch) == 1 and branch.count("onCleared?.invoke()") == 2
-    adapter = before / "app/src/test/java/com/nexora/browser/util/ProxyOverrideClear.kt"
-    adapter.write_text("package com.nexora.browser.util\n\ninternal object ProxyOverrideClear {\n"
-                       "    fun request(submit: (Runnable) -> Unit, complete: (Result<Unit>) -> Unit) {\n"
-                       "        val onCleared: (() -> Unit)? = { complete(Result.success(Unit)) }\n"
-                       + branch.replace(dispatch, "submit(") + "\n    }\n}\n")
-    (logs / "parent-clearProxy-source.txt").write_text(method + "\n")
-    print("Parent JVM regression uses BrowserActivity.clearProxy's supported-provider branch with an injected WebView call.", flush=True)
-
-focus = manifest.get("focus")
-if focus:
-    if focus["kind"] == "jvm":
-        run("before", gradle + [":app:testDebugUnitTest", "--tests", focus["selector"], "--rerun"], before, environment(before, "parent"))
-        result["parentJunit"] = junit(before, "parent-junit")
-    elif focus["kind"] == "python":
-        run("before", pytest + focus["selectors"], before, environment(before, "parent"))
-    else:
-        raise ValueError("unknown focus type")
+actual = git("rev-parse", "HEAD")
+assert actual == os.environ["VERIFY_COMMIT"], actual
+result = {"finding": manifest["finding"], "head": actual, "tree": git("rev-parse", "HEAD^{tree}")}
+focus = None
 
 env = environment(repo, "candidate")
 jobs = {"python": pytest, "desktop": ["node", "tests/desktop-ua-smoke.js"],
