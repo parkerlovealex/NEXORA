@@ -124,6 +124,17 @@ class ContentBlockerDiagnosticsStore(context: Context, profileId: String) {
             "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "PATCH"
         )
 
+        /** A11: remove a deleted profile's diagnostics namespace. */
+        fun clearProfile(context: Context, profileId: String) {
+            try {
+                context.applicationContext.getSharedPreferences(
+                    preferenceName(profileId), Context.MODE_PRIVATE
+                ).edit().clear().apply()
+            } catch (_: Exception) {
+                // Best effort; nothing else owns this namespace.
+            }
+        }
+
         private fun preferenceName(profileId: String): String {
             val digest = MessageDigest.getInstance("SHA-256")
                 .digest(profileId.toByteArray(Charsets.UTF_8))
