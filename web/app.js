@@ -1367,7 +1367,24 @@ function collectAdvGroups() {
 }
 
 function advFingerprint() {
-  return JSON.stringify({ groups: collectAdvGroups(), country: $("uaCountry")?.value || "" });
+  // Covers every effective input runAdvancedBatch() can read: the groups,
+  // the country, and the generator settings a group may reuse or that the
+  // merge depends on (dedupe, OS selections, distribution, selected devices,
+  // custom device quantities).
+  const distribution = document.querySelector('input[name="uaDistribution"]:checked')?.value || "";
+  return JSON.stringify({
+    groups: collectAdvGroups(),
+    country: $("uaCountry")?.value || "",
+    dedupe: $("uaDeduplicate") ? $("uaDeduplicate").checked : false,
+    androidOs: $("uaAndroidOs")?.value || "",
+    iosOs: $("uaIosOs")?.value || "",
+    distribution,
+    selectedDevices: {
+      android: [...(state.selectedDevices.android || [])].sort(),
+      ios: [...(state.selectedDevices.ios || [])].sort()
+    },
+    customQuantities: state.customQuantities
+  });
 }
 
 function renderAdvComposition() {
@@ -1483,6 +1500,18 @@ function initAdvancedBatch() {
     playUiSound("success");
   });
   $("uaCountry")?.addEventListener("change", () => invalidateAdvPreview("Preview discarded — country changed. Run Preview again."));
+  for (const id of ["uaDeduplicate", "uaAndroidOs", "uaIosOs"]) {
+    $(id)?.addEventListener("change", () => { if (advPreviewState) invalidateAdvPreview("Preview discarded — a generator setting changed. Run Preview again."); });
+  }
+  document.querySelectorAll('input[name="uaDistribution"]').forEach(radio => {
+    radio.addEventListener("change", () => { if (advPreviewState) invalidateAdvPreview("Preview discarded — the distribution changed. Run Preview again."); });
+  });
+  document.addEventListener("change", (event) => {
+    if (advPreviewState && event.target?.hasAttribute?.("data-device-id")) invalidateAdvPreview("Preview discarded — the device selection changed. Run Preview again.");
+  });
+  document.addEventListener("input", (event) => {
+    if (advPreviewState && event.target?.hasAttribute?.("data-custom-qty")) invalidateAdvPreview("Preview discarded — a custom device quantity changed. Run Preview again.");
+  });
 }
 initAdvancedBatch();
 
@@ -1588,9 +1617,20 @@ function trackBatches() {
   catch { return []; }
 }
 function batchCategory(records) {
-  if (records.some(r => r.appId)) return "Social";
-  if (records.some(r => r.platform === "Windows" || r.platform === "macOS")) return "Desktop";
-  return "Mobile";
+  // Display-only derivation (D2): a batch spanning more than one class is
+  // "Mixed". The saved-batch format is unchanged.
+  const classes = new Set();
+  for (const r of records) {
+    if (r.appId) classes.add("Social");
+    else if (r.platform === "Windows" || r.platform === "macOS") classes.add("Desktop");
+    else classes.add("Mobile");
+  }
+  if (classes.size > 1) return "Mixed";
+  return [...classes][0] || "Mobile";
+}
+const TRACK_PLATFORM_LABELS = { Windows: "Windows", macOS: "macOS", Android: "Android", iOS: "iOS", android: "Android", ios: "iOS" };
+function batchPlatformLabel(records) {
+  return [...new Set(records.map(r => TRACK_PLATFORM_LABELS[r.platform] || r.platform).filter(Boolean))].join(", ");
 }
 function recordSourceLabel(r) {
   return r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
@@ -1603,6 +1643,7 @@ function batchFacts(batch) {
   return {
     records,
     category: batchCategory(records),
+    platformLabel: batchPlatformLabel(records),
     browserLabel: browsers.slice(0, 2).join(", ") || "—",
     versionLabel: versions.slice(0, 2).join(", ") || "—",
     country: first.country ? (countryEntry(first.country)[1] || first.country) : null,
@@ -1624,11 +1665,11 @@ function renderTrack() {
   const detail = $("trackDetail");
   if (!stats || !list || !detail) return;
   const totalUas = batches.reduce((sum, b) => sum + (Array.isArray(b.records) ? b.records.length : 0), 0);
-  const counts = { Desktop: 0, Mobile: 0, Social: 0 };
+  const counts = { Desktop: 0, Mobile: 0, Social: 0, Mixed: 0 };
   for (const b of batches) counts[batchCategory(Array.isArray(b.records) ? b.records : [])] += 1;
   stats.innerHTML = [
     ["Tracked batches", batches.length], ["Saved User-Agents", totalUas],
-    ["Desktop batches", counts.Desktop], ["Mobile batches", counts.Mobile], ["Social batches", counts.Social]
+    ["Desktop batches", counts.Desktop], ["Mobile batches", counts.Mobile], ["Social batches", counts.Social], ["Mixed batches", counts.Mixed]
   ].map(([label, value]) => `<div class="track-stat"><strong>${value}</strong><span>${label}</span></div>`).join("");
   const query = ($("trackSearch")?.value || "").trim().toLowerCase();
   const matches = (batch) => {
@@ -1653,7 +1694,7 @@ function renderTrack() {
       return `<article class="track-batch">
         <div class="track-batch-main">
           <strong>${esc(batch.name || "Untitled set")}</strong>
-          <span>${esc(facts.savedLabel)} · ${esc(facts.category)} · ${facts.records.length} User-Agents</span>
+          <span>${esc(facts.savedLabel)} · ${esc(facts.category === "Mixed" ? `Mixed · ${facts.platformLabel}` : facts.category)} · ${facts.records.length} User-Agents</span>
           <span>${esc(facts.browserLabel)} ${esc(facts.versionLabel)}${facts.country ? ` · ${esc(facts.country)} · ${esc(facts.locale || "")}` : ""}${facts.provenance ? ` · Catalog ${esc(facts.provenance)}` : ""}</span>
         </div>
         <div class="track-batch-actions">
@@ -1673,7 +1714,7 @@ function renderTrackDetail(batch) {
   const facts = batchFacts(batch);
   detail.innerHTML = `
     <div class="track-detail-head">
-      <div><strong>${esc(batch.name || "Untitled set")}</strong><span>${esc(facts.savedLabel)} · ${esc(facts.category)} · ${facts.records.length} User-Agents${facts.country ? ` · ${esc(facts.country)} · ${esc(facts.locale || "")}` : ""}${facts.provenance ? ` · Catalog ${esc(facts.provenance)}` : ""}</span></div>
+      <div><strong>${esc(batch.name || "Untitled set")}</strong><span>${esc(facts.savedLabel)} · ${esc(facts.category === "Mixed" ? `Mixed · ${facts.platformLabel}` : facts.category)} · ${facts.records.length} User-Agents${facts.country ? ` · ${esc(facts.country)} · ${esc(facts.locale || "")}` : ""}${facts.provenance ? ` · Catalog ${esc(facts.provenance)}` : ""}</span></div>
       <button class="button button-secondary" type="button" data-track-action="close">← All batches</button>
     </div>
     <div class="field"><label for="trackDetailSearch">SEARCH WITHIN THIS BATCH</label><input id="trackDetailSearch" class="form-control" type="text" placeholder="Filter by UA text or device…" autocomplete="off"></div>
