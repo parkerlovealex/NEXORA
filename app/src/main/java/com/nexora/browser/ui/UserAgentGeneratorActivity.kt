@@ -291,6 +291,13 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
             val values = records.filter { it.targetOs == "IOS" }.joinToString("\n") { it.userAgent }
             copyToClipboard("NEXORA iOS UA templates", values, "Copied ${records.count { it.targetOs == "IOS" }} iOS templates")
         }
+        // B07: one-record copy actions for every previewed record, so
+        // a single result can be copied without taking the whole batch.
+        records.take(12).forEachIndexed { index, row ->
+            addButton(resultPanel, "Copy record ${index + 1} · ${row.deviceName}") {
+                copyToClipboard("NEXORA User-Agent", row.userAgent, "Copied record ${index + 1} (${row.deviceName})")
+            }
+        }
         addButton(resultPanel, "Export JSON") {
             val json = org.json.JSONArray().apply { records.forEach { put(it.toJson()) } }.toString(2)
             shareText("NEXORA User-Agent batch", json, "application/json")
