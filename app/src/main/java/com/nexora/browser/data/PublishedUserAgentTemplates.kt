@@ -26,6 +26,7 @@ internal object PublishedUserAgentTemplates {
     private val primary = setOf("observed-ua", "official-doc")
     private val corroboratingKinds = primary + setOf("published-dataset-entry", "technical-reference")
     private val knownKinds = corroboratingKinds + "candidate-script"
+    private val engineFamilies = setOf("chromium", "gecko", "webkit")
 
     /** Second-level public suffixes, mirroring evidence_domain() in the canonical validator. */
     private val secondLevelSuffixes = setOf(
@@ -48,6 +49,9 @@ internal object PublishedUserAgentTemplates {
 
     private fun rows(array: JSONArray?): List<JSONObject> =
         (0 until (array?.length() ?: 0)).mapNotNull { array?.optJSONObject(it) }
+
+    private fun strings(array: JSONArray?): List<String> =
+        (0 until (array?.length() ?: 0)).mapNotNull { array?.optString(it)?.takeIf { value -> value.isNotBlank() } }
 
     private fun JSONObject.value(key: String): String? = when (val value = opt(key)) {
         is String -> value.takeIf { it.isNotBlank() }
@@ -121,6 +125,30 @@ internal object PublishedUserAgentTemplates {
             it.kind in primary && !it.sourceUrl.isNullOrBlank()
         } ?: return null
 
+        // Optional evidence-backed engine metadata (Phase 4.3a schema). Parsed
+        // defensively: any malformed shape fails closed to "no engine metadata"
+        // (compatibility unknown), never to an invented value.
+        var engineFamily: String? = null
+        var engineMajor: Int? = null
+        var engineBasis: String? = null
+        var engineEvidenceRefs: List<String> = emptyList()
+        val engine = row.optJSONObject("engine")
+        if (engine != null) {
+            val family = engine.optString("family").trim().lowercase(Locale.ROOT)
+            val major = engine.optInt("major", -1)
+            val refs = strings(engine.optJSONArray("evidenceRefs"))
+            val knownIds = evidence.map { it.sourceId.trim().lowercase(Locale.ROOT) }.toSet()
+            if (family in engineFamilies && major >= 1 &&
+                engine.optString("basis") == "evidence" && refs.isNotEmpty() &&
+                refs.all { it.trim().lowercase(Locale.ROOT) in knownIds }
+            ) {
+                engineFamily = family
+                engineMajor = major
+                engineBasis = "evidence"
+                engineEvidenceRefs = refs
+            }
+        }
+
         return UserAgentTemplate(
             id = id,
             appId = app,
@@ -133,7 +161,11 @@ internal object PublishedUserAgentTemplates {
             status = "verified",
             catalogReleaseId = catalog.optString("catalogReleaseId"),
             catalogDataVersion = catalog.optString("dataVersion"),
-            evidence = evidence
+            evidence = evidence,
+            engineFamily = engineFamily,
+            engineMajor = engineMajor,
+            engineBasis = engineBasis,
+            engineEvidenceRefs = engineEvidenceRefs
         )
     }
 

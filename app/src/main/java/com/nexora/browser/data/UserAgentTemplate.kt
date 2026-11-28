@@ -18,7 +18,15 @@ data class UserAgentTemplate(
     /** dataVersion of the template catalog this record came from. */
     val catalogDataVersion: String = "",
     /** The complete canonical evidence list, preserved unflattened. */
-    val evidence: List<UserAgentEvidence> = emptyList()
+    val evidence: List<UserAgentEvidence> = emptyList(),
+    /** Evidence-backed engine family from the catalog record's optional engine field. */
+    val engineFamily: String? = null,
+    /** Evidence-backed engine major from the same field. */
+    val engineMajor: Int? = null,
+    /** Basis of the engine metadata (the schema permits only "evidence"). */
+    val engineBasis: String? = null,
+    /** Source ids the engine metadata cites; all resolve into [evidence]. */
+    val engineEvidenceRefs: List<String> = emptyList()
 ) {
     val evidenceCount: Int get() = evidence.size
 }
