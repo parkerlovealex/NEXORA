@@ -16,6 +16,15 @@ KINDS = {"observed-ua", "official-doc", "published-dataset-entry", "technical-re
 PLATFORMS = {"android", "ios"}
 VERSION_RE = re.compile(r"^\d{4}\.\d{2}\.\d{2}\.\d+$")
 SLOT_RE = re.compile(r"\{([A-Za-z][A-Za-z0-9_]*)\}")
+# Documented structural alternation markers, scoped to the specific records they were
+# documented for: an unresolved_slots entry that is not a {placeholder} is accepted
+# only when the record is listed here with that marker AND the source_format actually
+# contains an " OR " alternation. Extend only by documenting the new record + marker
+# in docs/UA-TEMPLATE-SCHEMA.md in the same change.
+ALTERNATION_MARKERS = {
+    "facebook-android-motorola-script-v1": {"optional_IABMV"},
+    "facebook-android-samsung-script-v1": {"optional_IABMV"},
+}
 
 
 def load_json(path: str | Path) -> Any:
@@ -160,7 +169,7 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
                 errors.append(f"{prefix} duplicates an app/platform/template signature")
             duplicate_templates.add(key)
 
-        if status == "candidate" and template is None and isinstance(source_format, str) and source_format:
+        if status == "candidate" and template is None and isinstance(source_format, str) and source_format and isinstance(row.get("unresolved_slots"), list):
             placeholders = set(SLOT_RE.findall(source_format))
             unresolved = {str(x) for x in row.get("unresolved_slots") or []}
             derived = {p for p in placeholders if p.startswith("formatted_") and p[len("formatted_"):] in unresolved}
@@ -168,8 +177,10 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             if unaccounted:
                 errors.append(f"{prefix} candidate placeholders not accounted for in unresolved_slots: {sorted(unaccounted)}")
             extra = unresolved - placeholders
-            if extra and " OR " not in source_format:
-                errors.append(f"{prefix} candidate unresolved_slots absent from source_format with no alternation documented: {sorted(extra)}")
+            allowed_extra = ALTERNATION_MARKERS.get(str(row.get("id")), set())
+            unrecognized = extra - allowed_extra
+            if unrecognized or (extra and " OR " not in source_format):
+                errors.append(f"{prefix} candidate unresolved_slots not recognized as placeholders or documented alternation markers: {sorted(extra)}")
 
         evidence = row.get("evidence") if isinstance(row.get("evidence"), list) else []
         source_ids: set[str] = set()
