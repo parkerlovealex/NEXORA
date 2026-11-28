@@ -81,8 +81,16 @@ object WorkflowPlanner {
         val targets = profiles.filter {
             it.proxyType.equals("NONE", ignoreCase = true) && it.proxyEntryId.isBlank()
         }.sortedWith(compareBy<WorkflowProfileSnapshot> { it.name.lowercase() }.thenBy { it.id })
+        // A21: one-to-one means a proxy already assigned to any profile
+        // is not available again — previously the pool ignored existing
+        // assignments, so re-running after adding a profile could pair
+        // an already-used proxy with a second profile.
+        val assignedProxyIds = profiles.mapNotNull {
+            it.proxyEntryId.takeIf { id -> id.isNotBlank() }
+        }.toSet()
         val available = proxies.filter {
-            it.type.uppercase() in relayTypes && it.host.isNotBlank() && it.port in 1..65535
+            it.type.uppercase() in relayTypes && it.host.isNotBlank() && it.port in 1..65535 &&
+                it.id !in assignedProxyIds
         }.sortedWith(compareBy<WorkflowProxySnapshot> { it.createdAt }.thenBy { it.id })
         val assignments = targets.zip(available).map { (profile, proxy) ->
             ProxyAssignment(profile.id, proxy.id)
