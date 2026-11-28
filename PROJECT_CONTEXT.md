@@ -616,3 +616,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A14 + A15 catalog update locking and first-update rollback (2026-11-28, Muse takeover)
 
 **A14:** catalog snapshot mutations (activation, rollback) now run under one lock with unique temp files per operation. **A15:** the first download now retains the bundled catalog as its rollback copy, so rollback works from the first update. Proof: code trace; full-app compile verified at the Wave 6 build; first-update rollback is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A13 batch creation ordering (2026-11-28, Muse takeover)
+
+**A13:** both batch-creation paths now persist profile records before provisioning WebView stores, with record rollback if provisioning fails — no more orphaned stores from failed batches. Proof: code trace; full-app compile verified at the Wave 6 build. Python suite 123 passed / 0 failed.
