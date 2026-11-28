@@ -460,3 +460,59 @@ On the owner's explicit approval, `facebook-android-fb4a-observed-2026-v1` was p
 ## Addendum — Kotlin UA Studio REMOVED (2026-11-26, owner order)
 
 The owner reviewed the live Advanced UA Studio and ordered it removed ("look not good"). Removed: the whole `web/ua-studio/` directory, the "Advanced UA Studio" sidebar link, its one CSS rule, and `tests/ua-studio-smoke.js`. Main cache-bust token → `20261126-11`. The main generator and the template catalog (2026.11.25.6, incl. the verified Facebook Android record in `web/ua_templates.json`) are untouched. The Studio files remain in git history (added in commits 8db1e8a..111, 2026-11-25) and can be restored from there if the owner ever wants them back. The ua-studio data-copy upkeep rule is retired with the page.
+
+## Addendum — Phases 4.1, 4.2A, 4.2B: canonical catalog release contract, template schema, Android adapter (2026-11-28)
+
+Status: COMPLETE and accepted (Phase 4.2B accepted 2026-11-28 after verification run 46123290302). The Android app now consumes the canonical, evidence-backed UA template catalog. Before this work the app's template loader read a legacy embedded `uaTemplates` array that no published catalog ever contained, so it always returned an empty list.
+
+### Canonical catalog architecture
+
+- Sources of truth live in `web/`: `devices.json` (dataVersion 2026.11.25.7), `ua_templates.json` (dataVersion 2026.11.28.1), `desktop-catalog.json` (dataVersion 2026.11.28.1). All three carry the shared `catalogReleaseId` **2026.11.28.2**.
+- `web/catalog-manifest.json` is the release contract: one `catalogReleaseId` + monotonic `releaseSequence` (currently 2) + per-artifact `dataVersion`, SHA-256 and size. It is generated and checked by `tools/catalog_manifest.py` (generate / check modes). The manifest is currently UNSIGNED by design; signing is Phase 4.4. An unsigned manifest is a release contract, not a trust anchor.
+- Standing rule: catalog release IDs are immutable. Corrections ship as a NEW release, never an in-place edit.
+- UA templates are governed by `catalog/ua-templates.schema.json` (formal JSON Schema) + `tools/validate_ua_templates.py` (semantic validation: schema, coverage consistency, slot accounting, verified fixture build). Contract documented in `docs/UA-TEMPLATE-SCHEMA.md`; versioning model in `docs/CATALOG-VERSIONING.md`. The website record schema is canonical; other platforms adapt to it. Candidates are never auto-promoted.
+- CI: `.github/workflows/catalog-validation.yml` ("Catalog Validation") runs the manifest check and the UA-template pipeline tests on catalog-related pushes and PRs (first run 46120869439, success).
+
+### Phase commits (all on main)
+
+- 4.1: `df00c2ae` release contract in web/ + manifest, `f2de3e65` manifest schema, `29fb54b5` manifest tool, `5019e32a` versioning doc.
+- 4.2A: `945c80da` release 2026.11.28.2 (Facebook/Android coverage corrected to verified), `c31c730b` template schema, `1f1ae0dd` validator integration, `8a30db1b` schema doc, `51a90bb5` jsonschema dev dependency.
+- 4.2B Commit 1: `b7e5cda9` validator alternation markers made record-scoped, `6b756f0a` doc wording.
+- 4.2B Commit 2: `1cf3106d` Catalog Validation workflow.
+- 4.2B Commit 3 (Option C — adopt the fix/alpha30 campaign's reader design, ported; the branch itself was NOT merged): `14858483` canonical reader + evidence-preserving model, `6eaf62ed` asset generator, `d9c68013` generated assets, `5d89fea8` DeviceDb integration, `888d23eb` reader regression tests, `9f3ff78c` + `4a4a4e3d` + `1e710430` temporary verification workflow, `c515d66d` ported campaign test-string escape fix, `d94a7759` JVM android-json test dependency (ported from the campaign).
+
+### Android adapter (how it works)
+
+- `tools/build_android_catalog_assets.py` generates two bundled assets from the canonical sources and refuses to write on a release mismatch: `app/src/main/assets/ua_templates.json` (verbatim copy of `web/ua_templates.json`) and `app/src/main/assets/ua_slot_context.json` (catalogReleaseId + deviceCatalogVersion + `meta.apps` values only). Regenerate and commit both assets on every catalog release.
+- `DeviceDb.loadVerifiedUserAgentTemplates` reads the two bundled assets and delegates to `PublishedUserAgentTemplates.read(templates, slotContext)`. The legacy embedded-array path was removed.
+- The reader enforces: exact `catalogReleaseId` AND `deviceCatalogVersion` match between templates and slot context; verified records only (candidates never exposed); unresolved slots or device-dependent slot paths fail closed (catalog-global `meta.apps.*` slots only); the full evidence array is validated (agreement with the template, stated version/build pairs must exist in the slot context, at least two source IDs and two publisher domains) and PRESERVED in `UserAgentTemplate.evidence` (with status/catalogReleaseId/catalogDataVersion provenance). Display names come from the website's APP_NAMES map.
+- Verified end-to-end fixture: the Facebook Android template resolves to exactly one template whose UA is byte-identical to the recorded observation (Android 10; K, Chrome/158.0.0.0, FBAV/588.0.0.42.55), with all 3 evidence entries preserved.
+- Note: the bundled `devices.json` (device catalog, dataVersion 2026.11.24.1) is unchanged and still stale; template loading no longer depends on it. Device-catalog sync is a later phase.
+
+### Verification (run 46123290302, workflow "Verify Android (Phase 4.2B)", manual dispatch)
+
+- Dependency-scope step: PASS — the android-json test dependency is on the unit-test classpath only and absent from the production runtime classpath.
+- `assembleDebug`: PASS, independent of tests. Debug APK artifact: `nexora-debug-apk-42b`, 5,312,879 bytes.
+- Unit tests: 99 total, 96 passed, 3 failed (JUnit XML uploaded as the `unit-test-results` artifact). Reader suite 7/7, generator suite 8/8.
+- The workflow run conclusion is FAILURE because the test step failed; that is honest and expected until the three findings below are resolved.
+- The temporary workflow `.github/workflows/verify-android-42b.yml` is manual-dispatch only; its long-term fate is a project decision. The repository's "Build APK" workflow remains red for a PRE-EXISTING reason (its bundled-catalog validation step reports 7 errors / 46 warnings on the stale bundled devices.json); unchanged by this work.
+
+### Outstanding test failures (tracked separately from 4.2B)
+
+1. `ProfileEditorValidatorTest.startupUrlParserTrimsAndSkipsBlankLines` — fix-campaign finding A47. Track.
+2. `BulkProxyAssignmentTest.reportsUnsupportedAndUnusedSavedProxyEntries` — pre-existing on main. Track.
+3. `ProfileCredentialCodecTest.encodedProfileDoesNotPersistProxyCredentialsInPlaintext` — NEWLY EXPOSED by the org.json test fix (previously masked by the stub environment). Security-sensitive: priority investigation. Do NOT modify credential-handling code without separate authorization.
+
+### Remaining phases
+
+- Phase 4.3 — engine-compatibility metadata and cross-platform UA consistency (NEXT; begins with a read-only technical audit; no implementation before the design is agreed).
+- Phase 4.4 — catalog signing (dedicated catalog key, separate from the updater key).
+- Phase 4.5 — hosted shared API + Android catalog sync.
+- Phase 4.6 — Windows catalog cache/sync.
+- Phase 5 — Windows UA interface.
+- Per-device template slot resolution is deferred to a later phase (currently fail-closed by design).
+
+### Continuing development
+
+- To publish a catalog change: edit `web/` sources, bump versions per `docs/CATALOG-VERSIONING.md`, regenerate + check the manifest, run the validators, regenerate the Android assets, commit in small labeled steps, and verify with a fresh dispatch of the verification workflow.
+- Never invent UA tokens, evidence, or versions; candidates stay candidates until the evidence rules in `docs/UA-TEMPLATE-SCHEMA.md` are met.
