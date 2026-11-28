@@ -1,0 +1,35 @@
+{
+  "artifacts": {
+    "desktop": {
+      "dataVersion": "2026.11.28.1",
+      "file": "desktop-catalog.json",
+      "schemaVersion": 1,
+      "sha256": "9811abe0a4a46328f76e2600f33e57ac088cb19fcaf7dd3a210ff796c0510eca",
+      "sizeBytes": 28450
+    },
+    "devices": {
+      "dataVersion": "2026.11.25.7",
+      "file": "devices.json",
+      "schemaVersion": 2,
+      "sha256": "380f4bef38b6152d6a60d6809cf4d9f313f1ddf5a07bb768d9ad634d7e0641b8",
+      "sizeBytes": 133681
+    },
+    "uaTemplates": {
+      "dataVersion": "2026.11.25.6",
+      "file": "ua_templates.json",
+      "schemaVersion": 1,
+      "sha256": "27a48b3c2c746a7c916d7062b4ccb1339e6bc11be34ce5b29879cc231a735cd2",
+      "sizeBytes": 24955
+    }
+  },
+  "catalogReleaseId": "2026.11.28.1",
+  "releaseSequence": 1,
+  "schemaVersion": 1,
+  "signing": {
+    "algorithm": null,
+    "keyId": null,
+    "note": "Unsigned release contract. Phase 4.4 signs this manifest with the dedicated NEXORA catalog key; do not treat it as a trust anchor until signing.status is 'signed' and the signature verifies.",
+    "signature": null,
+    "status": "unsigned"
+  }
+}

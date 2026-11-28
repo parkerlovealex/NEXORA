@@ -3,6 +3,7 @@
  "dataVersion": "2026.11.25.6",
  "updatedAt": "2026-11-26",
  "deviceCatalogVersion": "2026.11.25.7",
+ "catalogReleaseId": "2026.11.28.1",
  "sourcePolicy": "Observed strings and candidate source formats remain distinct; collector never promotes status.",
  "coverage": [
   {

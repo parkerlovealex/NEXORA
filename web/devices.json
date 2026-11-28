@@ -7008,6 +7008,7 @@
         ]
       }
     },
+    "catalogReleaseId": "2026.11.28.1",
     "dataVersion": "2026.11.25.7",
     "schemaVersion": 2,
     "source": "Bundled baseline migrated to schema v2. Weekly refresh updates versions and device rows.",

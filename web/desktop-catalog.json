@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "collectedAt": "2026-11-25",
+  "dataVersion": "2026.11.28.1",
+  "catalogReleaseId": "2026.11.28.1",
   "purpose": "Desktop OS release selectors and last five stable browser release trains for the NEXORA User-Agent generator.",
   "scope": {
     "windows": "Latest five Windows 11 release trains plus latest three Windows 10 feature releases.",
