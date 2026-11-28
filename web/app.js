@@ -721,6 +721,10 @@ function buildBrowserUa(platform, device, osVersion, browser, versionOverride = 
     if (browser === "opera") return `${base} OPR/${version}`;
   }
   const ios = String(osVersion).replace(/\./g, "_");
+  // C16: an iOS UA structurally requires a Mobile/<build> token. When
+  // the catalog records no build for this OS version, the generic
+  // fallback below is used — and the generated record labels it as a
+  // fallback (buildSource / note) instead of presenting it as data.
   const mobileBuild = build || "15E148";
   const head = `Mozilla/5.0 (iPhone; CPU iPhone OS ${ios} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) `;
   if (!version) throw new Error(`${BROWSER_LABELS[browser] || browser} iOS version is required. Open Advanced options.`);
@@ -883,6 +887,7 @@ function generateUaBatch() {
         osSecurityBuild: desktopOs?.latestSecurityBuild || null,
         osBuildChannel: desktopOs?.latestBuildChannel || null,
         buildId,
+        buildSource: buildId ? "database" : (platform === "ios" && !appId ? "fallback" : null),
         browser,
         browserVersion: browserVersionValue,
         browserVersionToken: isDesktop ? resolvedBrowserVersion : null,
@@ -892,7 +897,7 @@ function generateUaBatch() {
         catalogDataVersion: meta().dataVersion || null,
         desktopCatalogDate: isDesktop ? state.desktopCatalog?.collectedAt || null : null,
         sourceType: appId ? appSource : "browser-template",
-        note: appSource === "script-candidate-app" ? "Script-candidate in-app UA — format supplied by the owner's scripts, not yet verified by the collection pipeline." : platformNote
+        note: appSource === "script-candidate-app" ? "Script-candidate in-app UA — format supplied by the owner's scripts, not yet verified by the collection pipeline." : (platform === "ios" && !appId && !buildId ? `${platformNote} The Mobile build token is the generic fallback; no build is recorded for this OS version.` : platformNote)
       });
     }
   }
