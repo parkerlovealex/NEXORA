@@ -80,7 +80,10 @@ jobs:
           if [ ! -s output/specs-live-evidence.json ]; then
             printf '{"schemaVersion":1,"devices":{}}\n' > output/specs-live-evidence.json
           fi
-          exit 0
+          # C13: report the collector's real outcome. continue-on-error
+          # above keeps the refresh running on the fallback catalog, but
+          # a failed collection must show as a failed step, not success.
+          exit $RC
 
       - name: Apply verified official findings
         run: |
@@ -108,6 +111,15 @@ jobs:
           set -e
           echo "strict_exit_code=$STRICT_RC" >> "$GITHUB_OUTPUT"
           cat output/REPORT-strict-merge-gate.txt
+          # C13: the strict merge gate must gate. A failing strict check
+          # fails this step, so the run goes red and the draft-PR step
+          # (conditioned on this step's success) does not open a PR from
+          # a catalog that failed its own merge gate. Artifacts still
+          # upload (if: always()) for diagnosis.
+          if [ "$STRICT_RC" -ne 0 ]; then
+            echo "::error::Strict specs validation failed with exit code $STRICT_RC"
+            exit "$STRICT_RC"
+          fi
 
       - name: Prepare review files
         run: |
