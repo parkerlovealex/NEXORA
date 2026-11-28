@@ -466,15 +466,20 @@ class ProfileStudioActivity : AppCompatActivity() {
             return
         }
 
+        // A13: persist the records FIRST, then provision WebView
+        // stores. Provisioning first meant a save failure left orphaned
+        // stores no profile record pointed at; if provisioning fails
+        // now, the records are rolled back instead.
+        if (!profileStore.replaceIfUnchanged(existing, existing + newProfiles)) {
+            toast("Could not save profiles. No success was reported; check storage and retry.")
+            return
+        }
         try {
             val webProfileStore = androidx.webkit.ProfileStore.getInstance()
             newProfiles.forEach { webProfileStore.getOrCreateProfile(it.webViewProfileKey) }
         } catch (e: Exception) {
+            profileStore.replaceIfUnchanged(existing + newProfiles, existing)
             toast("Could not provision isolated WebView storage: ${e.message ?: "unknown error"}. No profiles were saved.")
-            return
-        }
-        if (!profileStore.replaceIfUnchanged(existing, existing + newProfiles)) {
-            toast("Could not save profiles. No success was reported; check storage and retry.")
             return
         }
         val proxyCount = newProfiles.count { it.proxyEntryId.isNotBlank() }
