@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.webkit.WebViewFeature
 import com.nexora.browser.R
+import com.nexora.browser.content.ContentBlockerDiagnosticsStore
+import com.nexora.browser.data.BrowserDataStore
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DeviceDb
 import com.nexora.browser.data.DevicePreset
@@ -366,7 +368,8 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Delete profile")
             .setMessage(
-                "Delete \"${profile.name}\"? Its profile record will be removed. " +
+                "Delete \"${profile.name}\"? Its profile record, saved browsing metadata and " +
+                    "diagnostics will be removed. " +
                     "On WebView providers without isolated profile storage, shared browsing data is kept " +
                     "so deleting one profile cannot erase another profile's cookies."
             )
@@ -434,7 +437,8 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Delete ${selected.size} profiles?")
             .setMessage(
-                "The selected profile records will be removed. Profile-specific WebView data " +
+                "The selected profile records, their saved browsing metadata and diagnostics " +
+                    "will be removed. Profile-specific WebView data " +
                     "will be cleared only when the installed WebView supports isolated profile storage. " +
                     "Shared browsing data is never cleared by this bulk action."
             )
@@ -459,6 +463,13 @@ class MainActivity : AppCompatActivity() {
      * storage is supported.
      */
     private fun clearProfileDataForDeletion(profile: BrowserProfile) {
+        // A11: the profile's own metadata and diagnostics namespaces are
+        // app-private and per-profile, so they are always removed with
+        // the profile. Only the WebView cookie/storage clearing stays
+        // gated on MULTI_PROFILE — on older providers that store is
+        // shared, and clearing it would erase other profiles' data.
+        BrowserDataStore.deleteProfileMetadata(this, profile.id)
+        ContentBlockerDiagnosticsStore.clearProfile(this, profile.id)
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) return
         clearIsolatedProfileData(profile)
     }
