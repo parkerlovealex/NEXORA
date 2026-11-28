@@ -34,6 +34,9 @@ VERSION_RE = re.compile(r"^\d{4}\.\d{2}\.\d{2}\.\d+$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 MANIFEST_NAME = "catalog-manifest.json"
 
+# Bump by one for every new catalog release; see docs/CATALOG-VERSIONING.md.
+RELEASE_SEQUENCE = 2
+
 # artifact key -> (file name, dataVersion getter, schemaVersion getter, release-id getter)
 def _devices(doc):
     return doc["meta"]["dataVersion"], doc["meta"]["schemaVersion"], doc["meta"]["catalogReleaseId"]
@@ -95,7 +98,7 @@ def build_manifest(web_dir):
     return {
         "schemaVersion": 1,
         "catalogReleaseId": release_id,
-        "releaseSequence": 1,
+        "releaseSequence": RELEASE_SEQUENCE,
         "artifacts": artifacts,
         "signing": {
             "status": "unsigned",
@@ -159,6 +162,43 @@ def validate_manifest(manifest, web_dir):
     return problems
 
 
+def validate_templates(root):
+    """Validate web/ua_templates.json: JSON Schema (catalog/ua-templates.schema.json,
+    via the jsonschema package — a real Draft 2020-12 validator) plus the semantic
+    rules in tools/validate_ua_templates.py. Returns a list of problems."""
+    try:
+        import jsonschema
+    except ImportError:
+        return [
+            "jsonschema is not installed, so JSON Schema validation cannot run; "
+            "install the dev dependencies (pip install -r requirements-dev.txt)"
+        ]
+    problems = []
+    schema_path = root / "catalog" / "ua-templates.schema.json"
+    templates_path = root / "web" / "ua_templates.json"
+    devices_path = root / "web" / "devices.json"
+    try:
+        schema = load_json(schema_path)
+        jsonschema.Draft202012Validator.check_schema(schema)
+    except Exception as exc:
+        return [f"ua-templates schema is itself invalid: {exc}"]
+    catalog = load_json(templates_path)
+    validator = jsonschema.Draft202012Validator(schema)
+    for error in sorted(validator.iter_errors(catalog), key=lambda e: list(e.absolute_path))[:10]:
+        where = "/".join(str(p) for p in error.absolute_path) or "<root>"
+        problems.append(f"ua_templates schema violation at {where}: {error.message[:160]}")
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "validate_ua_templates", root / "tools" / "validate_ua_templates.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    errors, _warnings, _counts = module.validate(catalog, load_json(devices_path))
+    problems.extend(f"ua_templates semantic violation: {e}" for e in errors)
+    return problems
+
+
 def main(argv):
     mode = argv[1] if len(argv) > 1 else "check"
     root = Path(__file__).resolve().parent.parent
@@ -176,6 +216,7 @@ def main(argv):
             return 1
         manifest = load_json(manifest_path)
         problems = validate_manifest(manifest, web_dir)
+        problems.extend(validate_templates(root))
         on_disk = manifest_path.read_text(encoding="utf-8")
         try:
             if serialize(build_manifest(web_dir)) != on_disk:
@@ -187,7 +228,7 @@ def main(argv):
                 print(f"FAIL: {problem}")
             return 1
         print(
-            "OK: manifest valid; release "
+            "OK: manifest valid; ua_templates schema + semantic validation passed; release "
             f"{manifest['catalogReleaseId']} (sequence {manifest['releaseSequence']}); "
             + ", ".join(
                 f"{key} {a['dataVersion']} sha256 {a['sha256'][:12]}…"

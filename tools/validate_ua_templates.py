@@ -104,6 +104,8 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
         return errors, warnings, counts
 
     ids: set[str] = set()
+    status_rank = {"verified": 5, "candidate": 4, "pending": 3, "outdated": 2, "rejected": 1}
+    best_status: dict[tuple[str, str], str] = {}
     current_verified: set[tuple[str, str]] = set()
     duplicate_templates: set[tuple[str, str, str]] = set()
     for index, row in enumerate(records):
@@ -116,6 +118,9 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
         platform = str(row.get("platform") or "")
         status = str(row.get("status") or "")
         counts[status] = counts.get(status, 0) + 1
+        pair_key = (app, platform)
+        if status in status_rank and (pair_key not in best_status or status_rank[status] > status_rank[best_status[pair_key]]):
+            best_status[pair_key] = status
         if not rid or rid in ids:
             errors.append(f"{prefix} has missing or duplicate id {rid!r}")
         ids.add(rid)
@@ -154,6 +159,17 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             if key in duplicate_templates:
                 errors.append(f"{prefix} duplicates an app/platform/template signature")
             duplicate_templates.add(key)
+
+        if status == "candidate" and template is None and isinstance(source_format, str) and source_format:
+            placeholders = set(SLOT_RE.findall(source_format))
+            unresolved = {str(x) for x in row.get("unresolved_slots") or []}
+            derived = {p for p in placeholders if p.startswith("formatted_") and p[len("formatted_"):] in unresolved}
+            unaccounted = placeholders - unresolved - derived
+            if unaccounted:
+                errors.append(f"{prefix} candidate placeholders not accounted for in unresolved_slots: {sorted(unaccounted)}")
+            extra = unresolved - placeholders
+            if extra and " OR " not in source_format:
+                errors.append(f"{prefix} candidate unresolved_slots absent from source_format with no alternation documented: {sorted(extra)}")
 
         evidence = row.get("evidence") if isinstance(row.get("evidence"), list) else []
         source_ids: set[str] = set()
@@ -212,6 +228,8 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
                 elif status == "verified":
                     errors.append(f"{ep} app version/build pair is absent from devices.meta.apps.{app}")
 
+        if status == "verified" and row.get("unresolved_slots"):
+            errors.append(f"{prefix} verified record must not carry unresolved_slots")
         if status == "verified":
             pair = (app, platform)
             if pair in current_verified:
@@ -225,6 +243,13 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
                 errors.append(f"{prefix} verified status requires a matching app_version/app_build pair")
             if not isinstance(template, str) or not any(template_matches_observed(template, value) for value in observed_values):
                 errors.append(f"{prefix} verified template does not match any exact observed UA")
+            current_paths = {f"meta.apps.{app}.version": "version", f"meta.apps.{app}.build": "build"}
+            if isinstance(template, str) and slots and all(path in current_paths for path in slots.values()):
+                built = template
+                for slot, path in slots.items():
+                    built = built.replace("{" + slot + "}", str(apps.get(app, {}).get(current_paths[path], "")))
+                if built not in observed_values:
+                    errors.append(f"{prefix} verified fixture build does not match any observed UA")
 
     # Coverage is a separate inventory; it never makes an app selectable.
     coverage = data.get("coverage", [])
@@ -243,6 +268,10 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             for state in item["platforms"].values():
                 if state not in {*STATUSES, "not-collected"}:
                     errors.append(f"coverage for {item.get('app')} has invalid state {state!r}")
+            for platform_name, state in item["platforms"].items():
+                expected = best_status.get((str(item.get("app")), platform_name), "not-collected")
+                if state != expected:
+                    errors.append(f"coverage for {item.get('app')}/{platform_name} says {state!r} but records support {expected!r}")
     return errors, warnings, counts
 
 
