@@ -357,10 +357,12 @@ class ProxyLibraryActivity : AppCompatActivity() {
                 } else {
                     val result = proxyStore.import(valid)
                     refreshList()
-                    if (result.first == 0 && result.second == 0) {
+                    val skipped = result.skippedCapacity + result.skippedEncryption
+                    if (result.added == 0 && result.duplicates == 0 && skipped == 0) {
                         toast("No proxies imported. The library may be full or local encryption/storage failed.")
                     } else {
-                        toast("Imported ${result.first} proxies · ${result.second} duplicates")
+                        val skippedText = if (skipped > 0) " · $skipped skipped (library full or encryption failed)" else ""
+                        toast("Imported ${result.added} proxies · ${result.duplicates} duplicates$skippedText")
                     }
                 }
             }
