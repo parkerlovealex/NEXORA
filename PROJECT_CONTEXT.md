@@ -568,3 +568,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A44 specs validator URL scheme (2026-11-28, Muse takeover)
 
 **A44:** the specs evidence validator now requires HTTPS evidence URLs, matching the merger's policy; published-catalog validation counts are unchanged. Proof: `tests/test_specs_url_scheme.py` fails pre-fix, passes post-fix; Python suite 111 passed / 0 failed.
+
+## Alpha30 Wave 5 — A27 Chrome refresh honesty (2026-11-28, Muse takeover)
+
+**A27:** the weekly refresh now fails its run when the Chrome version fetch fails, and fills a missing current Chrome version instead of reporting it as already current. Proof: `tests/test_refresh_chrome_honesty.py` fails pre-fix, passes post-fix; Python suite 114 passed / 0 failed.
