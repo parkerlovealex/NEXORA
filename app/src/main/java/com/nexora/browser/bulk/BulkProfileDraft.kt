@@ -27,8 +27,9 @@ class BulkProfileDraft {
     var targetOs: String = "ANDROID"
     var deviceId: String = ""
     var osVersion: String = ""
-    var ramGb: Int = 8
-    var storageGb: Int = 128
+    var ramGb: Int = 0
+    var storageGb: Int = 0
+    var manualSafariVersion: String = ""
     var globalUserAgentMode: String = "AUTO"
     var globalUserAgent: String = ""
     var startupUrlsText: String = ""
@@ -120,7 +121,8 @@ class BulkProfileDraft {
         }
         return JSONObject()
             .put("count", count).put("namePrefix", namePrefix).put("targetOs", targetOs)
-            .put("deviceId", deviceId).put("osVersion", osVersion).put("ramGb", ramGb).put("storageGb", storageGb)
+            .put("deviceId", deviceId).put("osVersion", osVersion).putOpt("ramGb", ramGb.takeIf { it > 0 }).putOpt("storageGb", storageGb.takeIf { it > 0 })
+            .putOpt("manualSafariVersion", manualSafariVersion.takeIf { it.isNotEmpty() })
             .put("globalUserAgentMode", globalUserAgentMode).put("globalUserAgent", globalUserAgent)
             .put("startupUrlsText", startupUrlsText).put("groupName", groupName).put("globalProxyId", globalProxyId)
             .put("remark", remark).put("webrtcMode", webrtcMode).put("timezoneMode", timezoneMode)
@@ -140,8 +142,9 @@ class BulkProfileDraft {
             draft.targetOs = o.optString("targetOs", "ANDROID")
             draft.deviceId = o.optString("deviceId")
             draft.osVersion = o.optString("osVersion")
-            draft.ramGb = o.optInt("ramGb", 8)
-            draft.storageGb = o.optInt("storageGb", 128)
+            draft.ramGb = o.optInt("ramGb").coerceAtLeast(0)
+            draft.storageGb = o.optInt("storageGb").coerceAtLeast(0)
+            draft.manualSafariVersion = o.optString("manualSafariVersion")
             draft.globalUserAgentMode = o.optString("globalUserAgentMode", "AUTO")
             draft.globalUserAgent = o.optString("globalUserAgent")
             draft.startupUrlsText = o.optString("startupUrlsText")

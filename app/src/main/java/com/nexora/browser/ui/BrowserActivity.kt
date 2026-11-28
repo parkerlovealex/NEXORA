@@ -173,6 +173,20 @@ class BrowserActivity : AppCompatActivity() {
             return
         }
         preset = DeviceDb.find(this, profile.deviceId)
+        if (profile.userAgentMode == "AUTO" && (profile.targetOs == "IOS" || preset?.isIos == true)) {
+            val device = preset
+            if (device?.isIos != true || !UaBuilder.isVersion(profile.osVersion) || UaBuilder.safariVersion(device, profile.manualSafariVersion) == null) {
+                AlertDialog.Builder(this).setTitle("Safari template needs a version")
+                    .setMessage("Edit this profile to choose a catalog iOS version and enter any missing Safari version manually, or supply a custom User-Agent.")
+                    .setPositiveButton("Edit profile") { _, _ ->
+                        startActivity(Intent(this, EditProfileActivity::class.java).putExtra(EditProfileActivity.EXTRA_PROFILE_ID, profile.id))
+                        finish()
+                    }
+                    .setNegativeButton("Close") { _, _ -> finish() }
+                    .setOnCancelListener { finish() }.show()
+                return
+            }
+        }
         dataStore = BrowserDataStore(this, profile.id)
         contentBlockerStore = ContentBlockerStore(this, profile.id)
         contentBlockerDiagnosticsStore = ContentBlockerDiagnosticsStore(this, profile.id)
@@ -694,7 +708,7 @@ class BrowserActivity : AppCompatActivity() {
         val native = WebSettings.getDefaultUserAgent(this)
         if (profile.userAgentMode == "AUTO") {
             val selectedPreset = preset ?: return native
-            return runCatching { UaBuilder.build(selectedPreset, profile.osVersion, native) }
+            return runCatching { UaBuilder.build(selectedPreset, profile.osVersion, native, profile.manualSafariVersion) }
                 .getOrDefault(native)
         }
         return profile.userAgent.ifBlank { native }
@@ -2371,7 +2385,11 @@ class BrowserActivity : AppCompatActivity() {
             append("Name: ").append(profile.name).append('\n')
             append("Device: ").append(presetName).append('\n')
             append("OS: ").append(osLabel).append('\n')
-            append("RAM / storage: ").append(profile.ramGb).append(" GB / ").append(profile.storageGb).append(" GB\n")
+            fun capacity(gb: Int) = if (gb > 0) "$gb GB" else "Unknown"
+            append("RAM / storage: ").append(capacity(profile.ramGb)).append(" / ").append(capacity(profile.storageGb)).append('\n')
+            if (profile.manualSafariVersion.isNotBlank() && preset?.safariVersion.isNullOrBlank()) {
+                append("Safari version (manual): ").append(profile.manualSafariVersion).append('\n')
+            }
             append("Proxy: ").append(proxyLabel).append('\n')
             append("Timezone: ").append(profile.timezoneId.ifEmpty { "Auto (device)" }).append('\n')
             append("Language: ").append(profile.language).append('\n')

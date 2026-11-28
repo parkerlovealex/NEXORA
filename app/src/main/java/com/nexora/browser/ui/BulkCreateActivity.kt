@@ -94,8 +94,8 @@ class BulkCreateActivity : AppCompatActivity() {
                 if (preset != null) {
                     draft.deviceId = preset.id
                     draft.osVersion = preset.osVersions.lastOrNull().orEmpty()
-                    draft.ramGb = preset.ramOptions.firstOrNull() ?: 8
-                    draft.storageGb = preset.storageOptions.firstOrNull() ?: 128
+                    draft.ramGb = preset.ramOptions.firstOrNull() ?: 0
+                    draft.storageGb = preset.storageOptions.firstOrNull() ?: 0
                     draft.globalUserAgent = buildAutoUa(preset, draft.osVersion)
                 }
             }
@@ -375,8 +375,8 @@ class BulkCreateActivity : AppCompatActivity() {
             if (selected != null) {
                 draft.deviceId = selected.id
                 draft.osVersion = selected.osVersions.lastOrNull().orEmpty()
-                draft.ramGb = selected.ramOptions.firstOrNull() ?: 8
-                draft.storageGb = selected.storageOptions.firstOrNull() ?: 128
+                draft.ramGb = selected.ramOptions.firstOrNull() ?: 0
+                draft.storageGb = selected.storageOptions.firstOrNull() ?: 0
                 if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = buildAutoUa(selected, draft.osVersion)
             }
             renderStep()
@@ -388,8 +388,8 @@ class BulkCreateActivity : AppCompatActivity() {
             val selected = availablePresets.getOrNull(index) ?: return@addSpinner
             draft.deviceId = selected.id
             draft.osVersion = selected.osVersions.lastOrNull().orEmpty()
-            draft.ramGb = selected.ramOptions.firstOrNull() ?: 8
-            draft.storageGb = selected.storageOptions.firstOrNull() ?: 128
+            draft.ramGb = selected.ramOptions.firstOrNull() ?: 0
+            draft.storageGb = selected.storageOptions.firstOrNull() ?: 0
             if (draft.globalUserAgentMode == "AUTO") draft.globalUserAgent = buildAutoUa(selected, draft.osVersion)
             renderStep()
         }
@@ -403,8 +403,16 @@ class BulkCreateActivity : AppCompatActivity() {
                     globalUaField?.setText(draft.globalUserAgent)
                 }
             }
-            addSpinner(browser, "RAM hint (approximate browser bucket)", selectedPreset.ramOptions.map { "$it GB" }, selectedPreset.ramOptions.indexOf(draft.ramGb).coerceAtLeast(0)) { draft.ramGb = selectedPreset.ramOptions.getOrElse(it) { 8 } }
-            addSpinner(browser, "Storage label (metadata only)", selectedPreset.storageOptions.map { "$it GB" }, selectedPreset.storageOptions.indexOf(draft.storageGb).coerceAtLeast(0)) { draft.storageGb = selectedPreset.storageOptions.getOrElse(it) { 128 } }
+            addSpinner(browser, "RAM hint (approximate browser bucket)", selectedPreset.ramOptions.map { "$it GB" }.ifEmpty { listOf("Unknown") }, selectedPreset.ramOptions.indexOf(draft.ramGb).coerceAtLeast(0)) { draft.ramGb = selectedPreset.ramOptions.getOrElse(it) { 0 } }
+            addSpinner(browser, "Storage label (metadata only)", selectedPreset.storageOptions.map { "$it GB" }.ifEmpty { listOf("Unknown") }, selectedPreset.storageOptions.indexOf(draft.storageGb).coerceAtLeast(0)) { draft.storageGb = selectedPreset.storageOptions.getOrElse(it) { 0 } }
+            if (selectedPreset.isIos && selectedPreset.safariVersion.isBlank() && draft.globalUserAgentMode == "AUTO") {
+                val field = addField(browser, "Safari version (manual)", "Enter the Safari version", draft.manualSafariVersion, InputType.TYPE_CLASS_TEXT)
+                field.addTextChangedListener(watcher {
+                    draft.manualSafariVersion = it
+                    draft.globalUserAgent = buildAutoUa(selectedPreset, draft.osVersion)
+                    globalUaField?.setText(draft.globalUserAgent)
+                })
+            }
             addDevicePreview(browser, selectedPreset)
             addNote(browser, "Hardware simulation limits", "RAM is exposed only through coarse navigator.deviceMemory buckets (maximum 8 GB). Storage is profile metadata only; it does not change Android storage capacity or browser quota.")
         }
@@ -910,6 +918,7 @@ class BulkCreateActivity : AppCompatActivity() {
                     ramGb = draft.ramGb,
                     storageGb = draft.storageGb,
                     userAgent = ua,
+                    manualSafariVersion = if (row.userAgentMode == "AUTO" && draft.globalUserAgentMode == "AUTO" && preset.isIos && preset.safariVersion.isBlank()) draft.manualSafariVersion.trim() else "",
                     proxyType = proxy?.type ?: "NONE",
                     proxyHost = proxy?.host.orEmpty(),
                     proxyPort = proxy?.port ?: 0,
@@ -1146,7 +1155,7 @@ class BulkCreateActivity : AppCompatActivity() {
 
     private fun buildAutoUa(preset: DevicePreset, osVersion: String): String {
         val native = WebSettings.getDefaultUserAgent(this)
-        return runCatching { UaBuilder.build(preset, osVersion, native) }.getOrDefault(native)
+        return runCatching { UaBuilder.build(preset, osVersion, native, draft.manualSafariVersion) }.getOrDefault("")
     }
 
     private fun addChoiceRow(parent: LinearLayout, options: List<Pair<String, String>>, selected: String, onSelected: (String) -> Unit) {

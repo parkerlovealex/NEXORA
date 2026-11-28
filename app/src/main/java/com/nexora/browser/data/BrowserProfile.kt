@@ -47,7 +47,8 @@ data class BrowserProfile(
     var createdAt: Long = 0L,
     var lastUsedAt: Long = 0L,
     /** In-memory state only. The store retains the original encrypted row until it can be read. */
-    val proxyCredentialsLocked: Boolean = false
+    val proxyCredentialsLocked: Boolean = false,
+    var manualSafariVersion: String = ""
 ) {
     /** Key used for the androidx.webkit per-profile data store. */
     val webViewProfileKey: String get() = "nx_" + id.take(8)
@@ -60,8 +61,9 @@ data class BrowserProfile(
         o.put("name", name)
         o.put("deviceId", deviceId)
         o.put("osVersion", osVersion)
-        o.put("ramGb", ramGb)
-        o.put("storageGb", storageGb)
+        o.putOpt("ramGb", ramGb.takeIf { it > 0 })
+        o.putOpt("storageGb", storageGb.takeIf { it > 0 })
+        o.putOpt("manualSafariVersion", manualSafariVersion.takeIf { it.isNotEmpty() })
         o.put("userAgent", userAgent)
         o.put("proxyType", proxyType)
         o.put("proxyHost", proxyHost)
@@ -104,8 +106,9 @@ data class BrowserProfile(
             name = o.optString("name", "Profile"),
             deviceId = o.optString("deviceId"),
             osVersion = o.optString("osVersion"),
-            ramGb = o.optInt("ramGb", 8),
-            storageGb = o.optInt("storageGb", 128),
+            ramGb = o.optInt("ramGb").coerceAtLeast(0),
+            storageGb = o.optInt("storageGb").coerceAtLeast(0),
+            manualSafariVersion = o.optString("manualSafariVersion"),
             userAgent = o.optString("userAgent"),
             proxyType = o.optString("proxyType", "NONE"),
             proxyHost = o.optString("proxyHost"),

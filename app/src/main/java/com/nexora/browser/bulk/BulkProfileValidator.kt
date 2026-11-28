@@ -3,6 +3,7 @@ package com.nexora.browser.bulk
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DevicePreset
 import com.nexora.browser.data.ProxyEntry
+import com.nexora.browser.util.UaBuilder
 import java.net.URI
 
 object BulkProfileValidator {
@@ -34,6 +35,8 @@ object BulkProfileValidator {
         else {
             if (draft.targetOs == "ANDROID" && preset.isIos) errors += "Choose an Android device preset for Android mode."
             if (draft.targetOs == "IOS" && !preset.isIos) errors += "Choose an iOS emulation preset for iOS mode."
+            if (preset.isIos && draft.globalUserAgentMode == "AUTO" && draft.perProfiles.take(safeCount).any { it.userAgentMode == "AUTO" } &&
+                UaBuilder.safariVersion(preset, draft.manualSafariVersion) == null) errors += "Enter a manual Safari version or choose a custom User-Agent."
             if (draft.osVersion !in preset.osVersions) errors += "Choose a valid OS version for the selected device."
         }
 

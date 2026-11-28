@@ -322,6 +322,25 @@
                         android:layout_height="48dp" />
 
                     <TextView
+                        android:id="@+id/tvSafariManual"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:labelFor="@+id/etSafariManual"
+                        android:text="Safari version (manual)"
+                        android:textColor="@color/nexora_muted"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <EditText
+                        android:id="@+id/etSafariManual"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Enter the Safari version"
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:visibility="gone" />
+
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"

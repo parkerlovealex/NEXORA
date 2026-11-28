@@ -16,7 +16,8 @@ data class GeneratedUserAgent(
     val locale: String,
     val userAgent: String,
     val databaseVersion: String,
-    val runtimeNote: String
+    val runtimeNote: String,
+    val manualSafariVersion: String = ""
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id)
@@ -31,6 +32,7 @@ data class GeneratedUserAgent(
         .put("userAgent", userAgent)
         .put("databaseVersion", databaseVersion)
         .put("runtimeNote", runtimeNote)
+        .putOpt("manualSafariVersion", manualSafariVersion.takeIf { it.isNotEmpty() })
 
     companion object {
         fun fromJson(o: JSONObject) = GeneratedUserAgent(
@@ -45,7 +47,8 @@ data class GeneratedUserAgent(
             locale = o.optString("locale", "en-US"),
             userAgent = o.optString("userAgent"),
             databaseVersion = o.optString("databaseVersion"),
-            runtimeNote = o.optString("runtimeNote")
+            runtimeNote = o.optString("runtimeNote"),
+            manualSafariVersion = o.optString("manualSafariVersion")
         )
     }
 }

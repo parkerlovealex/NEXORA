@@ -21,7 +21,9 @@ data class UserAgentGenerationRequest(
     val androidBrowserFamilies: Set<String> = setOf("Chrome"),
     val iosBrowserFamilies: Set<String> = setOf("Safari"),
     val inAppBrowserIds: Set<String> = emptySet(),
-    val locale: String = "en-US"
+    val locale: String = "en-US",
+    val manualSafariVersion: String = "",
+    val pastedUserAgents: Map<String, List<String>> = emptyMap()
 ) {
     val totalCount: Int get() = androidCount + iosCount
 }
@@ -39,16 +41,25 @@ object UserAgentGenerationEngine {
         if (request.androidCount < 0 || request.iosCount < 0) errors += "OS quantities cannot be negative."
         if (request.totalCount !in 1..500) errors += "Generate between 1 and 500 User-Agent records."
         if (!validLocale.matches(request.locale.trim())) errors += "Enter a valid locale tag such as en-US or bn-BD."
+        val pastedAndroid = request.pastedUserAgents["ANDROID"]
+        val pastedIos = request.pastedUserAgents["IOS"]
+        if (pastedAndroid != null && pastedAndroid.size < request.androidCount) errors += "Paste enough Android User-Agent strings."
+        if (pastedIos != null && pastedIos.size < request.iosCount) errors += "Paste enough iOS User-Agent strings."
         if (request.androidCount > 0) {
             val pool = eligiblePool(presets, false, request.androidDeviceMode, request.selectedAndroidDeviceIds, request.androidOsVersion)
             if (pool.isEmpty()) errors += "No selected Android device supports the requested OS (${request.androidOsVersion}). Choose a compatible device or OS."
             if (request.androidBrowserFamilies.isEmpty() && request.inAppBrowserIds.isEmpty()) errors += "Select an Android browser family or an in-app browser template."
             if (request.androidBrowserFamilies.any { it != "Chrome" }) errors += "Only Chrome has a supported Android UA template in the current catalog/runtime."
-            if ("Chrome" in request.androidBrowserFamilies && !nativeAndroidUserAgent.contains("Chrome/", ignoreCase = true)) errors += "The installed WebView did not report a Chromium version; an Android Chrome UA cannot be generated safely."
+            if (pastedAndroid == null && "Chrome" in request.androidBrowserFamilies && !nativeAndroidUserAgent.contains("Chrome/", ignoreCase = true)) errors += "The installed WebView did not report a Chromium version; an Android Chrome UA cannot be generated safely."
         }
         if (request.iosCount > 0) {
             val pool = eligiblePool(presets, true, request.iosDeviceMode, request.selectedIosDeviceIds, request.iosOsVersion)
             if (pool.isEmpty()) errors += "No selected iOS device supports the requested OS (${request.iosOsVersion}). Choose a compatible device or OS."
+            val used = if (request.distributionMode == "CUSTOM") pool.filter { (request.customDeviceCounts[it.id] ?: 0) > 0 } else pool
+            if (pastedIos == null && "Safari" in request.iosBrowserFamilies &&
+                used.any { UaBuilder.safariVersion(it, request.manualSafariVersion) == null }) {
+                errors += "The catalog supplies no Safari version. Enter a manual Safari version using numbers separated by dots."
+            }
             if (request.iosBrowserFamilies.isEmpty() && request.inAppBrowserIds.isEmpty()) errors += "Select an iOS browser family or an in-app browser template."
             if (request.iosBrowserFamilies.any { it != "Safari" }) errors += "Only the Safari compatibility template is currently available for iOS."
         }
@@ -113,7 +124,7 @@ object UserAgentGenerationEngine {
             databaseVersion = databaseVersion,
             random = random
         )
-        return records.shuffled(random)
+        return if (request.pastedUserAgents.isEmpty()) records.shuffled(random) else records
     }
 
     fun eligiblePool(
@@ -123,7 +134,11 @@ object UserAgentGenerationEngine {
         selectedIds: Set<String>,
         osVersion: String = "LATEST"
     ): List<DevicePreset> {
-        val platform = presets.filter { it.isIos == isIos && (osVersion == "LATEST" || osVersion in it.osVersions) }
+        val platform = presets.filter { device ->
+            device.isIos == isIos && device.osVersions.any { version ->
+                version.isNotBlank() && (!isIos || UaBuilder.isVersion(version)) && (osVersion == "LATEST" || osVersion == version)
+            }
+        }
         return if (mode == "SELECTED") platform.filter { it.id in selectedIds } else platform
     }
 
@@ -147,6 +162,8 @@ object UserAgentGenerationEngine {
             "CUSTOM" -> pool.flatMap { device -> List(request.customDeviceCounts[device.id] ?: 0) { device } }.shuffled(random)
             else -> List(count) { pool[it % pool.size] }
         }
+        val target = if (isIos) "IOS" else "ANDROID"
+        val pasted = request.pastedUserAgents[target]
         val browserFamilies = (if (isIos) request.iosBrowserFamilies else request.androidBrowserFamilies).toList().sorted()
         val appTemplates = if (request.inAppBrowserIds.isEmpty()) emptyList() else inAppTemplates
             .filter { it.targetOs == (if (isIos) "IOS" else "ANDROID") && it.appId in request.inAppBrowserIds }
@@ -156,26 +173,29 @@ object UserAgentGenerationEngine {
             appTemplates.forEach { add("In-app WebView" to it) }
         }
         return devices.mapIndexed { index, device ->
-            val version = if (osSelection == "LATEST") device.osVersions.lastOrNull().orEmpty() else osSelection
+            val version = if (osSelection == "LATEST") device.osVersions.last { it.isNotBlank() && (!isIos || UaBuilder.isVersion(it)) } else osSelection
             val (browser, appTemplate) = variants[index % variants.size]
-            val ua = appTemplate?.render(device.id, version) ?: if (isIos) {
-                UaBuilder.buildIosSafariTemplate(version)
-            } else {
-                UaBuilder.build(device, version, nativeAndroidUserAgent)
-            }
+            val manual = if (pasted == null && appTemplate == null && isIos && !UaBuilder.isVersion(device.safariVersion)) {
+                request.manualSafariVersion.trim()
+            } else ""
+            val ua = pasted?.get(index) ?: appTemplate?.render(device.id, version)
+                ?: UaBuilder.build(device, version, nativeAndroidUserAgent, manual)
             GeneratedUserAgent(
                 id = UUID.randomUUID().toString(),
-                targetOs = if (isIos) "IOS" else "ANDROID",
+                targetOs = target,
                 deviceId = device.id,
                 deviceName = device.displayName,
                 osVersion = version,
-                browserFamily = if (appTemplate != null) "In-app WebView" else browser,
+                browserFamily = if (pasted != null) "Custom UA" else if (appTemplate != null) "In-app WebView" else browser,
                 inAppBrowserId = appTemplate?.appId.orEmpty(),
                 inAppBrowserName = appTemplate?.displayName.orEmpty(),
                 locale = request.locale.trim(),
                 userAgent = ua,
                 databaseVersion = databaseVersion,
-                runtimeNote = if (isIos) {
+                manualSafariVersion = manual,
+                runtimeNote = if (pasted != null) {
+                    "User-provided User-Agent string."
+                } else if (isIos) {
                     "iOS Safari compatibility template only; NEXORA Android still runs Android System WebView. The UA does not identify the exact iPhone model."
                 } else if (appTemplate != null) {
                     "Evidence-backed in-app UA template. Applying it changes the UA string only, not the embedded app runtime."

@@ -64,6 +64,7 @@ class ProfileStudioActivity : AppCompatActivity() {
     private var selectedBatchId = ""
     private var androidCustomUaText = ""
     private var iosCustomUaText = ""
+    private var manualSafariVersion = ""
     private var groupName = ""
     private var remark = ""
     private var assignProxies = false
@@ -133,6 +134,7 @@ class ProfileStudioActivity : AppCompatActivity() {
         outState.putString("selectedBatchId", selectedBatchId)
         outState.putString("androidCustomUaText", androidCustomUaText)
         outState.putString("iosCustomUaText", iosCustomUaText)
+        outState.putString("manualSafariVersion", manualSafariVersion)
         outState.putString("groupName", groupName)
         outState.putString("remark", remark)
         outState.putBoolean("assignProxies", assignProxies)
@@ -156,6 +158,7 @@ class ProfileStudioActivity : AppCompatActivity() {
         uaSource = state.getString("uaSource", "AUTO") ?: "AUTO"
         selectedBatchId = state.getString("selectedBatchId", "") ?: ""
         androidCustomUaText = state.getString("androidCustomUaText", "") ?: ""
+        manualSafariVersion = state.getString("manualSafariVersion").orEmpty()
         iosCustomUaText = state.getString("iosCustomUaText", "") ?: ""
         groupName = state.getString("groupName", "") ?: ""
         remark = state.getString("remark", "") ?: ""
@@ -283,6 +286,9 @@ class ProfileStudioActivity : AppCompatActivity() {
             val iosPaste = field(ua, "iOS UA list", "Mozilla/5.0 (iPhone; CPU iPhone OS …)", iosCustomUaText, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE).apply { minLines = 3; gravity = android.view.Gravity.TOP }
             iosPaste.addTextChangedListener(watcher { iosCustomUaText = it })
             addNote(ua, "Paste behavior", "Use Copy all in User-Agent Generator, then paste the Android and iOS lines into their matching fields. Strings are checked for basic OS markers before profile creation.")
+        } else if (iosCount > 0 && presets.any { it.isIos && it.safariVersion.isBlank() }) {
+            field(ua, "Safari version (manual)", "Enter the Safari version", manualSafariVersion, InputType.TYPE_CLASS_TEXT)
+                .addTextChangedListener(watcher { manualSafariVersion = it })
         }
         addButton(ua, "Open User-Agent Generator") {
             startActivity(Intent(this, UserAgentGeneratorActivity::class.java))
@@ -391,21 +397,11 @@ class ProfileStudioActivity : AppCompatActivity() {
         }
         val request = generationRequest()
         val records = try {
-            if (uaSource == "AUTO") {
-                UserAgentGenerationEngine.generate(request, presets, inAppTemplates, WebSettings.getDefaultUserAgent(this), DeviceDb.dataVersion(this), System.nanoTime().toInt())
-            } else if (uaSource == "BATCH") {
+            if (uaSource == "BATCH") {
                 val batch = savedBatches.first { it.id == selectedBatchId }
                 batch.records.filter { it.targetOs == "ANDROID" }.take(androidCount) + batch.records.filter { it.targetOs == "IOS" }.take(iosCount)
             } else {
-                val base = UserAgentGenerationEngine.generate(request, presets, inAppTemplates, WebSettings.getDefaultUserAgent(this), DeviceDb.dataVersion(this), System.nanoTime().toInt())
-                val androidLines = parseUaLines(androidCustomUaText)
-                val iosLines = parseUaLines(iosCustomUaText)
-                var androidIndex = 0
-                var iosIndex = 0
-                base.map { record ->
-                    val value = if (record.targetOs == "ANDROID") androidLines[androidIndex++] else iosLines[iosIndex++]
-                    record.copy(userAgent = value, browserFamily = "Custom UA", runtimeNote = "User-provided UA string; device/runtime compatibility must be reviewed by the user.")
-                }
+                UserAgentGenerationEngine.generate(request, presets, inAppTemplates, WebSettings.getDefaultUserAgent(this), DeviceDb.dataVersion(this), System.nanoTime().toInt())
             }
         } catch (e: Exception) {
             toast("Could not prepare User-Agent records: ${e.message ?: "unknown error"}")
@@ -429,9 +425,10 @@ class ProfileStudioActivity : AppCompatActivity() {
                     name = "$namePrefix ${index + 1}".trim(),
                     deviceId = preset.id,
                     osVersion = record.osVersion,
-                    ramGb = preset.ramOptions.firstOrNull() ?: 8,
-                    storageGb = preset.storageOptions.firstOrNull() ?: 128,
+                    ramGb = preset.ramOptions.firstOrNull() ?: 0,
+                    storageGb = preset.storageOptions.firstOrNull() ?: 0,
                     userAgent = record.userAgent,
+                    manualSafariVersion = record.manualSafariVersion,
                     proxyType = proxy?.type ?: "NONE",
                     proxyHost = proxy?.host.orEmpty(),
                     proxyPort = proxy?.port ?: 0,
@@ -505,7 +502,12 @@ class ProfileStudioActivity : AppCompatActivity() {
         customDeviceCounts = customDeviceCounts.toMap(),
         androidBrowserFamilies = if (androidCount > 0) setOf("Chrome") else emptySet(),
         iosBrowserFamilies = if (iosCount > 0) setOf("Safari") else emptySet(),
-        locale = Locale.getDefault().toLanguageTag()
+        locale = Locale.getDefault().toLanguageTag(),
+        manualSafariVersion = manualSafariVersion,
+        pastedUserAgents = if (uaSource == "PASTE") mapOf(
+            "ANDROID" to parseUaLines(androidCustomUaText),
+            "IOS" to parseUaLines(iosCustomUaText)
+        ) else emptyMap()
     )
 
     private fun validateCustomDistribution(): String {

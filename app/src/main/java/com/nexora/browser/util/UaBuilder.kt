@@ -6,14 +6,25 @@ import com.nexora.browser.data.DevicePreset
 object UaBuilder {
     private val CHROME_VERSION = Regex("(?:Chrome|CriOS)/([0-9]+(?:\\.[0-9]+){1,3})", RegexOption.IGNORE_CASE)
 
+    private val versionNumber = Regex("""[0-9]+(?:\.[0-9]+){0,3}""")
+
+    fun isVersion(value: String): Boolean = value.length <= 32 && versionNumber.matches(value)
+
+    fun safariVersion(preset: DevicePreset, manual: String): String? =
+        preset.safariVersion.takeIf(::isVersion) ?: manual.trim().takeIf(::isVersion)
+
     /**
      * Android WebView does not let an app swap its Chromium engine. Auto mode therefore
      * keeps the installed engine version and only applies the selected preset's device
      * and Android-version tokens. If the provider does not expose a Chromium token, fail
      * clearly so the UI can ask for a custom UA instead of inventing a version.
      */
-    fun build(preset: DevicePreset, osVersion: String, nativeUserAgent: String): String {
-        if (preset.isIos) return buildIosSafariTemplate(osVersion)
+    fun build(preset: DevicePreset, osVersion: String, nativeUserAgent: String, manualSafariVersion: String = ""): String {
+        if (preset.isIos) {
+            val safari = requireNotNull(safariVersion(preset, manualSafariVersion)) { "Enter a manual Safari version." }
+            return buildIosSafariTemplate(osVersion, safari, preset.osBuilds[osVersion])
+        }
+        require(osVersion.isNotBlank()) { "Choose an OS version from the catalog." }
         val engineVersion = chromeVersion(nativeUserAgent) ?: return nativeUserAgent.trim()
         return "Mozilla/5.0 (Linux; Android $osVersion; ${preset.uaModel}) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -24,12 +35,13 @@ object UaBuilder {
      * Produces a clearly-labelled iOS Safari compatibility template. It is not a native
      * iOS runtime fingerprint and does not identify a specific iPhone model in the UA.
      */
-    fun buildIosSafariTemplate(osVersion: String): String {
-        val normalized = osVersion.trim().ifBlank { "18" }
-        val osToken = normalized.replace('.', '_')
-        val safariVersion = if (normalized.contains('.')) normalized else "$normalized.0"
+    fun buildIosSafariTemplate(osVersion: String, safariVersion: String, mobileBuild: String? = null): String {
+        require(isVersion(osVersion)) { "Choose an iOS version from the catalog." }
+        require(isVersion(safariVersion)) { "Choose a catalog Safari version or enter a manual version." }
+        val osToken = osVersion.replace('.', '_')
+        val mobile = mobileBuild?.takeIf { it.matches(Regex("[A-Za-z0-9]+")) }?.let { " Mobile/$it" }.orEmpty()
         return "Mozilla/5.0 (iPhone; CPU iPhone OS $osToken like Mac OS X) " +
-            "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/$safariVersion Mobile/15E148 Safari/604.1"
+            "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/$safariVersion$mobile Safari/604.1"
     }
 
     /** Desktop-site UA using the same installed Chromium version as the active WebView. */

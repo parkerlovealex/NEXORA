@@ -1,6 +1,11 @@
 package com.nexora.browser.util
 
+import com.nexora.browser.data.BrowserProfile
+import com.nexora.browser.data.DeviceDb
 import com.nexora.browser.data.DevicePreset
+import com.nexora.browser.data.GeneratedUserAgent
+import com.nexora.browser.fp.FingerprintScript
+import org.json.JSONObject
 import com.nexora.browser.data.UserAgentTemplate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -97,10 +102,54 @@ class UserAgentGenerationEngineTest {
     }
 
     @Test fun iosSafariTemplateUsesSelectedOsVersionAndDoesNotClaimModelIdentity() {
-        val ua = UaBuilder.buildIosSafariTemplate("18.2")
+        val ua = UaBuilder.buildIosSafariTemplate("18.2", "17.6")
         assertTrue(ua.contains("iPhone OS 18_2"))
-        assertTrue(ua.contains("Version/18.2"))
+        assertTrue(ua.contains("Version/17.6"))
+        assertFalse(ua.contains("Mobile/"))
         assertFalse(ua.contains("iPhone 16"))
+    }
+
+    @Test fun explicitSafariVersionIsIndependentAndSurvivesBatchAndProfileStorage() {
+        val ios = presets.last().copy(safariVersion = "")
+        val request = UserAgentGenerationRequest(0, 1, manualSafariVersion = " 16.6.1 ")
+        val row = UserAgentGenerationEngine.generate(request, listOf(ios), emptyList(), "", "test").single()
+        assertTrue(row.userAgent.contains("iPhone OS 18 "))
+        assertTrue(row.userAgent.contains("Version/16.6.1 "))
+        assertEquals("16.6.1", GeneratedUserAgent.fromJson(row.toJson()).manualSafariVersion)
+        val profile = BrowserProfile.fromJson(JSONObject().put("manualSafariVersion", row.manualSafariVersion))
+        assertEquals("16.6.1", BrowserProfile.fromJson(profile.toJson()).manualSafariVersion)
+        val fromCatalog = UserAgentGenerationEngine.generate(request, listOf(ios.copy(safariVersion = "17.4")), emptyList(), "", "test").single()
+        assertTrue(fromCatalog.userAgent.contains("Version/17.4 "))
+        assertTrue(fromCatalog.manualSafariVersion.isEmpty())
+        for (invalid in listOf("", "latest", "18..2", "18.2 extra")) {
+            assertTrue(UserAgentGenerationEngine.validate(request.copy(manualSafariVersion = invalid), listOf(ios), emptyList(), "").isNotEmpty())
+        }
+        assertTrue(runCatching { UaBuilder.buildIosSafariTemplate("", "16.6.1") }.isFailure)
+        assertTrue(UserAgentGenerationEngine.validate(request, listOf(ios.copy(osVersions = emptyList())), emptyList(), "").isNotEmpty())
+    }
+
+    @Test fun pastedUserAgentNeedsNoGeneratedSafariVersion() {
+        val values = listOf("Mozilla/5.0 (iPhone) user supplied A", "Mozilla/5.0 (iPhone) user supplied B")
+        val request = UserAgentGenerationRequest(0, 2, pastedUserAgents = mapOf("IOS" to values))
+        val rows = UserAgentGenerationEngine.generate(request, listOf(presets.last().copy(safariVersion = "")), emptyList(), "", "test")
+        assertEquals(values, rows.map { it.userAgent })
+        assertTrue(rows.all { it.manualSafariVersion.isEmpty() && it.browserFamily == "Custom UA" })
+    }
+
+    @Test fun catalogReadsIndependentSafariVersionAndLeavesMissingHardwareUnknown() {
+        val text = """{"meta":{"browserVersions":{"safariIos":[null,"invalid","17.3"]}},"ios_emulation":[
+            {"id":"fixture","brand":"Apple","model":"Test","uaModel":"iPhone","display":{"w":100,"h":200,"dpr":2},
+             "osVersions":["18.0"],"builds":{"18.0":"FixtureBuild1"}}]}"""
+        val preset = DeviceDb.parseCatalog(text)!!.single()
+        assertEquals("17.3", preset.safariVersion)
+        val ua = UaBuilder.build(preset, "18.0", "")
+        assertTrue(ua.contains("Version/17.3 Mobile/FixtureBuild1"))
+        assertEquals(0, preset.cores)
+        assertTrue(preset.ramOptions.isEmpty() && preset.storageOptions.isEmpty())
+        val profile = BrowserProfile.fromJson(JSONObject())
+        val script = FingerprintScript.build(profile, preset)
+        assertFalse(script.contains("__nxDef(navigator, 'hardwareConcurrency'"))
+        assertFalse(script.contains("__nxDef(navigator, 'deviceMemory'"))
     }
 
     @Test fun unsupportedBrowserFamilyFailsClosed() {
@@ -110,5 +159,5 @@ class UserAgentGenerationEngineTest {
     }
 
     private fun device(id: String, brand: String, model: String, uaModel: String, ios: Boolean, versions: List<String>) =
-        DevicePreset(id, brand, model, uaModel, 1080, 2400, 3.0, listOf(8), listOf(128), 8, "Test GPU", versions, ios)
+        DevicePreset(id, brand, model, uaModel, 1080, 2400, 3.0, listOf(8), listOf(128), 8, "Test GPU", versions, ios, safariVersion = if (ios) "17.4" else "")
 }
