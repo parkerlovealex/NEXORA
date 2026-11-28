@@ -552,3 +552,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — C16 iOS build fallback labelling (2026-11-28, Muse takeover)
 
 **C16:** iOS records generated without a catalog build for the OS version now carry `buildSource: "fallback"` and a note disclosing that the Mobile build token is the generic fallback; records with a catalog build say `buildSource: "database"`. Proof: `tests/ios-build-fallback.test.js` fails pre-fix, passes post-fix; other node tests and desktop smoke pass; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
+
+## Alpha30 Wave 5 — C15 legacy generator Chrome fallback disclosure (2026-11-28, Muse takeover)
+
+**C15:** the legacy generator's status line now discloses when the built-in Chrome fallback is in use ("Chrome version not in database — built-in fallback in use") instead of labelling the source simply "Live database". Proof: `tests/legacy-chrome-fallback.test.js` fails pre-fix, passes post-fix; desktop smoke passes; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
