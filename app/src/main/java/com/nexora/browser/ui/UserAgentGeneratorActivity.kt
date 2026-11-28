@@ -30,10 +30,12 @@ import com.nexora.browser.R
 import com.nexora.browser.util.UiFeedback
 import com.nexora.browser.data.DeviceDb
 import com.nexora.browser.data.DevicePreset
+import com.nexora.browser.data.EngineDescriptor
 import com.nexora.browser.data.GeneratedUserAgent
 import com.nexora.browser.data.UserAgentBatch
 import com.nexora.browser.data.UserAgentBatchStore
 import com.nexora.browser.data.UserAgentTemplate
+import com.nexora.browser.util.EngineCompatibility
 import com.nexora.browser.util.UserAgentGenerationEngine
 import com.nexora.browser.util.UserAgentGenerationRequest
 import java.util.Locale
@@ -67,11 +69,14 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     private var lastBatch: UserAgentBatch? = null
     private var androidChromeChecked = true
     private var iosSafariChecked = true
+    /** The engine actually installed on this device; drives compatibility labels. */
+    private lateinit var engineDescriptor: EngineDescriptor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         presets = DeviceDb.load(this)
         inAppTemplates = DeviceDb.loadVerifiedUserAgentTemplates(this)
+        engineDescriptor = EngineDescriptor.detect(this)
         batchStore = UserAgentBatchStore(this)
         buildUi()
         savedInstanceState?.getString(STATE_BATCH_ID)?.let { id ->
@@ -172,6 +177,9 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
                     setOnCheckedChangeListener { _, checked -> if (checked) selectedInAppIds.add(template.appId) else selectedInAppIds.remove(template.appId) }
                 }
                 embedded.addView(check)
+                val state = EngineCompatibility.evaluate(template, engineDescriptor)
+                addNote(embedded, "Engine compatibility — ${template.displayName}",
+                    "${EngineCompatibility.label(state)}. ${EngineCompatibility.detail(state)}")
             }
         }
 
@@ -266,7 +274,13 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
 
     private fun renderResults(records: List<GeneratedUserAgent>, batchName: String) {
         if (resultPanel.childCount > 3) resultPanel.removeViews(3, resultPanel.childCount - 3)
-        resultSummary.text = "$batchName\n${records.size} records · ${records.count { it.targetOs == "ANDROID" }} Android · ${records.count { it.targetOs == "IOS" }} iOS · database ${records.firstOrNull()?.databaseVersion ?: "unknown"}"
+        resultSummary.text = "$batchName\n${records.size} records · ${records.count { it.targetOs == "ANDROID" }} Android · ${records.count { it.targetOs == "IOS" }} iOS · database ${records.firstOrNull()?.databaseVersion ?: "unknown"}" +
+            records.map { it.inAppBrowserId }.filter { it.isNotBlank() }.distinct().mapNotNull { appId ->
+                inAppTemplates.firstOrNull { it.appId == appId }
+            }.joinToString("") { template ->
+                val state = EngineCompatibility.evaluate(template, engineDescriptor)
+                "\n${template.displayName}: engine compatibility ${EngineCompatibility.label(state)} — ${EngineCompatibility.detail(state)}"
+            }
         val output = records.take(12).mapIndexed { index, row ->
             "${index + 1}. ${row.targetOs} · ${row.deviceName} · ${row.osVersion} · ${row.browserFamily}\n${row.userAgent}"
         }.joinToString("\n\n")
