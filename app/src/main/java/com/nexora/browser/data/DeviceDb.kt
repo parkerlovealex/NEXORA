@@ -23,33 +23,24 @@ object DeviceDb {
     fun find(context: Context, deviceId: String): DevicePreset? =
         load(context).firstOrNull { it.id == deviceId }
 
-    /** Only templates with explicit evidence metadata are exposed to the generator. */
+    /**
+     * Only verified templates from the canonical catalog are exposed to the generator.
+     * The bundled generated assets (tools/build_android_catalog_assets.py) are the
+     * source: ua_templates.json + ua_slot_context.json. Missing or invalid assets
+     * yield an empty list.
+     */
     fun loadVerifiedUserAgentTemplates(context: Context): List<UserAgentTemplate> {
-        val text = DeviceDataUpdater.activeDataText(context) ?: readBundledText(context) ?: return emptyList()
+        val templates = readAssetText(context, "ua_templates.json") ?: return emptyList()
+        val slotContext = readAssetText(context, "ua_slot_context.json") ?: return emptyList()
+        return PublishedUserAgentTemplates.read(templates, slotContext)
+    }
+
+    private fun readAssetText(context: Context, name: String): String? {
         return try {
-            val array = JSONObject(text).optJSONArray("uaTemplates") ?: return emptyList()
-            buildList {
-                for (i in 0 until array.length()) {
-                    val row = array.optJSONObject(i) ?: continue
-                    val template = UserAgentTemplate(
-                        id = row.optString("id"),
-                        appId = row.optString("appId"),
-                        displayName = row.optString("displayName"),
-                        targetOs = row.optString("targetOs").uppercase(),
-                        userAgent = row.optString("userAgent"),
-                        sourceUrl = row.optString("sourceUrl"),
-                        evidenceQuote = row.optString("evidenceQuote"),
-                        verified = row.optBoolean("verified", false)
-                    )
-                    if (template.id.isNotBlank() && template.appId.isNotBlank() &&
-                        template.displayName.isNotBlank() && template.targetOs in setOf("ANDROID", "IOS") &&
-                        template.userAgent.contains("Mozilla/", ignoreCase = true) &&
-                        template.sourceUrl.startsWith("https://") && template.evidenceQuote.isNotBlank() &&
-                        template.verified
-                    ) add(template)
-                }
-            }
-        } catch (_: Exception) { emptyList() }
+            context.assets.open(name).bufferedReader().use { it.readText() }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun invalidateCache() {
