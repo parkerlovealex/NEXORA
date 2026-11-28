@@ -454,6 +454,29 @@ class BrowserDataStore internal constructor(profileId: String, openPreferences: 
             return "nexora_browser_v2_$hex"
         }
 
+        /**
+         * A11: remove every metadata namespace a profile may own — the
+         * active v2 store, its v3 migration counterpart, and the legacy
+         * pre-v2 store. Profile deletion calls this so a deleted
+         * profile's history, bookmarks, session and settings do not
+         * survive on the device.
+         */
+        fun deleteProfileMetadata(context: Context, profileId: String) {
+            val names = listOf(
+                profilePrefsName(profileId),
+                profilePrefsName(profileId).replaceFirst("nexora_browser_v2_", "nexora_browser_v3_"),
+                legacyPrefsName(profileId)
+            )
+            for (name in names) {
+                try {
+                    context.applicationContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+                        .edit().clear().apply()
+                } catch (_: Exception) {
+                    // Best effort per namespace; the others still clear.
+                }
+            }
+        }
+
         private fun legacyPrefsName(profileId: String): String =
             "nexora_browser_${profileId.hashCode()}"
 
