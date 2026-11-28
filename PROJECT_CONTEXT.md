@@ -580,3 +580,11 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — B08 About page access truth (2026-11-28, Muse takeover)
 
 **B08:** the About page now matches the real access model — the generator is public; catalog browsing requires administrator sign-in. Wording only, no behaviour change. Proof: `tests/about-access-truth.test.js` fails pre-fix, passes post-fix; Python suite 117 passed / 0 failed. Live-site rendering UNVERIFIED.
+
+## Alpha30 Wave 5 — C11 monthly build-evidence lane; C04–C07 status (2026-11-28, Muse takeover)
+
+**C11 FIXED (owner decision 2026-11-28):** new monthly workflow `.github/workflows/nexora-builds-refresh.yml` runs the Android-build and IPSW collectors and opens a draft PR with proposals + evidence; it never writes the live catalog. Collector failures surface honestly; a data alarm (exit 1/2) fails the lane with no PR. The app-pair collector stays manual (input-driven by design); markets and non-Chrome browsers still have no collector — a known remaining gap. Proof: `tests/test_builds_lane.py`; Python suite 123 passed / 0 failed. GitHub-side first run UNVERIFIED.
+
+**C06 progress (still OPEN):** both collectors were run from the takeover environment on 2026-11-28 — the sources were reachable here. IPSW: 719 evidence-backed pairs for all 15 iOS devices; 16 version-slots legitimately carry two build IDs (e.g. iOS 17.4.1 = 21E236/21E237) and need an owner winner rule before anything is applied. Android: evidence collected cleanly, but its values are Google's canonical platform builds — the catalog's OEM firmware strings are better, so the recommendation is evidence-on-file, proposal NOT merged. Outputs are preserved in the takeover workspace (`evidence-2026-11-28/`), not yet in the repo. Awaiting the owner's decision on applying the iOS evidence and the conflict rule.
+
+**C04 / C05 / C07 (still OPEN):** published specs fields, market memberships and app-pair histories whose per-item source quotes were not retained. The owner was briefed 2026-11-28 with the recommendation to keep the data with the debt tracked (the C13 strict gate and C18 provenance counting now stop the system claiming more than the evidence supports) rather than stripping fields; awaiting his decision.
