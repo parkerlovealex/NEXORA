@@ -903,6 +903,7 @@ def decide_proposal(proposal_id: int, decision: str = Query(pattern="^(approve|r
             source_url = record.get("source_url") or evidence.get("url")
             record, _ = verified_device_record(record, platform, source_url)
             db.add(Device(id=record["id"], platform=platform, brand=record["brand"], model=record["model"], record=record, source_url=source_url, source_status="ai_verified"))
+            meta = get_meta(db); bump_and_save_meta(db, meta)
         elif proposal.kind in {"app_version", "chrome_version"}:
             version = p.get("version", "")
             chrome = proposal.kind == "chrome_version"
