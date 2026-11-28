@@ -9,6 +9,25 @@ import org.junit.Test
 
 class BulkInputParsersTest {
     @Test
+    fun proxyUriKeepsLiteralPlusInCredentials() {
+        // A41: '+' inside URI userInfo is a literal plus (RFC 3986),
+        // not a form-encoded space.
+        val rows = ProxyImporter.parse("socks5://user+name:pa+ss@127.0.0.1:1080", "SOCKS5")
+        assertEquals(1, rows.size)
+        assertTrue(rows[0].valid)
+        assertEquals("user+name", rows[0].username)
+        assertEquals("pa+ss", rows[0].password)
+    }
+
+    @Test
+    fun proxyUriStillDecodesPercentEscapes() {
+        val rows = ProxyImporter.parse("socks5://user%40mail:pa%3Ass@127.0.0.1:1080", "SOCKS5")
+        assertEquals(1, rows.size)
+        assertEquals("user@mail", rows[0].username)
+        assertEquals("pa:ss", rows[0].password)
+    }
+
+    @Test
     fun userAgentsDetectFamiliesAndDuplicates() {
         val rows = UserAgentImporter.parse(
             listOf(
