@@ -2228,6 +2228,10 @@ class BrowserActivity : AppCompatActivity() {
                     }
                 }
             }
+            // A19: the destination reservation is held for the whole
+            // download and released on both the success and failure
+            // paths (this point runs after either completes).
+            releaseDownloadReservation(destination)
         }
     }
 
@@ -2245,18 +2249,31 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun uniqueDownloadFile(directory: File, requestedName: String): File {
+        // A19: claim the destination in the shared reservation set at
+        // selection time. Checking only the disk raced: two same-name
+        // downloads queued together both saw a free name (the first had
+        // not written a byte yet), and the second then failed at
+        // finalization when the client refused the existing file.
         val name = File(requestedName).name.ifBlank { "download" }
-        var candidate = File(directory, name)
-        if (!candidate.exists()) return candidate
         val dot = name.lastIndexOf('.').takeIf { it > 0 } ?: name.length
         val base = name.substring(0, dot)
         val extension = name.substring(dot)
-        var index = 1
-        while (candidate.exists()) {
-            candidate = File(directory, "$base ($index)$extension")
-            index += 1
+        synchronized(DOWNLOAD_RESERVATIONS) {
+            var candidate = File(directory, name)
+            var index = 1
+            while (candidate.exists() || candidate.absolutePath in DOWNLOAD_RESERVATIONS) {
+                candidate = File(directory, "$base ($index)$extension")
+                index += 1
+            }
+            DOWNLOAD_RESERVATIONS.add(candidate.absolutePath)
+            return candidate
         }
-        return candidate
+    }
+
+    private fun releaseDownloadReservation(destination: File) {
+        synchronized(DOWNLOAD_RESERVATIONS) {
+            DOWNLOAD_RESERVATIONS.remove(destination.absolutePath)
+        }
     }
 
     private fun openDownloadedFile(id: Long) {
@@ -2571,6 +2588,8 @@ class BrowserActivity : AppCompatActivity() {
         private val DOWNLOAD_EXECUTOR = Executors.newFixedThreadPool(2) { task ->
             Thread(task, "NEXORA-Profile-Download").apply { isDaemon = true }
         }
+        // A19: destinations claimed by queued/running downloads.
+        private val DOWNLOAD_RESERVATIONS = mutableSetOf<String>()
         private const val FILTER_ALL = "__nexora_all_tabs__"
         private const val FILTER_UNGROUPED = "__nexora_ungrouped_tabs__"
     }
