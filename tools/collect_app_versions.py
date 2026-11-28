@@ -31,6 +31,7 @@ Usage mirrors the other collectors. Exit 2 if zero apps merged.
 """
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -48,6 +49,20 @@ KNOWN_APPS = [
     "pinterest", "reddit", "snapchat", "weibo", "telegram", "messenger",
     "wechat", "line", "kik", "discord", "viber", "fb_lite", "webview",
 ]
+
+
+def bump_data_version(meta: dict, today) -> None:
+    """Mirror the backend's bump_version rule (A40): a successful merge must
+    advance dataVersion, because clients compare it to decide whether to
+    install the catalog. Same-day bumps increment the counter; a new day
+    restarts it at 1."""
+    old = str(meta.get("dataVersion", ""))
+    match = re.fullmatch(r"(\d{4})\.(\d{2})\.(\d{2})\.(\d+)", old)
+    day = today.strftime("%Y.%m.%d")
+    if match and ".".join(match.groups()[:3]) == day:
+        meta["dataVersion"] = f"{day}.{int(match.group(4)) + 1}"
+    else:
+        meta["dataVersion"] = f"{day}.1"
 
 
 def main() -> int:
@@ -115,6 +130,7 @@ def main() -> int:
     if merged:
         today = datetime.now(timezone.utc).date()
         meta["updatedAt"] = today.isoformat()
+        bump_data_version(meta, today)
 
     lines += ["", "## Summary", f"- merged: {merged}  rejected: {len(rejected)}  gaps: {len(gaps)}"]
     if rejected:
