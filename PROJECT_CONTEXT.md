@@ -536,3 +536,7 @@ Wave 5 opened with C03 (High): the weekly refresh script now loads the website c
 ## Alpha30 Wave 5 — C12 strict counts (2026-11-28, Muse takeover)
 
 **C12:** the specs validator's strict mode no longer double-counts — warnings promoted to STRICT errors are reported once, as errors (published catalog strict: 110 errors / 0 warnings, was 110/110). Proof: `tests/test_specs_strict_counts.py` fails pre-fix, passes post-fix; Python suite 103 passed / 0 failed.
+
+## Alpha30 Wave 4 — B01 owner decision: verified-only, WAVE 4 COMPLETE (2026-11-28, Muse takeover)
+
+The owner decided B01 on 2026-11-28: **verified-only — script candidates cannot generate.** The website picker now disables every app without a verified template; candidates keep their status label and supplied-format preview for reference, generation selection is filtered to verified templates (with a warning naming dropped apps), the generation branch hard-refuses an unverified app, and the candidate builder code path is removed. Proof: `tests/candidate-generation.test.js` fails pre-fix, passes post-fix; B05/B06 node tests and desktop smoke still pass; Python suite 103 passed / 0 failed. Live-site rendering UNVERIFIED. **Wave 4 is complete (B01, B05, B06).** Remaining: Wave 5 (PARTIAL walk + C04–C07, C10, C11, C13, C15–C18, Kotlin A-items), then Wave 6 ships Alpha30.
