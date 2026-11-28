@@ -32,5 +32,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Validate catalog manifest and schemas
         run: python tools/catalog_manifest.py check
+      - name: Validate engine compatibility metadata
+        run: python tools/validate_engine_compatibility.py
       - name: Run UA template pipeline tests
         run: pytest -q tests/test_ua_templates_pipeline.py
