@@ -27,6 +27,7 @@
       <button class="nav-item active" data-view="generator"><span class="nav-icon">✳</span>User-Agent Studio</button>
       <button class="nav-item" data-view="analyser"><span class="nav-icon">⌕</span>UA Analyser</button>
       <button class="nav-item" data-view="track"><span class="nav-icon">▦</span>UA Track</button>
+      <button class="nav-item" data-view="versions"><span class="nav-icon">↗</span>Latest Versions</button>
       <button class="nav-item admin-only hidden" data-view="devices"><span class="nav-icon">▯</span>Device Catalog</button>
       <button class="nav-item admin-only hidden" data-view="applications"><span class="nav-icon">▣</span>App Versions</button>
       <div class="nav-label admin-nav-label admin-only hidden">SYSTEM ADMIN</div>
@@ -123,7 +124,7 @@
             <button type="button" class="ua-tab active" data-generator-tab="mobile" role="tab" aria-selected="true">Mobile</button>
             <button type="button" class="ua-tab" data-generator-tab="social" role="tab" aria-selected="false">Social</button>
           </div>
-          <div class="analyser-link-row"><button class="text-button" type="button" data-go="track">UA Track <span>→</span></button><button class="text-button" type="button" data-go="analyser">Analyse an existing UA <span>→</span></button></div>
+          <div class="analyser-link-row"><button class="text-button" type="button" data-go="versions">Latest Versions <span>→</span></button><button class="text-button" type="button" data-go="track">UA Track <span>→</span></button><button class="text-button" type="button" data-go="analyser">Analyse an existing UA <span>→</span></button></div>
           <div class="ua-config-column">
             <section class="ua-card">
               <div class="ua-section-head">
@@ -472,6 +473,13 @@
         </div>
       </section>
 
+      <section class="view" id="view-versions">
+        <div class="ua-card versions-card">
+          <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">UA</span><div><h2>Latest Versions</h2><p>The newest browser and app versions carried by the published NEXORA catalog, with the catalog release each one comes from. This is latest-in-catalog, not a live vendor check.</p></div></div></div>
+          <div id="versionsBoard"></div>
+          <div class="analyser-actions"><button class="text-button" type="button" data-go="generator">← Back to generator</button></div>
+        </div>
+      </section>
       <section class="view" id="view-track">
         <div class="ua-card track-card">
           <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">UA</span><div><h2>UA Track</h2><p>History of your saved User-Agent batches, stored only in this browser. Open a batch to copy, export or analyse its User-Agents.</p></div></div></div>

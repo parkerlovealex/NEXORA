@@ -426,7 +426,17 @@ body.is-admin .mobile-menu{display:grid}
 .version-chip{border:1px solid var(--nx-line);border-radius:999px;background:#0e1611;color:#c8d8cc;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .version-chip:hover{color:#e2f0e5;border-color:#46664d}
 .version-chip.active{background:#263b2b;border-color:#46664d;color:#e0f2e4}
-.analyser-link-row{display:flex;justify-content:flex-end;gap:16px;margin:2px 0 10px}
+.analyser-link-row{display:flex;justify-content:flex-end;gap:16px;margin:2px 0 10px;flex-wrap:wrap}
+.versions-group-title{margin:20px 0 10px;font-size:15px}
+.versions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.version-card{border:1px solid var(--nx-line);border-radius:10px;padding:12px 14px;background:var(--nx-panel);display:flex;flex-direction:column;gap:6px}
+.version-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.version-status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--nx-panel-2);color:var(--muted)}
+.version-status.ready{background:#e7f6ee;color:#137a43}
+.version-status.candidate{background:#fdf3e0;color:#9a6a12}
+.version-card-latest{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.version-card-meta{margin:0;color:var(--muted);font-size:12px;line-height:1.5;flex:1}
+.version-generate{align-self:flex-start}
 .country-picker{position:relative}
 .country-picker-button{display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer}
 .country-picker-button .country-locale{margin-left:auto}

@@ -1157,6 +1157,99 @@ function renderUaAnalysis() {
   ].join("");
 }
 
+/* ---------------- Latest Versions board (Phase 5.3.4) ---------------- */
+function compareVersionStrings(a, b) {
+  const pa = String(a).split(".").map(x => parseInt(x, 10) || 0);
+  const pb = String(b).split(".").map(x => parseInt(x, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; }
+  return 0;
+}
+function latestVersionOf(list) { return [...list].sort((x, y) => compareVersionStrings(y, x))[0] || null; }
+
+function versionCards() {
+  const cards = [];
+  const dc = state.desktopCatalog;
+  if (dc?.platforms) {
+    for (const platform of ["windows", "macos"]) {
+      const browsers = dc.platforms[platform]?.browsers || {};
+      for (const [key, entry] of Object.entries(browsers)) {
+        const list = (entry.versions || []).map(v => v.uaVersion).filter(Boolean);
+        if (!list.length) continue;
+        const latest = latestVersionOf(list);
+        const record = (entry.versions || []).find(v => v.uaVersion === latest);
+        cards.push({ group: "Desktop", name: entry.label || key, platform: platform === "windows" ? "Windows" : "macOS", latest,
+          extra: record?.releaseVersion ? `Release ${record.releaseVersion}` : "", release: dc.dataVersion || "—", source: "Desktop catalog", status: "Catalog",
+          action: `data-kind="browser" data-tab="desktop" data-platform="${platform}" data-browser="${esc(key)}" data-version="${esc(latest)}" data-name="${esc(entry.label || key)}"` });
+      }
+    }
+  }
+  const bv = meta().browserVersions || {};
+  const mobileMap = { chromeAndroid: ["chrome", "android", "Chrome"], chromeIos: ["chrome", "ios", "Chrome"], firefoxAndroid: ["firefox", "android", "Firefox"], firefoxIos: ["firefox", "ios", "Firefox"], edgeAndroid: ["edge", "android", "Microsoft Edge"], edgeIos: ["edge", "ios", "Microsoft Edge"], operaAndroid: ["opera", "android", "Opera"], safariIos: ["safari", "ios", "Safari"] };
+  for (const [key, [browser, platform, label]] of Object.entries(mobileMap)) {
+    const list = bv[key];
+    if (!Array.isArray(list) || !list.length) continue;
+    const latest = latestVersionOf(list);
+    cards.push({ group: "Mobile browsers", name: label, platform: platform === "android" ? "Android" : "iOS", latest,
+      extra: `${list.length} versions in catalog`, release: meta().dataVersion || "—", source: "Device catalog", status: "Catalog",
+      action: `data-kind="browser" data-tab="mobile" data-platform="${platform}" data-browser="${browser}" data-version="${esc(latest)}" data-name="${esc(label)}"` });
+  }
+  const groups = new Map();
+  for (const r of templateRecords()) {
+    const key = `${r.app}:${r.platform}`;
+    if (!groups.has(key)) groups.set(key, { app: r.app, platform: r.platform, verified: false });
+    if (r.status === "verified") groups.get(key).verified = true;
+  }
+  for (const g of groups.values()) {
+    const appMeta = apps()[g.app];
+    const version = appMeta?.version || latestVersionOf((appMeta?.versions || []).map(v => v.version));
+    if (!version) continue;
+    cards.push({ group: "Social apps", name: UA_APP_NAMES[g.app] || g.app, platform: g.platform === "ios" ? "iOS" : "Android", latest: version,
+      extra: appMeta?.build ? `Build ${appMeta.build}` : "", release: state.uaTemplates?.dataVersion || "—", source: "UA templates catalog", status: g.verified ? "Verified" : "Candidate",
+      action: `data-kind="app" data-app="${esc(g.app)}" data-name="${esc(UA_APP_NAMES[g.app] || g.app)}"` });
+  }
+  return cards;
+}
+
+function renderVersionsBoard() {
+  const host = $("versionsBoard");
+  if (!host) return;
+  const cards = versionCards();
+  if (!cards.length) { host.innerHTML = '<p class="field-hint">No catalog version data is available right now.</p>'; return; }
+  host.innerHTML = ["Desktop", "Mobile browsers", "Social apps"].map(group => {
+    const rows = cards.filter(c => c.group === group);
+    if (!rows.length) return "";
+    return `<h3 class="versions-group-title">${esc(group)}</h3><div class="versions-grid">${rows.map(c => `<article class="version-card">
+      <div class="version-card-head"><strong>${esc(c.name)}</strong><span class="version-status ${c.status === "Verified" ? "ready" : c.status === "Candidate" ? "candidate" : ""}">${esc(c.status)}</span></div>
+      <div class="version-card-latest">${esc(c.latest)}</div>
+      <p class="version-card-meta">${esc(c.platform)}${c.extra ? ` · ${esc(c.extra)}` : ""}<br>Catalog ${esc(c.release)} · ${esc(c.source)}</p>
+      <button class="button ghost version-generate" type="button" data-version-generate ${c.action}>Generate with this version</button>
+    </article>`).join("")}</div>`;
+  }).join("");
+}
+
+function handleVersionAction(event) {
+  const button = event.target.closest("[data-version-generate]");
+  if (!button) return;
+  if (button.dataset.kind === "browser") {
+    setGeneratorTab(button.dataset.tab);
+    const platform = button.dataset.platform, browser = button.dataset.browser;
+    const checkbox = document.querySelector(`[data-browser="${browser}"][data-platform="${platform}"]`);
+    if (checkbox && !checkbox.checked) { checkbox.checked = true; checkbox.dispatchEvent(new Event("change", { bubbles: true })); }
+    const input = $(browserVersionInputId(platform, browser));
+    if (input) { input.value = button.dataset.version; input.dataset.manual = "1"; input.dispatchEvent(new Event("change", { bubbles: true })); }
+    renderVersionChips();
+    go("generator");
+    showToast(`${button.dataset.name} ${button.dataset.version} selected in the generator.`);
+  } else if (button.dataset.kind === "app") {
+    setGeneratorTab("social");
+    const box = document.querySelector(`[data-app-template="${button.dataset.app}"]`);
+    if (box && !box.checked && !box.disabled) { box.checked = true; box.dispatchEvent(new Event("change", { bubbles: true })); }
+    go("generator");
+    showToast(box?.disabled ? `${button.dataset.name} is not available for generation yet.` : `${button.dataset.name} selected in the generator.`);
+  }
+}
+$("view-versions")?.addEventListener("click", handleVersionAction);
+
 // Phase 5.3.3 — UA Track. A history manager over the EXISTING saved-batch
 // store (localStorage key nexora_ua_batches, same {id, name, records,
 // savedAt} shape). No second storage model, no migration, no auto-history:
@@ -1373,6 +1466,7 @@ function go(view) {
   $("sidebar").classList.remove("open");
   if (view === "automation" && state.isAdmin) loadAutomation();
   if (view === "track") renderTrack();
+  if (view === "versions") renderVersionsBoard();
   if (view === "review" && state.isAdmin) loadReview();
   if (view === "audit" && state.isAdmin) loadAudit();
   if (view === "overview" && state.isAdmin) refreshAdminViews();
