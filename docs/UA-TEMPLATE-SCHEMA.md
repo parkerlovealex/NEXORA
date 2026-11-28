@@ -94,3 +94,12 @@ consistency, JSON Schema validation of `ua_templates.json` with a real
 Draft 2020-12 validator (the `jsonschema` package — if it is missing, the
 check fails loudly rather than skipping), and the semantic rules in
 `tools/validate_ua_templates.py`.
+
+## Optional engine metadata (Phase 4.3a, release 2026.11.28.3)
+
+A record MAY carry `engine: { family, major, basis: "evidence", evidenceRefs }`. The field
+is evidence-backed only: `evidenceRefs` must cite `source_id`s of evidence entries in the
+same record that themselves document the engine/WebView version. It must NEVER be derived
+from the Chrome token inside a UA string. Absence of the field is valid and means engine
+compatibility is **unknown** (not "differs") — the verified Facebook Android record ships
+without it for exactly this reason. Full contract: `docs/ENGINE-COMPATIBILITY.md`.
