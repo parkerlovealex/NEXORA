@@ -979,6 +979,17 @@ def export_audit(db: Session = Depends(get_db), actor: str = Depends(require_adm
     rows = db.scalars(select(AuditLog).order_by(AuditLog.id.desc()).limit(1000)).all()
     return [{"id": r.id, "actor": r.actor, "action": r.action, "target": r.target, "details": r.details, "createdAt": r.created_at.isoformat()} for r in rows]
 
+# B04: the one-process deployment must serve the admin entry URL — the
+# frontend reveals its sign-in chip only on /admin (or with a session).
+from fastapi.responses import FileResponse
+
+
+@app.get("/admin")
+@app.get("/admin/")
+def admin_entry():
+    return FileResponse(ROOT / "web" / "index.html")
+
+
 # Serve the public frontend from the same origin for simple local deployments.
 # On Vercel, deploy /web separately and point NEXORA_CONFIG.apiBase at this API.
 from fastapi.staticfiles import StaticFiles
