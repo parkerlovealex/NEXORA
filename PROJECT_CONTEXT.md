@@ -596,3 +596,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A41 proxy URI credential decoding (2026-11-28, Muse takeover)
 
 **A41:** proxy URI import no longer form-decodes credentials — a literal '+' survives as a plus; %XX escapes still decode. Proof: new JVM unit tests fail pre-fix / pass post-fix (BulkInputParsersTest, 5 tests, run directly in the takeover environment); Python suite 123 passed / 0 failed. Full-app compile re-verified at the Wave 6 build.
+
+## Alpha30 Wave 5 — A47 startup-URL test fixture (2026-11-28, Muse takeover)
+
+**A47:** the startup-URL parser test fixture supplied literal backslash-n characters instead of newlines; it now tests real multiline input. Proof: ProfileEditorValidatorTest run directly in the takeover environment — 1 failure before, OK (14 tests) after. No production code changed; Python suite 123 passed / 0 failed.
