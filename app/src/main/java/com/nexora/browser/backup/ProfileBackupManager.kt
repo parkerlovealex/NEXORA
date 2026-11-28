@@ -106,12 +106,26 @@ object ProfileBackupManager {
         val toAdd = backup.profiles.filterNot { it.id in existingIds }
         val usedWebViewKeys = existingProfiles.map { it.webViewProfileKey }.toMutableSet()
         var profileIdsRemapped = 0
-        val safeProfiles = toAdd.map { profile ->
+        val safeProfiles = toAdd.mapNotNull { profile ->
             var safeId = profile.id
             if ("nx_${safeId.take(8)}" in usedWebViewKeys) {
-                do {
-                    safeId = UUID.randomUUID().toString()
-                } while ("nx_${safeId.take(8)}" in usedWebViewKeys)
+                // A37: derive the replacement ID deterministically from
+                // the original ID. A random ID made every retry of the
+                // same restore add another copy, because the backup's
+                // original ID never matched the restored profile. With
+                // a derived ID, a retry recognises its own earlier
+                // restore and skips the profile.
+                safeId = UUID.nameUUIDFromBytes(
+                    "nexora-restore:${profile.id}".toByteArray(Charsets.UTF_8)
+                ).toString()
+                if (safeId in existingIds) return@mapNotNull null
+                if ("nx_${safeId.take(8)}" in usedWebViewKeys) {
+                    // The derived key also collides with an unrelated
+                    // profile; only then fall back to a random ID.
+                    do {
+                        safeId = UUID.randomUUID().toString()
+                    } while ("nx_${safeId.take(8)}" in usedWebViewKeys || safeId in existingIds)
+                }
                 profileIdsRemapped++
             }
             usedWebViewKeys += "nx_${safeId.take(8)}"
