@@ -74,9 +74,18 @@ object DeviceDataUpdater {
         if (normalizedBase.isBlank()) return Result.NOT_CONFIGURED
 
         val prefs = context.getSharedPreferences(NexoraApp.PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(NexoraApp.KEY_CATALOG_API_BASE, normalizedBase)
-            .putLong(NexoraApp.KEY_DATA_LAST_CHECK, System.currentTimeMillis()).apply()
+        prefs.edit().putString(NexoraApp.KEY_CATALOG_API_BASE, normalizedBase).apply()
 
+        val result = performCheck(context, normalizedBase)
+        // A35: only a completed check consumes the auto-check interval. A
+        // failed fetch must not delay the next automatic retry by 24 hours.
+        if (result != Result.OFFLINE_OR_ERROR) {
+            prefs.edit().putLong(NexoraApp.KEY_DATA_LAST_CHECK, System.currentTimeMillis()).apply()
+        }
+        return result
+    }
+
+    private fun performCheck(context: Context, normalizedBase: String): Result {
         val active = activeDataText(context) ?: DeviceDb.readBundledText(context) ?: return Result.INVALID_DATA
         val (result, payload) = fetchUpdate(normalizedBase, active, DeviceDb.readBundledText(context, "ua_templates.json"), ::download)
         if (payload == null) return result
