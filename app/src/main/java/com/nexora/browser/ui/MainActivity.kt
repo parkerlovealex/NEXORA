@@ -37,6 +37,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: ProfileAdapter
     private var presets: List<DevicePreset> = emptyList()
     private var allProfiles: List<BrowserProfile> = emptyList()
+    // A38: the profiles currently visible under the active filter —
+    // Select All must act on these, not on the full list.
+    private var visibleProfiles: List<BrowserProfile> = emptyList()
     private var uiReady = false
     private var filterMode = FILTER_ALL
     private var selectionMode = false
@@ -110,7 +113,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnSelectAll.setOnClickListener {
-            adapter.selectAll(allProfiles.map { it.id })
+            adapter.selectAll(visibleProfiles.map { it.id })
         }
         binding.btnDeselectAll.setOnClickListener {
             adapter.clearSelection()
@@ -313,6 +316,7 @@ class MainActivity : AppCompatActivity() {
                     p.proxyHost.lowercase().contains(q)
             }
         }
+        visibleProfiles = filtered
         adapter.submit(filtered)
         binding.emptyText.text = if (allProfiles.isEmpty()) {
             getString(R.string.empty_profiles)
