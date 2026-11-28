@@ -39,7 +39,7 @@ try:
     load_dotenv(ROOT / ".env")
 except ImportError:
     pass
-DEFAULT_DATA = ROOT / "app" / "src" / "main" / "assets" / "devices.json"
+DEFAULT_DATA = ROOT / "web" / "devices.json"
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{ROOT / 'nexora-dev.db'}")
 CONNECT_ARGS = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=CONNECT_ARGS, pool_pre_ping=True)
@@ -183,19 +183,48 @@ def read_seed() -> dict:
     if not path.exists():
         path = ROOT / "web" / "devices.json"
     with path.open(encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if not data.get("meta", {}).get("browserVersions"):
+        raise RuntimeError(
+            f"Seed catalog {path} (dataVersion {data.get('meta', {}).get('dataVersion')}) "
+            "has no browser-version defaults; refusing to seed, because the "
+            "generator would silently produce zero rows."
+        )
+    return data
 
 
 def seed_database(db: Session) -> None:
+    data = read_seed()
+    seed_version = data.get("meta", {}).get("dataVersion")
+    meta_row = db.get(MetaRecord, 1)
+    stored_version = (meta_row.payload or {}).get("dataVersion") if meta_row else None
     if not db.scalar(select(func.count()).select_from(Device)):
-        data = read_seed()
         for platform in ("android", "ios_emulation"):
             for row in data.get(platform, []):
                 db.add(Device(id=row["id"], platform=platform, brand=row.get("brand", "Unknown"), model=row.get("model", row["id"]), record=row, source_status="legacy"))
-    else:
-        data = read_seed()
-    if db.get(MetaRecord, 1) is None:
+    elif seed_version != stored_version:
+        # A34: a redeploy refreshes the catalog it seeded earlier. Only rows
+        # still owned by the seed ("legacy") are updated or removed; rows the
+        # admin or the AI pipeline has claimed keep their own records.
+        seed_ids = set()
+        for platform in ("android", "ios_emulation"):
+            for row in data.get(platform, []):
+                seed_ids.add(row["id"])
+                existing = db.get(Device, row["id"])
+                if existing is None:
+                    db.add(Device(id=row["id"], platform=platform, brand=row.get("brand", "Unknown"), model=row.get("model", row["id"]), record=row, source_status="legacy"))
+                elif existing.source_status == "legacy":
+                    existing.platform = platform
+                    existing.brand = row.get("brand", "Unknown")
+                    existing.model = row.get("model", row["id"])
+                    existing.record = row
+        for stale in db.scalars(select(Device).where(Device.source_status == "legacy")).all():
+            if stale.id not in seed_ids:
+                db.delete(stale)
+    if meta_row is None:
         db.add(MetaRecord(id=1, payload=data.get("meta", {})))
+    elif seed_version != stored_version:
+        meta_row.payload = data.get("meta", {})
     if not db.scalar(select(func.count()).select_from(Source)):
         sources = [
             ("chrome-version-history", "Chrome Version History API", "browser", "https://versionhistory.googleapis.com/v1/chrome/platforms/android/channels/stable/versions?pageSize=1", True),
