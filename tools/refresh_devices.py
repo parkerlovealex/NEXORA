@@ -30,6 +30,7 @@ else:
     from catalog_evidence import checked_device_quotes
 
 DEVICES = "app/src/main/assets/devices.json"
+WEB_DEVICES = "web/devices.json"
 SUMMARY = "refresh-summary.md"
 HISTORY_DIR = "data/history"
 HISTORY_INDEX = "data/history/index.json"
@@ -196,11 +197,23 @@ def ai_normalize(raw_text, source_url=None):
     return rows
 
 
+def device_count(data):
+    return sum(len(data.get(s, [])) for s in ("android", "ios_emulation"))
+
+
 def main():
     changes = []
-    with open(DEVICES, encoding="utf-8") as f:
+    # C03: the website catalog is canonical — it carries the full published
+    # data and the bundled Android asset is a synced copy of it. Loading
+    # the asset as the base (as this script used to) let a refresh write
+    # the asset-based object over the richer website file.
+    with open(WEB_DEVICES, encoding="utf-8") as f:
         data = json.load(f)
     meta = data.setdefault("meta", {})
+    bundled_count = None
+    if os.path.exists(DEVICES):
+        with open(DEVICES, encoding="utf-8") as f:
+            bundled_count = device_count(json.load(f))
 
     # 1. Chrome version
     try:
@@ -228,6 +241,13 @@ def main():
 
     # 3. Version bump + write
     if changes:
+        # C03 guard: never let a refresh shrink the catalog below what the
+        # bundled asset currently carries — that means the two copies have
+        # diverged and a human must reconcile them first.
+        if bundled_count is not None and device_count(data) < bundled_count:
+            print(f"ERROR: refreshed catalog has {device_count(data)} devices but the bundled "
+                  f"asset has {bundled_count}; the copies have diverged. Aborting without writing.")
+            return 1
         today = date.today().isoformat()
         dv = str(meta.get("dataVersion", ""))
         m = re.fullmatch(r"(\d{4})\.(\d{2})\.(\d{2})\.(\d+)", dv)
@@ -237,10 +257,10 @@ def main():
             new_dv = today.replace("-", ".") + ".1"
         meta["dataVersion"] = new_dv
         meta["updatedAt"] = today
-        with open(DEVICES, "w", encoding="utf-8") as f:
+        with open(WEB_DEVICES, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=1, ensure_ascii=False)
-        # Keep the website's bundled fallback copy in sync (same file, two readers).
-        with open("web/devices.json", "w", encoding="utf-8") as f:
+        # Keep the app's bundled copy in sync (same file, two readers).
+        with open(DEVICES, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=1, ensure_ascii=False)
         print("Changes:", *changes, sep="\n - ")
     else:
