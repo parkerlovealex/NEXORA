@@ -449,12 +449,17 @@ async function boot() {
   const { data, live } = await fetchData(state.live);
   DB = data;
   const v = (DB.meta && DB.meta.versions) || {};
+  // C15: the built-in Chrome fallback must never hide behind the
+  // "Live database" label — when the fetched catalog carries no Chrome
+  // version, the status line says the fallback is in use.
+  const chromeFromDb = Boolean(v.chrome);
   document.getElementById("chrome").value = v.chrome || FALLBACK_CHROME;
   document.getElementById("metaLine").textContent =
     "Data version " + ((DB.meta && DB.meta.dataVersion) || "?") +
     " · Updated " + ((DB.meta && DB.meta.updatedAt) || "?") +
     " · " + devices().length + " devices · " +
     (live ? "Live database" : "Bundled copy") +
+    (chromeFromDb ? "" : " · Chrome version not in database — built-in fallback in use") +
     " · Same devices.json the NEXORA app uses";
   syncDeviceSelect();
   syncAppVersion();
