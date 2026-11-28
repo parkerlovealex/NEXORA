@@ -600,3 +600,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A47 startup-URL test fixture (2026-11-28, Muse takeover)
 
 **A47:** the startup-URL parser test fixture supplied literal backslash-n characters instead of newlines; it now tests real multiline input. Proof: ProfileEditorValidatorTest run directly in the takeover environment — 1 failure before, OK (14 tests) after. No production code changed; Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A38 Select All respects the filter (2026-11-28, Muse takeover)
+
+**A38:** dashboard Select All now selects only the profiles visible under the active filter, so bulk actions cannot include hidden profiles. Proof: code trace; full-app compile verified at the Wave 6 build; the filter + Select All count check is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
