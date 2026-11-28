@@ -543,6 +543,71 @@ function updatePlatformCards() {
     block.classList.toggle("hidden", !show);
   });
 }
+function setGeneratorTab(tab) {
+  state.generatorTab = tab;
+  state.socialOnly = tab === "social";
+  document.querySelectorAll("[data-generator-tab]").forEach(button => {
+    const on = button.dataset.generatorTab === tab;
+    button.classList.toggle("active", on);
+    button.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  $("uaGenerator")?.classList.toggle("tab-social", tab === "social");
+  if (tab === "desktop") {
+    if (["android", "ios", "mixed", "all"].includes(state.platformMode)) setPlatformMode("desktop");
+  } else {
+    if (["windows", "macos", "desktop", "all"].includes(state.platformMode)) setPlatformMode("mixed");
+    if (tab === "social") {
+      const apps = $("uaIncludeApps");
+      if (apps && !apps.checked) {
+        apps.checked = true;
+        apps.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  }
+  updatePlatformCards();
+  playUiSound("tap");
+}
+
+const CHIP_VERSION_KEYS = {
+  android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid" },
+  ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" }
+};
+function chipVersionsFor(platform, browser) {
+  if (platform === "windows" || platform === "macos") {
+    return desktopBrowserEntries(platform, browser).map(entry => entry.uaVersion).filter(Boolean);
+  }
+  const key = CHIP_VERSION_KEYS[platform]?.[browser];
+  return key ? [...(meta().browserVersions?.[key] || [])] : [];
+}
+function renderVersionChips() {
+  const host = $("uaVersionChips");
+  if (!host) return;
+  const labels = { chrome: "Chrome", firefox: "Firefox", edge: "Edge", opera: "Opera", safari: "Safari", webview: "WebView" };
+  const platformLabels = { windows: "Windows", macos: "macOS", android: "Android", ios: "iOS" };
+  const rows = [];
+  for (const platform of ["windows", "macos", "android", "ios"]) {
+    for (const browser of getSelectedBrowsers(platform)) {
+      if (browser === "webview") continue;
+      const versions = [...new Set(chipVersionsFor(platform, browser))].slice(0, 10);
+      if (!versions.length) continue;
+      const inputId = browserVersionInputId(platform, browser);
+      const current = ($(inputId)?.value || "").trim();
+      const chip = (version, text) => `<button type="button" class="version-chip${current === version ? " active" : ""}" data-version-chip data-input="${esc(inputId)}" data-version="${esc(version)}">${esc(text)}</button>`;
+      rows.push(`<div class="version-chip-row"><span class="version-chip-label">${esc(labels[browser] || browser)} · ${esc(platformLabels[platform])}</span><span class="version-chip-set">${chip("", "Latest")}${versions.map(v => chip(v, v)).join("")}</span></div>`);
+    }
+  }
+  host.innerHTML = rows.length ? rows.join("") : '<p class="field-hint">Select a browser above to pin a version.</p>';
+}
+function applyVersionChip(chip) {
+  const input = $(chip.dataset.input);
+  if (!input) return;
+  const version = chip.dataset.version || "";
+  input.value = version;
+  if (version) input.dataset.manual = "1"; else delete input.dataset.manual;
+  renderVersionChips();
+  playUiSound("tap");
+}
+
 function setPlatformMode(mode) {
   const old = state.platformMode;
   const qty = currentPlatformQuantities();
@@ -806,8 +871,8 @@ function generateUaBatch() {
     const isDesktop = platform === "windows" || platform === "macos";
     const platformLabel = platform === "android" ? "Android" : platform === "ios" ? "iOS" : platform === "windows" ? "Windows" : "macOS";
     const selectedBrowsers = getSelectedBrowsers(platform);
-    const browsers = selectedBrowsers.filter(b => browserUsable(platform, b));
-    const skippedBrowsers = selectedBrowsers.filter(b => !browserUsable(platform, b));
+    const browsers = state.socialOnly ? [] : selectedBrowsers.filter(b => browserUsable(platform, b));
+    const skippedBrowsers = state.socialOnly ? [] : selectedBrowsers.filter(b => !browserUsable(platform, b));
     const selectedAppIds = !isDesktop && $("uaIncludeApps").checked
       ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform))
       : [];
@@ -994,7 +1059,7 @@ function playUiSound(kind = "tap") {
   } catch {}
 }
 
-function renderGeneratorFilters() { setupUaGenerator(); }
+function renderGeneratorFilters() { setupUaGenerator(); renderVersionChips(); }
 
 function makeDataset() { return generateUaBatch(); }
 
@@ -1268,10 +1333,12 @@ function bindEvents() {
       if (t.id === "uaDeviceSearch") renderUaDevicePicker();
       if (t.id === "uaAppSearch") renderUaApps();
       if (t.id === "uaChromeVersion" || t.id === "uaChromiumEngineVersion") t.dataset.manual = "1";
+      if (t.id && t.id.startsWith("ua") && t.id.endsWith("Version")) renderVersionChips();
       if (t.hasAttribute("data-custom-qty")) state.customQuantities[t.dataset.customQty] = Math.max(0, Math.min(500, Number(t.value) || 0));
     });
     uaRoot.addEventListener("change", event => {
       const t = event.target;
+      if (t.hasAttribute?.("data-browser")) renderVersionChips();
       if (t.name === "uaDistribution") {
         if (t.value === "custom") {
           for (const platform of ["android","ios"]) for (const id of state.selectedDevices[platform]) {
@@ -1298,6 +1365,10 @@ function bindEvents() {
       if (t.id === "uaSound") playUiSound("tap");
     });
     uaRoot.addEventListener("click", event => {
+      const genTab = event.target.closest("[data-generator-tab]");
+      if (genTab) { setGeneratorTab(genTab.dataset.generatorTab); return; }
+      const versionChip = event.target.closest("[data-version-chip]");
+      if (versionChip) { applyVersionChip(versionChip); return; }
       const platformButton = event.target.closest("[data-platform-mode]");
       if (platformButton) { setPlatformMode(platformButton.dataset.platformMode); return; }
       const preset = event.target.closest("[data-batch-preset]");

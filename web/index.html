@@ -116,6 +116,11 @@
 
       <section class="view active" id="view-generator">
         <div class="ua-workspace" id="uaGenerator">
+          <div class="ua-tabs" role="tablist" aria-label="Generator type">
+            <button type="button" class="ua-tab" data-generator-tab="desktop" role="tab" aria-selected="false">Desktop</button>
+            <button type="button" class="ua-tab active" data-generator-tab="mobile" role="tab" aria-selected="true">Mobile</button>
+            <button type="button" class="ua-tab" data-generator-tab="social" role="tab" aria-selected="false">Social</button>
+          </div>
           <div class="ua-config-column">
             <section class="ua-card">
               <div class="ua-section-head">
@@ -236,6 +241,10 @@
                   <label class="browser-choice"><input type="checkbox" data-browser="opera" data-platform="macos"><span class="browser-logo"><img src="https://cdn.simpleicons.org/opera/FF1B2D" alt="Opera"></span><span><b>Opera</b><small>Stable · 5 releases</small></span></label>
                   <label class="browser-choice"><input type="checkbox" data-browser="safari" data-platform="macos" checked><span class="browser-logo"><img src="https://cdn.simpleicons.org/safari/0A84FF" alt="Safari"></span><span><b>Safari</b><small>Stable · 5 releases</small></span></label>
                 </div>
+              </div>
+              <div class="version-chips-block">
+                <div class="version-chips-head"><strong>Version chips</strong><small>Tap a version to pin it for that browser. Latest uses the catalog default.</small></div>
+                <div id="uaVersionChips" class="version-chips"></div>
               </div>
               <label class="include-apps-toggle" id="uaIncludeAppsToggle"><span class="include-apps-copy"><strong>Include in-app User-Agents</strong><small>Facebook, Instagram and other app formats</small></span><input id="uaIncludeApps" type="checkbox"><i></i></label>
               <div class="in-app-panel hidden" id="uaInAppPanel">
