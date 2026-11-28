@@ -532,3 +532,7 @@ Wave 4 opened with the two website findings that need no owner decision. **B05:*
 ## Alpha30 Wave 5 — C03 refresh canonical (2026-11-28, Muse takeover)
 
 Wave 5 opened with C03 (High): the weekly refresh script now loads the website catalog as the canonical base and writes the bundled Android asset as its synced copy, instead of loading the asset and overwriting the website file with it. A guard aborts the run without writing when the refreshed catalog would hold fewer devices than the bundled copy (diverged copies need a human). Proof: `tests/test_refresh_canonical.py` fails pre-fix, passes post-fix; the AI-refresh tests were repointed at the web-canonical fixture and still pass; Python suite 101 passed / 0 failed.
+
+## Alpha30 Wave 5 — C12 strict counts (2026-11-28, Muse takeover)
+
+**C12:** the specs validator's strict mode no longer double-counts — warnings promoted to STRICT errors are reported once, as errors (published catalog strict: 110 errors / 0 warnings, was 110/110). Proof: `tests/test_specs_strict_counts.py` fails pre-fix, passes post-fix; Python suite 103 passed / 0 failed.
