@@ -117,6 +117,46 @@ class PublishedUserAgentTemplatesTest {
         assertTrue(rejected { row -> row.put("status", "candidate") })
     }
 
+    @Test fun engineMetadataParsesAndFailsClosed() {
+        // The published record carries no engine metadata: nothing is invented.
+        val published = PublishedUserAgentTemplates.read(templates, slotContext).single()
+        assertEquals(null, published.engineFamily)
+        assertEquals(null, published.engineMajor)
+        assertEquals(null, published.engineBasis)
+        assertTrue(published.engineEvidenceRefs.isEmpty())
+
+        // A well-formed engine object citing a real evidence source is preserved.
+        val withEngine = JSONObject(templates)
+        val record = verified(withEngine)
+        val firstSource = record.getJSONArray("evidence").getJSONObject(0).getString("source_id")
+        record.put("engine", JSONObject()
+            .put("family", "chromium").put("major", 158).put("basis", "evidence")
+            .put("evidenceRefs", org.json.JSONArray().put(firstSource)))
+        val parsed = PublishedUserAgentTemplates.read(withEngine.toString(), slotContext).single()
+        assertEquals("chromium", parsed.engineFamily)
+        assertEquals(158, parsed.engineMajor)
+        assertEquals("evidence", parsed.engineBasis)
+        assertEquals(listOf(firstSource), parsed.engineEvidenceRefs)
+
+        // Malformed engine metadata fails closed: the record still loads, with
+        // no engine fields — compatibility stays unknown, never compatible.
+        val malformed = JSONObject(templates)
+        verified(malformed).put("engine", JSONObject()
+            .put("family", "blink").put("major", 158).put("basis", "evidence")
+            .put("evidenceRefs", org.json.JSONArray().put(firstSource)))
+        val closed = PublishedUserAgentTemplates.read(malformed.toString(), slotContext).single()
+        assertEquals(null, closed.engineFamily)
+        assertEquals(null, closed.engineMajor)
+
+        // Engine metadata citing an unknown source also fails closed.
+        val badRef = JSONObject(templates)
+        verified(badRef).put("engine", JSONObject()
+            .put("family", "chromium").put("major", 158).put("basis", "evidence")
+            .put("evidenceRefs", org.json.JSONArray().put("no-such-source")))
+        val unreferenced = PublishedUserAgentTemplates.read(badRef.toString(), slotContext).single()
+        assertEquals(null, unreferenced.engineFamily)
+    }
+
     @Test fun bundledAssetsMatchTheCanonicalSources() {
         val webTemplates = file("../web/ua_templates.json", "web/ua_templates.json")
         assertEquals(webTemplates, templates)
