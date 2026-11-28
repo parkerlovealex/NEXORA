@@ -216,16 +216,25 @@ def main():
             bundled_count = device_count(json.load(f))
 
     # 1. Chrome version
+    # A27: a failed fetch must fail the run, and a missing current value
+    # must be filled — previously the step printed a warning (or claimed
+    # "already current" for an empty value) and the job finished green
+    # without collecting the version it exists to collect.
+    chrome_failed = False
     try:
         latest = fetch_json(CHROME_API)["versions"][0]["version"]
         current = (meta.get("versions") or {}).get("chrome")
-        if current and ver_key(latest) > ver_key(current):
+        if not current:
+            meta.setdefault("versions", {})["chrome"] = latest
+            changes.append(f"Chrome version set to {latest} (was missing)")
+        elif ver_key(latest) > ver_key(current):
             meta.setdefault("versions", {})["chrome"] = latest
             changes.append(f"Chrome version {current} -> {latest}")
         else:
             print(f"Chrome already current ({current})")
     except Exception as e:  # noqa: BLE001
-        print(f"WARN: Chrome version fetch failed: {e}")
+        chrome_failed = True
+        print(f"ERROR: Chrome version fetch failed: {e}")
 
     # 2. AI-normalized new devices
     if "--ai-input" in sys.argv:
@@ -280,7 +289,9 @@ def main():
             f.write("No data changes this run.\n")
         if archived:
             f.write("\n" + "\n".join(f"- {a}" for a in archived) + "\n")
-    return 0
+        if chrome_failed:
+            f.write("\nChrome version check FAILED this run; see the workflow log.\n")
+    return 1 if chrome_failed else 0
 
 
 if __name__ == "__main__":
