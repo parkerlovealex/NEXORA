@@ -632,3 +632,9 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A39 proxy import accounts for every row (2026-11-28, Muse takeover)
 
 **A39:** proxy import results now count capacity and encryption skips alongside added and duplicates, and both import summaries show the skipped count. Proof: code trace; full-app compile verified at the Wave 6 build. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — B07 one-record copy in the generator (2026-11-28, Muse takeover)
+
+**B07:** the Android User-Agent generator now offers a copy action for each individual previewed record, not only whole-batch copies. Proof: code trace; full-app compile verified at the Wave 6 build; generator screen is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
+
+**A42 note:** re-verified against the restored Alpha29 source — the About/Settings text already names version 0.4.0-alpha29 and the authenticated loopback relay, matching the build. The stale text Codex audited came from the half-uploaded repo state; the register's UPLOAD ARTIFACT disposition stands and no code change is needed. The Wave 6 version bump must also update the version named in `about_text`.
