@@ -35,7 +35,7 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 MANIFEST_NAME = "catalog-manifest.json"
 
 # Bump by one for every new catalog release; see docs/CATALOG-VERSIONING.md.
-RELEASE_SEQUENCE = 2
+RELEASE_SEQUENCE = 3
 
 # artifact key -> (file name, dataVersion getter, schemaVersion getter, release-id getter)
 def _devices(doc):

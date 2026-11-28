@@ -239,6 +239,23 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
                 elif status == "verified":
                     errors.append(f"{ep} app version/build pair is absent from devices.meta.apps.{app}")
 
+        # Optional engine metadata (Phase 4.3a): when present, every cited
+        # evidence reference must resolve to a source_id in the same record.
+        # Absence is valid and means engine compatibility is unknown — the
+        # validator never invents engine data.
+        engine = row.get("engine")
+        if engine is not None:
+            if not isinstance(engine, dict):
+                errors.append(f"{prefix} engine must be an object when present")
+            else:
+                refs = engine.get("evidenceRefs")
+                if not isinstance(refs, list) or not refs:
+                    errors.append(f"{prefix} engine.evidenceRefs must be a non-empty array")
+                else:
+                    for ref in refs:
+                        if ref not in source_ids:
+                            errors.append(f"{prefix} engine.evidenceRefs cites unknown source_id {ref!r}")
+
         if status == "verified" and row.get("unresolved_slots"):
             errors.append(f"{prefix} verified record must not carry unresolved_slots")
         if status == "verified":
