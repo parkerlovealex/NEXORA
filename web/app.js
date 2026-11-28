@@ -1027,7 +1027,7 @@ function renderUaResultsView() {
 // Phase 5.3.1 — UA Analyser. A pure parser: it reports what a UA string
 // CLAIMS (browser, engine, OS, device, app markers). It never proves the
 // engine actually installed on a device.
-const UA_KNOWN_TOKENS = new Set(["Mozilla", "AppleWebKit", "Chrome", "Chromium", "Safari", "Version", "Firefox", "Edg", "EdgA", "EdgiOS", "OPR", "Opera", "SamsungBrowser", "CriOS", "FxiOS", "Mobile", "Gecko", "FB_IAB", "FBAV", "FBDV", "FBSV", "FBMD", "FBBV", "FBLC", "FBOP", "FBCR", "IABMV", "Instagram", "Line", "MicroMessenger", "QQBrowser", "UCBrowser", "YaBrowser", "DuckDuckGo", "Vivaldi", "Brave"]);
+const UA_KNOWN_TOKENS = new Set(["Mozilla", "AppleWebKit", "Chrome", "Chromium", "Safari", "Version", "Firefox", "Edg", "EdgA", "EdgiOS", "OPR", "Opera", "SamsungBrowser", "CriOS", "FxiOS", "Mobile", "Gecko", "Build", "FB_IAB", "FBAV", "FBDV", "FBSV", "FBMD", "FBBV", "FBLC", "FBOP", "FBCR", "IABMV", "Instagram", "Line", "MicroMessenger", "QQBrowser", "UCBrowser", "YaBrowser", "DuckDuckGo", "Vivaldi", "Brave"]);
 function parseUserAgent(ua) {
   const text = String(ua || "").trim();
   const tokens = [];
@@ -1077,8 +1077,9 @@ function parseUserAgent(ua) {
     else if (seg && seg !== "wv") model = seg.replace(/\s+Build\/.*$/, "");
   }
 
-  const isTablet = /iPad|Tablet/.test(text) || (os?.name === "Android" && !tok("Mobile"));
-  const isMobile = !isTablet && (/iPhone|iPod|Mobile/.test(text) || os?.name === "Android");
+  const hasMobileKeyword = /\bMobile\b/.test(text);
+  const isTablet = /iPad|Tablet/.test(text) || (os?.name === "Android" && !hasMobileKeyword);
+  const isMobile = !isTablet && (/iPhone|iPod/.test(text) || hasMobileKeyword || os?.name === "Android");
   const device = { type: isTablet ? "tablet" : isMobile ? "mobile" : "desktop", model };
 
   const apps = [];
