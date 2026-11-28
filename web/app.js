@@ -127,6 +127,28 @@ function desktopBrowserEntry(platform, browser, uaVersion) {
   return desktopBrowserEntries(platform, browser).find(entry => entry.uaVersion === uaVersion) || null;
 }
 
+// Engine compatibility (Phase 4.3a). The website has no browser engine, so
+// these are metadata lookups only: they report what the catalog knows about a
+// selection's engine, never a runtime verdict. Unknown stays unknown.
+const MOBILE_COMPAT_KEYS = {
+  android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid", webview: "chromeAndroid" },
+  ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" }
+};
+function engineCompatibilityFor(platform, browser, version) {
+  if (!version) return { status: "unknown", reason: "No browser version selected." };
+  if (platform === "windows" || platform === "macos") {
+    const entry = desktopBrowserEntry(platform, browser, version);
+    return entry?.engineCompatibility || { status: "unknown", reason: "No compatibility metadata for this catalog entry." };
+  }
+  const key = MOBILE_COMPAT_KEYS[platform]?.[browser];
+  const compat = key ? (meta().browserVersionCompatibility || {})[key]?.[version] : null;
+  return compat || { status: "unknown", reason: "No compatibility metadata for this catalog version." };
+}
+function templateEngineCompatibility(record) {
+  if (record?.engine) return { status: "known", ...record.engine };
+  return { status: "unknown", reason: "Engine compatibility is not established by the available evidence." };
+}
+
 function updateHealth() {
   const dot = $("healthDot"), topDot = $("topStatusDot");
   if (state.apiOnline) {
