@@ -7,6 +7,7 @@ turn candidate scripts into observed strings, or promote records to verified.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import sys
@@ -75,9 +76,12 @@ def merge_record(old: dict[str, Any] | None, incoming: dict[str, Any]) -> dict[s
     # Verified records cannot be replaced by lower-trust or lower-status input.
     if old and old_status == "verified" and new_status != "verified":
         row["evidence"] = merge_evidence(row.get("evidence", []), incoming.get("evidence", []))
-        row.setdefault("review_notes", []).append(
-            f"Ignored status downgrade from {new_status}; verified record preserved."
-        )
+        # A30: record the refusal once — repeating the same lower-status
+        # input on later runs must not stack duplicate notes.
+        note = f"Ignored status downgrade from {new_status}; verified record preserved."
+        notes = row.setdefault("review_notes", [])
+        if note not in notes:
+            notes.append(note)
         return row
 
     for key, value in incoming.items():
@@ -109,7 +113,9 @@ def build_proposal(
     records_by_id: dict[str, dict[str, Any]] = {}
     for source in ((existing or {}).get("records", []) or []):
         if isinstance(source, dict) and source.get("id"):
-            records_by_id[str(source["id"])] = dict(source)
+            # Deep copy: merges must never mutate the caller's existing
+            # catalog (A30's unchanged comparison depends on it).
+            records_by_id[str(source["id"])] = copy.deepcopy(source)
 
     rejected: list[dict[str, str]] = []
     for index, raw in enumerate(incoming):
@@ -159,16 +165,30 @@ def build_proposal(
         coverage.append({"app": app, "platforms": platform_status})
 
     previous_version = str((existing or {}).get("dataVersion") or "")
-    data_version = bump_version(previous_version, today)
+    sources = findings.get("sources", (existing or {}).get("sources", []))
+    # A30: identical inputs are not a new revision. When nothing
+    # substantive changed — same records, coverage, sources and device
+    # catalog — keep the existing version and date instead of minting
+    # catalog churn that looks like new evidence.
+    unchanged = bool(existing) and records == (existing.get("records") or []) \
+        and coverage == (existing.get("coverage") or []) \
+        and sources == (existing.get("sources") or []) \
+        and devices.get("meta", {}).get("dataVersion") == existing.get("deviceCatalogVersion")
+    if unchanged:
+        data_version = previous_version
+        updated_at = str(existing.get("updatedAt") or today.isoformat())
+    else:
+        data_version = bump_version(previous_version, today)
+        updated_at = today.isoformat()
     proposal = {
         "uaTemplatesSchema": 1,
         "dataVersion": data_version,
-        "updatedAt": today.isoformat(),
+        "updatedAt": updated_at,
         "deviceCatalogVersion": devices.get("meta", {}).get("dataVersion"),
         "sourcePolicy": "Observed strings and candidate source formats remain distinct; collector never promotes status.",
         "coverage": coverage,
         "records": records,
-        "sources": findings.get("sources", (existing or {}).get("sources", [])),
+        "sources": sources,
     }
     counts = Counter(r.get("status", "unknown") for r in records)
     summary = {
