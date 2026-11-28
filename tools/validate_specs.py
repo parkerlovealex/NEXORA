@@ -183,7 +183,11 @@ def main():
         return 2
     errors, warnings = validate(catalog, evidence)
     if args.strict:
+        # C12: promoted warnings are reported once, as errors — keeping
+        # them in the warnings list as well counted every observation
+        # twice (e.g. "110 errors, 110 warnings" for the same 110 items).
         errors.extend(f"STRICT: {w}" for w in warnings)
+        warnings = []
     for err in errors:
         print("ERROR:", err)
     for warning in warnings:
