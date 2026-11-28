@@ -556,3 +556,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — C15 legacy generator Chrome fallback disclosure (2026-11-28, Muse takeover)
 
 **C15:** the legacy generator's status line now discloses when the built-in Chrome fallback is in use ("Chrome version not in database — built-in fallback in use") instead of labelling the source simply "Live database". Proof: `tests/legacy-chrome-fallback.test.js` fails pre-fix, passes post-fix; desktop smoke passes; Python suite 105 passed / 0 failed. Live-site rendering UNVERIFIED.
+
+## Alpha30 Wave 5 — C13 workflow gate honesty (2026-11-28, Muse takeover)
+
+**C13:** in `.github/workflows/nexora-specs-refresh.yml`, the Validate step now fails when the strict specs gate fails (so no draft PR opens from a failing catalog; artifacts still upload), and the collector step reports its own exit code instead of unconditional success (continue-on-error still lets the refresh proceed on the fallback). Consequence: scheduled runs will show red until the proposal's strict errors are resolved. Proof: `tests/test_workflow_gates.py` fails pre-fix, passes post-fix; Python suite 107 passed / 0 failed. GitHub-side branch-rule enforcement remains UNVERIFIED.
