@@ -29,16 +29,20 @@ def resolve_slot_path(path: str, app: str, devices: dict[str, Any]) -> bool:
     """Whitelist resolvable device/app paths; no arbitrary expressions."""
     meta = devices.get("meta", {})
     apps = meta.get("apps", {})
+    entry = apps.get(app)
+    if not isinstance(entry, dict):
+        entry = {}
     if path == f"meta.apps.{app}.version":
-        return isinstance(apps.get(app, {}).get("version"), str)
+        return isinstance(entry.get("version"), str)
     if path == f"meta.apps.{app}.build":
-        return isinstance(apps.get(app, {}).get("build"), (str, int))
+        return isinstance(entry.get("build"), (str, int))
     if path == f"meta.apps.{app}.versions[].version":
-        return any(isinstance(x, dict) and x.get("version") for x in apps.get(app, {}).get("versions", []))
+        return any(isinstance(x, dict) and x.get("version") for x in (entry.get("versions") or []))
     if path == f"meta.apps.{app}.versions[].build":
-        return any(isinstance(x, dict) and x.get("build") for x in apps.get(app, {}).get("versions", []))
+        return any(isinstance(x, dict) and x.get("build") for x in (entry.get("versions") or []))
     if path == "meta.versions.chrome":
-        return isinstance(meta.get("versions", {}).get("chrome"), str)
+        versions = meta.get("versions")
+        return isinstance(versions, dict) and isinstance(versions.get("chrome"), str)
     if not path.startswith("device."):
         return False
     field = path.removeprefix("device.")
@@ -224,8 +228,11 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             ev_version = ev.get("app_version")
             ev_build = ev.get("app_build")
             if ev_version and ev_build and app in apps:
-                pairs = {(str(x.get("version")), str(x.get("build"))) for x in apps[app].get("versions", []) if isinstance(x, dict)}
-                pairs.add((str(apps[app].get("version")), str(apps[app].get("build"))))
+                app_entry = apps.get(app)
+                if not isinstance(app_entry, dict):
+                    app_entry = {}
+                pairs = {(str(x.get("version")), str(x.get("build"))) for x in (app_entry.get("versions") or []) if isinstance(x, dict)}
+                pairs.add((str(app_entry.get("version")), str(app_entry.get("build"))))
                 if (str(ev_version), str(ev_build)) in pairs:
                     has_version_pair = has_version_pair or matches
                 elif status == "verified":
