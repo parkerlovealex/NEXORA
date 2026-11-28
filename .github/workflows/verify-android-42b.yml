@@ -1,0 +1,27 @@
+name: Verify Android (Phase 4.2B)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Unit tests
+        run: gradle testDebugUnitTest --no-daemon
+      - name: Build debug APK
+        run: gradle assembleDebug --no-daemon
