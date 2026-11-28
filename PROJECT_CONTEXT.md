@@ -612,3 +612,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A12 cleanup reports the real outcome (2026-11-28, Muse takeover)
 
 **A12:** the clear-profile-data action now claims success only when cleanup completed, and cookie removal reports failure through its completion callback. Proof: code trace; full-app compile verified at the Wave 6 build; the flow is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A14 + A15 catalog update locking and first-update rollback (2026-11-28, Muse takeover)
+
+**A14:** catalog snapshot mutations (activation, rollback) now run under one lock with unique temp files per operation. **A15:** the first download now retains the bundled catalog as its rollback copy, so rollback works from the first update. Proof: code trace; full-app compile verified at the Wave 6 build; first-update rollback is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
