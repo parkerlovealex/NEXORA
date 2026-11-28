@@ -12,12 +12,14 @@ import java.net.Socket
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Base64
-import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
@@ -79,10 +81,14 @@ class ProxyRelayServer(private val upstream: ProxyRelayConfig) : Closeable {
     private val activeSockets = ConcurrentHashMap.newKeySet<Socket>()
     private val workers = ThreadPoolExecutor(
         2, 32, 30L, TimeUnit.SECONDS,
-        ArrayBlockingQueue(64),
+        SynchronousQueue(),
         { task -> Thread(task, "NEXORA-ProxyRelay-Worker").apply { isDaemon = true } },
         ThreadPoolExecutor.AbortPolicy()
     )
+
+    private val deadlines = ScheduledThreadPoolExecutor(1) { task ->
+        Thread(task, "NEXORA-ProxyRelay-Deadline").apply { isDaemon = true }
+    }.apply { removeOnCancelPolicy = true }
 
     @Volatile private var server: ServerSocket? = null
     @Volatile var localPort: Int = -1
@@ -120,6 +126,7 @@ class ProxyRelayServer(private val upstream: ProxyRelayConfig) : Closeable {
             try {
                 client.soTimeout = SOCKET_TIMEOUT_MS
                 activeSockets.add(client)
+                if (!running.get()) throw IOException("Relay closed")
                 workers.execute { handleClient(client) }
             } catch (_: RejectedExecutionException) {
                 activeSockets.remove(client)
@@ -482,33 +489,49 @@ class ProxyRelayServer(private val upstream: ProxyRelayConfig) : Closeable {
     }
 
     private fun tunnel(client: Socket, upstreamSocket: Socket) {
-        // Long-lived HTTPS/WebSocket tunnels must not inherit the handshake timeout.
-        try { client.soTimeout = 0 } catch (_: Exception) {}
-        try { upstreamSocket.soTimeout = 0 } catch (_: Exception) {}
-        val clientToUpstream = Thread({
-            try {
-                client.getInputStream().copyTo(upstreamSocket.getOutputStream())
-            } catch (_: Exception) {
-                // A closed client side ends this tunnel direction.
-            } finally {
-                try { upstreamSocket.shutdownOutput() } catch (_: Exception) {}
+        val lifetime = RelayTunnelLifetime(System.nanoTime())
+        client.soTimeout = RelayTunnelLifetime.MAX_READ_MS
+        upstreamSocket.soTimeout = RelayTunnelLifetime.MAX_READ_MS
+        val expiry = deadlines.scheduleWithFixedDelay({
+            if (lifetime.expired(System.nanoTime())) {
+                closeQuietly(client)
+                closeQuietly(upstreamSocket)
             }
-        }, "NEXORA-ProxyRelay-Upstream").apply {
-            isDaemon = true
-            start()
-        }
-
+        }, 5, 5, TimeUnit.SECONDS)
         try {
-            upstreamSocket.getInputStream().copyTo(client.getOutputStream())
-            client.getOutputStream().flush()
-        } catch (_: Exception) {
-            // A closed upstream ends this tunnel direction.
-        } finally {
-            try { client.shutdownOutput() } catch (_: Exception) {}
-            try { clientToUpstream.join(1000) } catch (_: InterruptedException) {
-                Thread.currentThread().interrupt()
+            val upload = Thread({
+                try {
+                    copyTunnel(client, upstreamSocket, lifetime)
+                } catch (_: IOException) {
+                    // Closing either socket interrupts pending I/O.
+                } finally {
+                    runCatching { upstreamSocket.shutdownOutput() }
+                }
+            }, "NEXORA-ProxyRelay-Upstream").apply { isDaemon = true; start() }
+            try {
+                copyTunnel(upstreamSocket, client, lifetime)
+            } catch (_: IOException) {
+                // The caller closes the sockets when forwarding ends.
+            } finally {
+                runCatching { client.shutdownOutput() }
+                try { upload.join(1000) } catch (_: InterruptedException) { Thread.currentThread().interrupt() }
             }
+        } finally {
+            expiry.cancel(false)
         }
+    }
+
+    private fun copyTunnel(source: Socket, destination: Socket, lifetime: RelayTunnelLifetime) {
+        val input = source.getInputStream()
+        val output = destination.getOutputStream()
+        val block = ByteArray(DEFAULT_BUFFER_SIZE)
+        while (true) {
+            val count = input.read(block)
+            if (count < 0) break
+            output.write(block, 0, count)
+            lifetime.recordTraffic(System.nanoTime())
+        }
+        output.flush()
     }
 
     private fun readHeaderBlock(input: InputStream): ByteArray? {
@@ -636,6 +659,7 @@ class ProxyRelayServer(private val upstream: ProxyRelayConfig) : Closeable {
         activeSockets.toList().forEach(::closeQuietly)
         activeSockets.clear()
         workers.shutdownNow()
+        deadlines.shutdownNow()
         localPort = -1
     }
 
@@ -655,5 +679,20 @@ class ProxyRelayServer(private val upstream: ProxyRelayConfig) : Closeable {
         private const val SOCKET_TIMEOUT_MS = 30_000
         private const val MAX_HEADER_BYTES = 64 * 1024
         private const val MAX_LINE_BYTES = 8 * 1024
+    }
+}
+
+/** Both directions share an idle deadline. Continuous traffic still has a finite lifetime. */
+internal class RelayTunnelLifetime(private val openedAt: Long) {
+    private val lastTraffic = AtomicLong(openedAt)
+
+    fun recordTraffic(now: Long) { lastTraffic.set(now) }
+
+    fun expired(now: Long): Boolean =
+        now - openedAt >= TimeUnit.MILLISECONDS.toNanos(MAX_READ_MS.toLong()) ||
+            now - lastTraffic.get() >= TimeUnit.MINUTES.toNanos(5)
+
+    companion object {
+        const val MAX_READ_MS = 60 * 60 * 1000
     }
 }
