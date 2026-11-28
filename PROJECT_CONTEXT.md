@@ -604,3 +604,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A38 Select All respects the filter (2026-11-28, Muse takeover)
 
 **A38:** dashboard Select All now selects only the profiles visible under the active filter, so bulk actions cannot include hidden profiles. Proof: code trace; full-app compile verified at the Wave 6 build; the filter + Select All count check is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A11 profile deletion removes metadata (2026-11-28, Muse takeover)
+
+**A11:** deleting a profile now also clears its BrowserDataStore metadata namespaces (v2, v3, legacy) and its content-blocker diagnostics namespace; only the shared WebView store clearing stays gated on multi-profile support. Proof: code trace; full-app compile verified at the Wave 6 build. Python suite 123 passed / 0 failed.
