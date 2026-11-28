@@ -370,6 +370,8 @@ function setupUaGenerator() {
     country.innerHTML = UA_COUNTRIES.map(([code,name]) => `<option value="${esc(code)}">${esc(name)}</option>`).join("");
     country.dataset.ready = "1";
   }
+  renderCountryButton();
+  renderLocaleSummary();
   const chromeVersion = versions().chrome || "";
   if ($("uaChromeVersion") && !$("uaChromeVersion").value) $("uaChromeVersion").value = chromeVersion;
   const browserVersionLists = (meta().browserVersions) || {};
@@ -698,6 +700,44 @@ function localeMeta() {
   return { country: code || null, language, acceptLanguage: `${language},${language.split("-")[0]};q=0.9` };
 }
 
+// Phase 5.3.2 — country picker on top of UA_COUNTRIES + localeMeta().
+// Country choice is METADATA ONLY: it never enters UA construction.
+function countryEntry(code) { return UA_COUNTRIES.find(x => x[0] === (code || "")) || UA_COUNTRIES[0]; }
+function countryFlag(code) { return code && /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...[...code].map(c => 127397 + c.charCodeAt(0))) : ""; }
+function languageName(locale) { try { return new Intl.DisplayNames(["en"], { type: "language" }).of(String(locale || "").split("-")[0]) || locale; } catch { return locale; } }
+function renderLocaleSummary() {
+  const host = $("uaLocaleSummary");
+  if (!host) return;
+  const metaNow = localeMeta();
+  const entry = countryEntry(metaNow.country);
+  host.textContent = metaNow.country
+    ? `${entry[1]} · ${languageName(metaNow.language)} · ${metaNow.language} — metadata only; the UA string is unchanged.`
+    : `Automatic · ${languageName(metaNow.language)} · ${metaNow.language} — metadata only; the UA string is unchanged.`;
+}
+function renderCountryButton() {
+  const button = $("uaCountryButton");
+  if (!button) return;
+  const entry = countryEntry($("uaCountry")?.value || "");
+  button.innerHTML = `<span class="country-flag">${countryFlag(entry[0])}</span><span>${esc(entry[1])}</span><span class="country-locale">${esc(entry[2])}</span>`;
+}
+function renderCountryList(filter = "") {
+  const list = $("uaCountryList");
+  if (!list) return;
+  const q = filter.trim().toLowerCase();
+  const current = $("uaCountry")?.value || "";
+  const rows = UA_COUNTRIES.filter(([code, name, locale]) => !q || name.toLowerCase().includes(q) || code.toLowerCase().includes(q) || locale.toLowerCase().includes(q));
+  list.innerHTML = rows.map(([code, name, locale]) => `<button type="button" class="country-option${code === current ? " selected" : ""}" data-country-code="${esc(code)}" role="option" aria-selected="${code === current}"><span class="country-flag">${countryFlag(code)}</span><span class="country-name">${esc(name)}</span><span class="country-locale">${esc(locale)}</span>${code === current ? '<span class="country-check">✓</span>' : ""}</button>`).join("") || '<div class="device-list-empty">No countries match.</div>';
+}
+function selectCountry(code) {
+  const select = $("uaCountry");
+  if (!select) return;
+  select.value = code;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+  renderCountryButton();
+  renderLocaleSummary();
+  renderCountryList($("uaCountrySearch")?.value || "");
+}
+
 function renderSavedBatches() {
   let batches = [];
   try { batches = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); } catch {}
@@ -1003,6 +1043,7 @@ function renderUaResultsView() {
       ? `App ${esc(r.appVersion || "—")}${r.appBuild ? ` · build ${esc(r.appBuild)}` : ""}`
       : `${esc(r.browserVersion || "Version not recorded")}${r.browserVersionToken && r.browserVersionToken !== r.browserVersion ? ` · UA token ${esc(r.browserVersionToken)}` : ""}`;
     const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
+    const localeLabel = r.country ? `${countryEntry(r.country)[1]} · ${r.language || ""}` : "";
     return `<article class="ua-result-item">
       <div class="ua-result-head">
         ${brandLogo(brandKey(r.brand), r.brand || title, "result-brand-logo")}
@@ -1011,7 +1052,7 @@ function renderUaResultsView() {
       </div>
       <div class="ua-result-meta">${brandLogo(iconKey, title, "result-sub-logo")}<span><b>${esc(title)}</b> · ${versionLine}</span></div>
       <pre class="ua-result-string">${esc(r.userAgent)}</pre>
-      <div class="ua-result-foot"><span>${esc(r.modelIdentifier || r.osFamily || "")}</span><span>${esc(sourceLabel)}</span></div>
+      <div class="ua-result-foot"><span>${esc(r.modelIdentifier || r.osFamily || "")}${localeLabel ? ` · ${esc(localeLabel)}` : ""}</span><span>${esc(sourceLabel)}</span></div>
     </article>`;
   }).join("") || '<div class="device-list-empty">No results match this filter.</div>';
   if (filtered.length > visible.length) {
@@ -1524,6 +1565,21 @@ function bindEvents() {
     finally { button.innerHTML = original; button.classList.remove("is-loading"); updateUaTotals(); }
   });
   $("downloadDataset")?.addEventListener("click", exportDataset);
+  $("uaCountryButton")?.addEventListener("click", () => {
+    const panel = $("uaCountryPanel");
+    const open = panel.classList.toggle("hidden") === false;
+    $("uaCountryButton").setAttribute("aria-expanded", String(open));
+    if (open) { renderCountryList($("uaCountrySearch")?.value || ""); $("uaCountrySearch")?.focus(); }
+  });
+  $("uaCountrySearch")?.addEventListener("input", event => renderCountryList(event.target.value));
+  $("uaCountryList")?.addEventListener("click", event => {
+    const option = event.target.closest("[data-country-code]");
+    if (!option) return;
+    selectCountry(option.dataset.countryCode);
+    $("uaCountryPanel").classList.add("hidden");
+    $("uaCountryButton").setAttribute("aria-expanded", "false");
+  });
+  $("uaLanguage")?.addEventListener("change", renderLocaleSummary);
   $("copyDataset")?.addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(state.dataset.map(x => x.userAgent).join("\n")); showToast("All User-Agents copied."); playUiSound("success"); }
     catch { showToast("Clipboard access is unavailable in this browser.", "error"); }
