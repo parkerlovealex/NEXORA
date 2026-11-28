@@ -91,6 +91,16 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
     for future in futures:
         future.result()
 result["junit"] = junit(repo, "candidate-junit")
+if focus and focus["kind"] == "jvm":
+    result["candidateFocus"] = {}
+    for xml in (logs / "candidate-junit").glob("*.xml"):
+        for case in ET.parse(xml).getroot().findall("testcase"):
+            name = case.get("classname") + "." + case.get("name")
+            if name == focus["selector"]:
+                result["candidateFocus"][name] = next((state for state in ("failure", "error", "skipped") if case.find(state) is not None), "passed")
+if result["junit"]["tests"] == 0:
+    print("Gradle diagnostics:")
+    print("\n".join((logs / "android.txt").read_text().splitlines()[-60:]))
 apk = repo / "app/build/outputs/apk/debug/app-debug.apk"
 result["apkSha256"] = hashlib.sha256(apk.read_bytes()).hexdigest() if apk.is_file() else None
 for name, check in checks.items():
