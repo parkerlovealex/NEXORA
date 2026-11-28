@@ -1157,6 +1157,149 @@ function renderUaAnalysis() {
   ].join("");
 }
 
+/* ---------------- Advanced Batch group runner (Phase 5.3.5.2) ----------------
+   Runs the EXISTING generateUaBatch() once per group: snapshot the
+   generator's controls, apply the group's configuration, generate,
+   restore exactly (try/finally). Merging, cross-group deduplication and
+   ID renumbering happen here; the engine itself is unmodified. */
+const ADV_PLATFORMS = ["android", "ios", "windows", "macos"];
+const ADV_QTY_IDS = { android: "uaAndroidQty", ios: "uaIosQty", windows: "uaWindowsQty", macos: "uaMacosQty" };
+const ADV_MAX_GROUPS = 8;
+const ADV_MAX_TOTAL = 500;
+
+function validateAdvancedGroups(groups) {
+  if (!Array.isArray(groups) || !groups.length) throw new Error("Add at least one group.");
+  if (groups.length > ADV_MAX_GROUPS) throw new Error(`At most ${ADV_MAX_GROUPS} groups are allowed.`);
+  let total = 0;
+  groups.forEach((g, i) => {
+    if (!g || !ADV_PLATFORMS.includes(g.platform)) throw new Error(`Group ${i + 1}: choose a platform.`);
+    const q = Number(g.quantity) || 0;
+    if (q <= 0) throw new Error(`Group ${i + 1}: quantity must be at least 1.`);
+    if (!(g.browsers?.length || g.apps?.length)) throw new Error(`Group ${i + 1}: choose at least one browser or app.`);
+    total += q;
+  });
+  if (total > ADV_MAX_TOTAL) throw new Error(`The combined quantity cannot exceed ${ADV_MAX_TOTAL}.`);
+  return total;
+}
+
+function advancedVersionInputIds() {
+  const ids = new Set();
+  for (const p of ADV_PLATFORMS) for (const b of ["chrome", "firefox", "edge", "opera", "safari", "webview"]) {
+    const id = browserVersionInputId(p, b);
+    if (id) ids.add(id);
+  }
+  return [...ids];
+}
+
+function snapshotGeneratorConfig() {
+  return {
+    quantities: Object.fromEntries(ADV_PLATFORMS.map(p => [p, $(ADV_QTY_IDS[p])?.value ?? ""])),
+    browsers: [...document.querySelectorAll("[data-browser]")].map(cb => ({ platform: cb.dataset.platform, browser: cb.dataset.browser, checked: cb.checked })),
+    versions: advancedVersionInputIds().map(id => ({ id, value: $(id)?.value ?? "", manual: !!$(id)?.dataset.manual })),
+    os: { android: $("uaAndroidOs")?.value ?? "", ios: $("uaIosOs")?.value ?? "" },
+    distribution: document.querySelector('input[name="uaDistribution"]:checked')?.value || "random",
+    dedupe: !!$("uaDeduplicate")?.checked,
+    includeApps: !!$("uaIncludeApps")?.checked,
+    selectedApps: [...(state.selectedApps || [])],
+    selectedDevices: JSON.parse(JSON.stringify(state.selectedDevices || {})),
+    customQuantities: { ...(state.customQuantities || {}) },
+    socialOnly: !!state.socialOnly,
+    duplicatesBlocked: state.duplicatesBlocked || 0,
+    uaWarnings: [...(state.uaWarnings || [])]
+  };
+}
+
+function restoreGeneratorConfig(snap) {
+  for (const p of ADV_PLATFORMS) { const input = $(ADV_QTY_IDS[p]); if (input) input.value = snap.quantities[p]; }
+  for (const entry of snap.browsers) {
+    const cb = document.querySelector(`[data-browser="${entry.browser}"][data-platform="${entry.platform}"]`);
+    if (cb) cb.checked = entry.checked;
+  }
+  for (const entry of snap.versions) {
+    const input = $(entry.id);
+    if (!input) continue;
+    input.value = entry.value;
+    if (entry.manual) input.dataset.manual = "1"; else delete input.dataset.manual;
+  }
+  if ($("uaAndroidOs")) $("uaAndroidOs").value = snap.os.android;
+  if ($("uaIosOs")) $("uaIosOs").value = snap.os.ios;
+  const radio = document.querySelector(`input[name="uaDistribution"][value="${snap.distribution}"]`);
+  if (radio) radio.checked = true;
+  if ($("uaDeduplicate")) $("uaDeduplicate").checked = snap.dedupe;
+  if ($("uaIncludeApps")) $("uaIncludeApps").checked = snap.includeApps;
+  state.selectedApps = [...snap.selectedApps];
+  state.selectedDevices = JSON.parse(JSON.stringify(snap.selectedDevices));
+  state.customQuantities = { ...snap.customQuantities };
+  state.socialOnly = snap.socialOnly;
+  state.duplicatesBlocked = snap.duplicatesBlocked;
+  state.uaWarnings = [...snap.uaWarnings];
+  renderUaApps();
+  renderVersionChips();
+}
+
+function applyAdvancedGroup(group) {
+  for (const p of ADV_PLATFORMS) { const input = $(ADV_QTY_IDS[p]); if (input) input.value = p === group.platform ? group.quantity : 0; }
+  document.querySelectorAll(`[data-browser][data-platform="${group.platform}"]`).forEach(cb => { cb.checked = (group.browsers || []).includes(cb.dataset.browser); });
+  for (const [browser, version] of Object.entries(group.versions || {})) {
+    const input = $(browserVersionInputId(group.platform, browser));
+    if (!input) continue;
+    input.value = version || "";
+    if (version) input.dataset.manual = "1"; else delete input.dataset.manual;
+  }
+  state.selectedApps = [...(group.apps || [])];
+  if ($("uaIncludeApps")) $("uaIncludeApps").checked = (group.apps || []).length > 0;
+  state.socialOnly = !!group.appsOnly;
+  renderUaApps();
+  if (Array.isArray(group.devices) && (group.platform === "android" || group.platform === "ios")) state.selectedDevices[group.platform] = [...group.devices];
+  if (group.deviceQuantities) for (const [id, n] of Object.entries(group.deviceQuantities)) state.customQuantities[id] = n;
+  if (group.distribution) { const radio = document.querySelector(`input[name="uaDistribution"][value="${group.distribution}"]`); if (radio) radio.checked = true; }
+  if (group.os && (group.platform === "android" || group.platform === "ios")) {
+    const sel = $(group.platform === "android" ? "uaAndroidOs" : "uaIosOs");
+    if (sel) sel.value = group.os;
+  }
+  if ($("uaDeduplicate")) $("uaDeduplicate").checked = false;
+}
+
+function mergeAdvancedResults(perGroup, dedupe) {
+  const seen = new Set();
+  const records = [];
+  const stats = perGroup.map((entry, gi) => {
+    let produced = 0, blocked = 0;
+    for (const record of entry.records) {
+      if (dedupe && seen.has(record.userAgent)) { blocked++; continue; }
+      seen.add(record.userAgent);
+      records.push(record);
+      produced++;
+    }
+    return { group: gi + 1, platform: entry.platform, requested: entry.requested, produced, duplicatesBlocked: blocked, failed: !!entry.failed, warnings: entry.warnings || [] };
+  });
+  records.forEach((r, i) => { r.id = `nexora-ua-${String(i + 1).padStart(4, "0")}`; });
+  return { records, stats, totalDuplicatesBlocked: stats.reduce((s, x) => s + x.duplicatesBlocked, 0) };
+}
+
+function runAdvancedBatch(groups) {
+  const totalRequested = validateAdvancedGroups(groups);
+  const dedupe = $("uaDeduplicate")?.checked !== false;
+  const snapshot = snapshotGeneratorConfig();
+  const perGroup = [];
+  try {
+    groups.forEach((group, i) => {
+      restoreGeneratorConfig(snapshot);
+      applyAdvancedGroup(group);
+      try {
+        const records = generateUaBatch();
+        perGroup.push({ platform: group.platform, requested: Number(group.quantity) || 0, records, warnings: (state.uaWarnings || []).map(w => `Group ${i + 1}: ${w}`) });
+      } catch (error) {
+        perGroup.push({ platform: group.platform, requested: Number(group.quantity) || 0, records: [], failed: true, warnings: [`Group ${i + 1}: ${error.message}`] });
+      }
+    });
+  } finally {
+    restoreGeneratorConfig(snapshot);
+  }
+  const merged = mergeAdvancedResults(perGroup, dedupe);
+  return { records: merged.records, stats: merged.stats, totalDuplicatesBlocked: merged.totalDuplicatesBlocked, totalRequested, warnings: perGroup.flatMap(g => g.warnings || []) };
+}
+
 /* ---------------- Latest Versions board (Phase 5.3.4) ---------------- */
 function compareVersionStrings(a, b) {
   const pa = String(a).split(".").map(x => parseInt(x, 10) || 0);
