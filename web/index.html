@@ -471,6 +471,19 @@
             </div>
           </aside>
         </div>
+        <div class="ua-card advanced-card" id="advancedBatchCard">
+          <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">AB</span><div><h2>Advanced Batch</h2><p>Compose a batch from up to 8 groups — each with its own platform, browsers or apps, version pins and quantity — then preview the exact result before it replaces your current output.</p></div></div><button class="button ghost" type="button" id="advToggle">Show</button></div>
+          <div id="advPanel" class="hidden">
+            <div class="adv-groups-head"><span id="advGroupCount">Batch groups 0 / 8</span><button class="button ghost" type="button" id="advAddGroup">Add group</button></div>
+            <div id="advGroups"></div>
+            <div id="advComposition" class="adv-composition"></div>
+            <div class="adv-actions"><button class="button button-secondary" type="button" id="advPreview">Preview batch</button><span id="advStatus" class="field-hint"></span></div>
+            <div id="advPreviewBox" class="hidden">
+              <div id="advPreviewSummary"></div>
+              <div class="adv-actions"><button class="button button-primary" type="button" id="advConfirm">Use this batch</button><button class="button ghost" type="button" id="advDiscard">Discard preview</button></div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="view" id="view-versions">

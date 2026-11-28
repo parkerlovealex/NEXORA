@@ -1300,6 +1300,192 @@ function runAdvancedBatch(groups) {
   return { records: merged.records, stats: merged.stats, totalDuplicatesBlocked: merged.totalDuplicatesBlocked, totalRequested, warnings: perGroup.flatMap(g => g.warnings || []) };
 }
 
+/* ---------------- Advanced Batch UI (Phase 5.3.5.3) ---------------- */
+const ADV_TYPES = {
+  windows: { label: "Desktop · Windows", platform: "windows", social: false },
+  macos: { label: "Desktop · macOS", platform: "macos", social: false },
+  android: { label: "Mobile · Android", platform: "android", social: false },
+  ios: { label: "Mobile · iOS", platform: "ios", social: false },
+  "social-android": { label: "Social · Android", platform: "android", social: true },
+  "social-ios": { label: "Social · iOS", platform: "ios", social: true }
+};
+const ADV_BROWSER_LABELS = { chrome: "Chrome", firefox: "Firefox", edge: "Microsoft Edge", opera: "Opera", safari: "Safari" };
+let advGroups = [];
+let advPreviewState = null;
+
+function advPlatformBrowsers(platform) {
+  return [...document.querySelectorAll(`[data-browser][data-platform="${platform}"]`)].map(cb => cb.dataset.browser).filter(b => b !== "webview");
+}
+function advPlatformApps(platform) {
+  return Object.keys(apps()).filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform));
+}
+function advDefaultGroup() { return { type: "android", browsers: ["chrome"], versions: {}, apps: [], appsOnly: false, quantity: 10, useDeviceSelection: false }; }
+
+function renderAdvGroups() {
+  const host = $("advGroups");
+  if (!host) return;
+  $("advGroupCount").textContent = `Batch groups ${advGroups.length} / ${ADV_MAX_GROUPS}`;
+  $("advAddGroup").disabled = advGroups.length >= ADV_MAX_GROUPS;
+  host.innerHTML = advGroups.map((g, i) => {
+    const t = ADV_TYPES[g.type];
+    const platform = t.platform;
+    const browsers = t.social ? [] : advPlatformBrowsers(platform);
+    const appIds = (t.social || platform === "android" || platform === "ios") ? advPlatformApps(platform) : [];
+    return `<article class="adv-group" data-adv-group="${i}">
+      <div class="adv-group-head"><strong>Group ${i + 1}</strong>
+        <select class="form-control adv-type" data-adv-field="type">${Object.entries(ADV_TYPES).map(([key, v]) => `<option value="${key}" ${key === g.type ? "selected" : ""}>${v.label}</option>`).join("")}</select>
+        <button class="button ghost adv-remove" type="button" data-adv-remove="${i}">Remove</button></div>
+      ${browsers.length ? `<div class="adv-browser-list">${browsers.map(b => `<div class="adv-browser-row"><label><input type="checkbox" data-adv-browser="${esc(b)}" ${g.browsers.includes(b) ? "checked" : ""}> ${esc(ADV_BROWSER_LABELS[b] || b)}</label>${g.browsers.includes(b) ? `<select class="form-control adv-version" data-adv-version="${esc(b)}"><option value="">Latest in catalog</option>${chipVersionsFor(platform, b).map(v => `<option value="${esc(v)}" ${g.versions[b] === v ? "selected" : ""}>${esc(v)}</option>`).join("")}</select>` : ""}</div>`).join("")}</div>` : ""}
+      ${appIds.length ? `<div class="adv-app-list"><span class="adv-list-label">${t.social ? "Applications" : "In-app apps (optional)"}</span>${appIds.map(id => `<label class="adv-app-row"><input type="checkbox" data-adv-app="${esc(id)}" ${g.apps.includes(id) ? "checked" : ""}> ${esc(UA_APP_NAMES[id] || id)} <span class="version-status ${verifiedTemplates(id, platform).length ? "ready" : "candidate"}">${verifiedTemplates(id, platform).length ? "Verified" : "Candidate"}</span></label>`).join("")}${!t.social ? `<label class="adv-app-row"><input type="checkbox" data-adv-field="appsOnly" ${g.appsOnly ? "checked" : ""}> Apps only (no browsers in this group)</label>` : ""}</div>` : ""}
+      <div class="adv-group-foot">
+        <label>Quantity <input class="form-control adv-qty" type="number" min="1" max="500" value="${g.quantity}" data-adv-field="quantity"></label>
+        ${(platform === "android" || platform === "ios") ? `<label class="adv-device-toggle"><input type="checkbox" data-adv-field="useDeviceSelection" ${g.useDeviceSelection ? "checked" : ""}> Use my selected devices + distribution</label>` : ""}
+      </div>
+    </article>`;
+  }).join("");
+  renderAdvComposition();
+}
+
+function collectAdvGroups() {
+  return advGroups.map(g => {
+    const t = ADV_TYPES[g.type];
+    const group = {
+      platform: t.platform,
+      quantity: Math.max(0, Number(g.quantity) || 0),
+      browsers: t.social ? [] : [...g.browsers],
+      versions: { ...g.versions },
+      apps: [...g.apps],
+      appsOnly: t.social || !!g.appsOnly
+    };
+    if (g.useDeviceSelection && (t.platform === "android" || t.platform === "ios")) {
+      group.devices = [...(state.selectedDevices[t.platform] || [])];
+      group.distribution = document.querySelector('input[name="uaDistribution"]:checked')?.value || "random";
+      if (group.distribution === "custom") group.deviceQuantities = { ...(state.customQuantities || {}) };
+    }
+    return group;
+  });
+}
+
+function advFingerprint() {
+  return JSON.stringify({ groups: collectAdvGroups(), country: $("uaCountry")?.value || "" });
+}
+
+function renderAdvComposition() {
+  const host = $("advComposition");
+  if (!host) return;
+  if (!advGroups.length) { host.innerHTML = '<p class="field-hint">Add a group to compose an advanced batch. The simple generator above is unaffected.</p>'; return; }
+  let total = 0, verified = 0, candidate = 0;
+  const lines = advGroups.map((g, i) => {
+    const t = ADV_TYPES[g.type];
+    total += Math.max(0, Number(g.quantity) || 0);
+    for (const id of g.apps) { if (verifiedTemplates(id, t.platform).length) verified++; else candidate++; }
+    const parts = [];
+    if (!t.social) parts.push(g.browsers.map(b => `${ADV_BROWSER_LABELS[b] || b}${g.versions[b] ? " " + g.versions[b] : " (latest)"}`).join(", ") || "no browser");
+    if (g.apps.length) parts.push(g.apps.map(id => UA_APP_NAMES[id] || id).join(", "));
+    const pool = (t.platform === "android" || t.platform === "ios") ? platformDevices(t.platform).length : null;
+    const risk = pool !== null && !t.social && g.browsers.length === 1 && (Number(g.quantity) || 0) > pool ? ` — quantity exceeds the ${pool} eligible devices, so devices will repeat; exact duplicates are known only after generation` : "";
+    return `<div class="adv-comp-line"><strong>Group ${i + 1} · ${esc(t.label)}</strong> — ${esc(parts.join(" · "))} · Qty ${g.quantity}${pool !== null ? ` · ${pool} eligible devices` : ""}${risk}</div>`;
+  });
+  host.innerHTML = `${lines.join("")}<div class="adv-comp-total">Total requested: <strong>${total}</strong> / 500 · App templates selected: ${verified} verified · ${candidate} candidate</div>`;
+}
+
+function invalidateAdvPreview(reason) {
+  if (!advPreviewState) return;
+  advPreviewState = null;
+  $("advPreviewBox")?.classList.add("hidden");
+  if ($("advStatus")) $("advStatus").textContent = reason || "Preview discarded — settings changed. Run Preview again.";
+}
+
+function renderAdvPreview() {
+  const box = $("advPreviewBox"), host = $("advPreviewSummary");
+  if (!box || !host || !advPreviewState) return;
+  const { result } = advPreviewState;
+  const verifiedCount = result.records.filter(r => r.sourceType === "verified-app-template").length;
+  const candidateCount = result.records.filter(r => r.sourceType === "script-candidate-app").length;
+  host.innerHTML = `<div class="adv-preview-head"><strong>Preview — exact batch</strong><span>${result.records.length} User-Agents · ${result.totalDuplicatesBlocked} duplicates skipped · ${verifiedCount} verified-template · ${candidateCount} candidate</span></div>`
+    + result.stats.map(s => `<div class="adv-comp-line">Group ${s.group} (${esc(s.platform)}): requested ${s.requested} · produced ${s.produced}${s.duplicatesBlocked ? ` · ${s.duplicatesBlocked} duplicates skipped` : ""}${s.failed ? " · failed" : ""}</div>`).join("")
+    + (result.warnings.length ? `<div class="adv-warnings">${result.warnings.map(w => `<p>${esc(w)}</p>`).join("")}</div>` : "")
+    + `<div class="adv-preview-list">${result.records.slice(0, 5).map(r => `<code>${esc(r.userAgent)}</code>`).join("")}${result.records.length > 5 ? `<p class="field-hint">… and ${result.records.length - 5} more. Confirming uses exactly these records — nothing is regenerated.</p>` : ""}</div>`;
+  box.classList.remove("hidden");
+}
+
+function initAdvancedBatch() {
+  const card = $("advancedBatchCard");
+  if (!card) return;
+  $("advToggle")?.addEventListener("click", () => {
+    const panel = $("advPanel");
+    const open = panel.classList.toggle("hidden") === false;
+    $("advToggle").textContent = open ? "Hide" : "Show";
+    if (open && !advGroups.length) { advGroups.push(advDefaultGroup()); renderAdvGroups(); }
+  });
+  $("advAddGroup")?.addEventListener("click", () => {
+    if (advGroups.length >= ADV_MAX_GROUPS) { showToast(`At most ${ADV_MAX_GROUPS} groups are allowed.`, "error"); return; }
+    advGroups.push(advDefaultGroup());
+    invalidateAdvPreview();
+    renderAdvGroups();
+  });
+  card.addEventListener("click", event => {
+    const remove = event.target.closest("[data-adv-remove]");
+    if (remove) { advGroups.splice(Number(remove.dataset.advRemove), 1); invalidateAdvPreview(); renderAdvGroups(); }
+  });
+  card.addEventListener("change", event => {
+    const article = event.target.closest("[data-adv-group]");
+    if (!article) return;
+    const g = advGroups[Number(article.dataset.advGroup)];
+    if (!g) return;
+    const target = event.target;
+    let structural = false;
+    if (target.matches("[data-adv-field='type']")) { g.type = target.value; g.browsers = ["chrome"]; g.versions = {}; g.apps = []; structural = true; }
+    else if (target.matches("[data-adv-browser]")) {
+      const b = target.dataset.advBrowser;
+      g.browsers = target.checked ? [...new Set([...g.browsers, b])] : g.browsers.filter(x => x !== b);
+      if (!target.checked) delete g.versions[b];
+      structural = true;
+    }
+    else if (target.matches("[data-adv-version]")) { const b = target.dataset.advVersion; if (target.value) g.versions[b] = target.value; else delete g.versions[b]; }
+    else if (target.matches("[data-adv-app]")) { const id = target.dataset.advApp; g.apps = target.checked ? [...new Set([...g.apps, id])] : g.apps.filter(x => x !== id); }
+    else if (target.matches("[data-adv-field='appsOnly']")) g.appsOnly = target.checked;
+    else if (target.matches("[data-adv-field='useDeviceSelection']")) g.useDeviceSelection = target.checked;
+    else return;
+    invalidateAdvPreview();
+    if (structural) renderAdvGroups(); else renderAdvComposition();
+  });
+  card.addEventListener("input", event => {
+    const article = event.target.closest("[data-adv-group]");
+    if (!article || !event.target.matches("[data-adv-field='quantity']")) return;
+    const g = advGroups[Number(article.dataset.advGroup)];
+    if (g) { g.quantity = Number(event.target.value) || 0; invalidateAdvPreview(); renderAdvComposition(); }
+  });
+  $("advPreview")?.addEventListener("click", () => {
+    try {
+      const groups = collectAdvGroups();
+      validateAdvancedGroups(groups);
+      const result = runAdvancedBatch(groups);
+      advPreviewState = { result, fingerprint: advFingerprint() };
+      $("advStatus").textContent = "";
+      renderAdvPreview();
+      if (!result.records.length) showToast("The preview produced no records. Check the group warnings.", "error");
+    } catch (error) { showToast(error.message, "error"); }
+  });
+  $("advDiscard")?.addEventListener("click", () => { invalidateAdvPreview("Preview discarded. Your current results are unchanged."); });
+  $("advConfirm")?.addEventListener("click", () => {
+    if (!advPreviewState) return;
+    if (advFingerprint() !== advPreviewState.fingerprint) { invalidateAdvPreview("Preview is out of date — settings changed. Run Preview again."); return; }
+    const { result } = advPreviewState;
+    state.dataset = result.records;
+    state.duplicatesBlocked = result.totalDuplicatesBlocked;
+    state.uaWarnings = result.warnings;
+    state.resultFilter = "all"; state.showAllResults = false;
+    renderDatasetPreview();
+    advPreviewState = null;
+    $("advPreviewBox")?.classList.add("hidden");
+    showToast(`Advanced batch applied: ${result.records.length} User-Agents${result.totalDuplicatesBlocked ? `; ${result.totalDuplicatesBlocked} duplicates skipped` : ""}.`);
+    playUiSound("success");
+  });
+  $("uaCountry")?.addEventListener("change", () => invalidateAdvPreview("Preview discarded — country changed. Run Preview again."));
+}
+initAdvancedBatch();
+
 /* ---------------- Latest Versions board (Phase 5.3.4) ---------------- */
 function compareVersionStrings(a, b) {
   const pa = String(a).split(".").map(x => parseInt(x, 10) || 0);
