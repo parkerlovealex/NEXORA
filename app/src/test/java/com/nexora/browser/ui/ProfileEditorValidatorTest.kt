@@ -125,7 +125,7 @@ class ProfileEditorValidatorTest {
     fun startupUrlParserTrimsAndSkipsBlankLines() {
         assertEquals(
             listOf("https://one.example", "http://two.example"),
-            ProfileEditorValidator.parseStartupUrls("  https://one.example  \\n\\nhttp://two.example ")
+            ProfileEditorValidator.parseStartupUrls("  https://one.example  \n\nhttp://two.example ")
         )
     }
 
