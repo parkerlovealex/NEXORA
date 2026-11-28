@@ -620,3 +620,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A13 batch creation ordering (2026-11-28, Muse takeover)
 
 **A13:** both batch-creation paths now persist profile records before provisioning WebView stores, with record rollback if provisioning fails — no more orphaned stores from failed batches. Proof: code trace; full-app compile verified at the Wave 6 build. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A19 download destination reservations (2026-11-28, Muse takeover)
+
+**A19:** download destinations are claimed in a shared reservation set when selected and released when the download ends, so parallel same-name downloads get distinct files instead of the second failing at finalization. Proof: code trace; full-app compile verified at the Wave 6 build; parallel same-name download check is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
