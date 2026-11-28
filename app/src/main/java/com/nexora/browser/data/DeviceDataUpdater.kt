@@ -29,6 +29,16 @@ object DeviceDataUpdater {
         UPDATED, ALREADY_CURRENT, NOT_CONFIGURED, OFFLINE_OR_ERROR, INVALID_DATA
     }
 
+    // A14: every mutation of the current/previous snapshot files runs
+    // under this one lock, and each operation stages through its own
+    // unique temp file — the auto-check thread, a manual check and the
+    // rollback action previously shared one temp path unlocked, so
+    // overlapping runs could install or restore the wrong catalog.
+    private val fileLock = Any()
+
+    private fun uniqueTemp(context: Context, tag: String): File =
+        File(context.filesDir, "$FILE_TMP-$tag-${System.nanoTime()}")
+
     fun updatedFile(context: Context): File = File(context.filesDir, FILE_CURRENT)
 
     fun hasPrevious(context: Context): Boolean =
@@ -90,47 +100,58 @@ object DeviceDataUpdater {
         val (result, payload) = fetchUpdate(normalizedBase, active, DeviceDb.readBundledText(context, "ua_templates.json"), ::download)
         if (payload == null) return result
 
-        val temp = File(context.filesDir, FILE_TMP)
         val current = updatedFile(context)
         val previous = File(context.filesDir, FILE_PREVIOUS)
-        return try {
-            temp.writeText(payload)
-            if (current.exists()) {
-                current.copyTo(previous, overwrite = true)
-                current.delete()
-            }
-            if (!temp.renameTo(current)) {
-                temp.copyTo(current, overwrite = true)
+        return synchronized(fileLock) {
+            val temp = uniqueTemp(context, "download")
+            try {
+                temp.writeText(payload)
+                if (current.exists()) {
+                    current.copyTo(previous, overwrite = true)
+                    current.delete()
+                } else {
+                    // A15: the first download previously saved no
+                    // rollback copy at all. The pre-update state is the
+                    // bundled catalog (that is what `active` holds when
+                    // no download exists), so retain it as the previous
+                    // snapshot and rollback works from the first update.
+                    previous.writeText(active)
+                }
+                if (!temp.renameTo(current)) {
+                    temp.copyTo(current, overwrite = true)
+                    temp.delete()
+                }
+                DeviceDb.invalidateCache()
+                Result.UPDATED
+            } catch (_: Exception) {
                 temp.delete()
+                // If activation failed after moving the current snapshot, restore it.
+                if (!current.exists() && previous.exists()) {
+                    try { previous.copyTo(current, overwrite = true) } catch (_: Exception) { }
+                }
+                Result.OFFLINE_OR_ERROR
             }
-            DeviceDb.invalidateCache()
-            Result.UPDATED
-        } catch (_: Exception) {
-            temp.delete()
-            // If activation failed after moving the current snapshot, restore it.
-            if (!current.exists() && previous.exists()) {
-                try { previous.copyTo(current, overwrite = true) } catch (_: Exception) { }
-            }
-            Result.OFFLINE_OR_ERROR
         }
     }
 
     fun rollback(context: Context): Boolean {
         val previous = File(context.filesDir, FILE_PREVIOUS)
         if (!previous.exists() || previous.length() == 0L) return false
-        return try {
-            val current = updatedFile(context)
-            val swap = File(context.filesDir, FILE_TMP)
-            if (current.exists()) current.copyTo(swap, overwrite = true)
-            previous.copyTo(current, overwrite = true)
-            if (swap.exists()) {
-                swap.copyTo(previous, overwrite = true)
-                swap.delete()
+        return synchronized(fileLock) {
+            try {
+                val current = updatedFile(context)
+                val swap = uniqueTemp(context, "rollback")
+                if (current.exists()) current.copyTo(swap, overwrite = true)
+                previous.copyTo(current, overwrite = true)
+                if (swap.exists()) {
+                    swap.copyTo(previous, overwrite = true)
+                    swap.delete()
+                }
+                DeviceDb.invalidateCache()
+                true
+            } catch (_: Exception) {
+                false
             }
-            DeviceDb.invalidateCache()
-            true
-        } catch (_: Exception) {
-            false
         }
     }
 
