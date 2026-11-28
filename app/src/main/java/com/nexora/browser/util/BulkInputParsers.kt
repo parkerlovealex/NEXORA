@@ -1,7 +1,7 @@
 package com.nexora.browser.util
 
+import java.io.ByteArrayOutputStream
 import java.net.URI
-import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
@@ -136,5 +136,26 @@ object ProxyImporter {
         }
     }
 
-    private fun decode(value: String): String = URLDecoder.decode(value, StandardCharsets.UTF_8.name())
+    private fun decode(value: String): String {
+        // A41: URI userInfo is not form data — a literal '+' in a
+        // username or password is a plus sign, not a space. URLDecoder
+        // applies the form rule and corrupted such credentials during
+        // import. Decode only %XX sequences; leave everything else,
+        // including malformed '%' sequences, exactly as written.
+        if ('%' !in value) return value
+        val bytes = ByteArrayOutputStream()
+        var i = 0
+        while (i < value.length) {
+            val decoded = if (value[i] == '%' && i + 2 < value.length)
+                value.substring(i + 1, i + 3).toIntOrNull(16) else null
+            if (decoded != null) {
+                bytes.write(decoded)
+                i += 3
+            } else {
+                bytes.write(value[i].toString().toByteArray(StandardCharsets.UTF_8))
+                i++
+            }
+        }
+        return bytes.toString(StandardCharsets.UTF_8.name())
+    }
 }
