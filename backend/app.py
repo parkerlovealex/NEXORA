@@ -687,11 +687,23 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=Fals
 _login_attempts: dict[str, list[float]] = {}
 _api_windows: dict[str, list[float]] = {}
 
+
+def _prune_windows(windows: dict[str, list[float]], now: float, window: float, limit: int = 1024) -> None:
+    """Bound rate-limit storage (A33): once a dictionary grows past `limit`
+    keys, drop every key whose stamps have all expired. Such a key's counter
+    is effectively zero, so eviction never changes a rate-limit decision."""
+    if len(windows) <= limit:
+        return
+    for key in [key for key, stamps in windows.items() if not any(now - stamp < window for stamp in stamps)]:
+        del windows[key]
+
 @app.middleware("http")
 async def security_headers_and_login_throttle(request, call_next):
     if request.url.path.startswith("/api/"):
         ip = request.client.host if request.client else "unknown"
         now = time.time()
+        _prune_windows(_login_attempts, now, 300)
+        _prune_windows(_api_windows, now, 60)
         if request.url.path == "/api/v1/admin/login":
             attempts = [stamp for stamp in _login_attempts.get(ip, []) if now - stamp < 300]
             if len(attempts) >= 8:
