@@ -16,7 +16,7 @@ class ContentBlockerEngineTest {
                 "example.org",
                 "##.ad-banner",
                 "/regex/",
-                "||cdn.example^$script"
+                "||cdn.example^\$script"
             )
         )
 
