@@ -61,7 +61,9 @@ Every record carries: `id`, `app`, `platform` (`android` | `ios`), `status`,
     from `ios_version`), so it is not listed separately.
   - **Alternation markers:** when `source_format` contains alternative
     shapes joined by ` OR `, `unresolved_slots` may name the structural
-    choice itself (e.g. `optional_IABMV` for the optional `IABMV/1` block
+    choice itself — but only for the specific records the marker is
+    documented for in the validator's `ALTERNATION_MARKERS` map
+    (currently `optional_IABMV` for the optional `IABMV/1` block
     in the Facebook script candidates).
 - `slots` is empty, source evidence and review notes are preserved, and a
   candidate is **never** promoted to verified automatically — promotion
