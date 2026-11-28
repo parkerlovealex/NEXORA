@@ -576,3 +576,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A30 template revision stability (2026-11-28, Muse takeover)
 
 **A30:** re-running the UA template collector with identical inputs no longer mints a new dataVersion or stacks duplicate downgrade notes; real changes still bump. Proof: `tests/test_template_revision_stability.py` fails pre-fix, passes post-fix; Python suite 117 passed / 0 failed.
+
+## Alpha30 Wave 5 — B08 About page access truth (2026-11-28, Muse takeover)
+
+**B08:** the About page now matches the real access model — the generator is public; catalog browsing requires administrator sign-in. Wording only, no behaviour change. Proof: `tests/about-access-truth.test.js` fails pre-fix, passes post-fix; Python suite 117 passed / 0 failed. Live-site rendering UNVERIFIED.
