@@ -254,21 +254,6 @@ function verifiedTemplates(appId, platform) {
   const aliases = appId === "fb_lite" ? ["fb_lite", "fblite", "facebook_lite"] : [appId];
   return templateRecords().filter(row => aliases.includes(row.app) && row.platform === platform && row.status === "verified");
 }
-function hasCandidate(appId, platform) {
-  if (platform !== "android") return false;
-  const formats = UA_CANDIDATE_FORMATS[appId];
-  return Boolean(formats && (formats.android || formats.androidSamsung || formats.androidMotorola));
-}
-function candidateFormatFor(appId, platform, device) {
-  if (!hasCandidate(appId, platform)) return null;
-  const formats = UA_CANDIDATE_FORMATS[appId];
-  if (appId === "instagram") {
-    const brand = String(device?.brand || "").toLowerCase();
-    if (brand.includes("motorola")) return formats.androidMotorola || formats.androidSamsung || null;
-    return formats.androidSamsung || formats.android || null;
-  }
-  return formats.android || null;
-}
 function uaSlotContext(device, osVersion, appId) {
   const app = apps()[appId] || {};
   const appVersion = typeof app === "string" ? app : app.version || "";
@@ -298,13 +283,6 @@ function fillUaTemplate(template, context, appId, platform) {
   }
   if (/\{[^}]+\}/.test(ua)) throw new Error(`Template ${appId}/${platform} contains unresolved placeholders.`);
   return ua;
-}
-function buildCandidateAppUa(appId, platform, device, osVersion) {
-  const template = candidateFormatFor(appId, platform, device);
-  if (!template) throw new Error(`${UA_APP_NAMES[appId] || appId} has no usable script-candidate format for ${platform}.`);
-  const context = uaSlotContext(device, osVersion, appId);
-  const ua = fillUaTemplate(template, context, appId, platform);
-  return { ua, appVersion: context.appVersion, appBuild: context.appBuild, templateId: `${appId}-${platform}-script-candidate`, evidence: [] };
 }
 function platformDevices(platform) {
   const expected = platform === "android" ? "android" : "ios_emulation";
@@ -466,12 +444,12 @@ function renderUaApps() {
     ).join("") : "";
     return `<article class="app-template-option ${ready ? "ready" : "pending"}">
       <label class="app-template-select">
-        <input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready || candidate ? "" : "disabled"}>
+        <input type="checkbox" data-app-template="${esc(id)}" ${checked ? "checked" : ""} ${ready ? "" : "disabled"}>
         ${brandLogo(id, label, "app-logo")}
         <span class="app-template-copy"><b>${esc(label)}</b><small>${esc(version)}${build ? ` · build ${esc(build)}` : ""}</small></span>
         <span class="app-template-status ${ready ? "ready" : candidate ? "candidate" : "pending"}">${status}</span>
       </label>
-      ${candidate ? `<details class="app-format-preview"><summary>View supplied format</summary><div class="candidate-format-list">${previews}</div><p>Candidate format from the supplied scripts. Selectable — generated results are labelled as unverified script candidates until the collection pipeline verifies them.</p></details>` : ""}
+      ${candidate ? `<details class="app-format-preview"><summary>View supplied format</summary><div class="candidate-format-list">${previews}</div><p>Candidate format from the supplied scripts. Not selectable for generation — only verified templates generate (owner decision, B01). The format stays visible for reference until the collection pipeline verifies it.</p></details>` : ""}
     </article>`;
   }).join("") || '<div class="device-list-empty">No matching applications.</div>';
 }
@@ -816,8 +794,12 @@ function generateUaBatch() {
     const browsers = selectedBrowsers.filter(b => browserUsable(platform, b));
     const skippedBrowsers = selectedBrowsers.filter(b => !browserUsable(platform, b));
     const selectedAppIds = !isDesktop && $("uaIncludeApps").checked
-      ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length || hasCandidate(id, platform))
+      ? state.selectedApps.filter(id => verifiedTemplates(id, platform).length)
       : [];
+    if (!isDesktop && $("uaIncludeApps").checked) {
+      const droppedApps = state.selectedApps.filter(id => !verifiedTemplates(id, platform).length);
+      if (droppedApps.length) warnings.push(...droppedApps.map(id => `${UA_APP_NAMES[id] || id} skipped — no verified template for ${platformLabel}; only verified templates generate.`));
+    }
     if (!browsers.length && !selectedAppIds.length) {
       if (skippedBrowsers.length) warnings.push(...skippedBrowsers.map(b => `${BROWSER_LABELS[b] || b} ${platformLabel} version is required. Open Advanced options.`));
       else warnings.push(`Choose a compatible ${platformLabel} browser${isDesktop ? "" : " or an in-app app"}.`);
@@ -847,9 +829,12 @@ function generateUaBatch() {
       let ua, browser, selectedBrowserVersion = null, appId = null, appVersion = null, appBuild = null, templateId = null, templateEvidence = [], appSource = null;
       if (useApp) {
         appId = selectedAppIds[i % selectedAppIds.length];
-        const isVerified = verifiedTemplates(appId, platform).length > 0;
-        appSource = isVerified ? "verified-app-template" : "script-candidate-app";
-        const built = isVerified ? buildVerifiedAppUa(appId, platform, device, osVersion) : buildCandidateAppUa(appId, platform, device, osVersion);
+        // B01 (owner decision): only verified templates generate. The
+        // selection filter already enforces this; the guard keeps any
+        // other path honest instead of falling back to a candidate.
+        if (!verifiedTemplates(appId, platform).length) throw new Error(`${UA_APP_NAMES[appId] || appId} has no verified template for ${platform}; script candidates cannot generate.`);
+        appSource = "verified-app-template";
+        const built = buildVerifiedAppUa(appId, platform, device, osVersion);
         ua = built.ua; appVersion = built.appVersion; appBuild = built.appBuild; templateId = built.templateId; templateEvidence = built.evidence; browser = "In-app";
       } else {
         browser = browsers[i % browsers.length];
