@@ -15,7 +15,7 @@
     {
       "app": "facebook",
       "platforms": {
-        "android": "pending",
+        "android": "candidate",
         "ios": "candidate"
       }
     },
