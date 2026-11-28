@@ -44,8 +44,10 @@ class PublishedUserAgentTemplatesTest {
         )
         assertTrue(entry.verified)
         assertEquals("verified", entry.status)
-        assertEquals("2026.11.28.2", entry.catalogReleaseId)
-        assertEquals("2026.11.28.1", entry.catalogDataVersion)
+        // Provenance expectations derive from the raw documents under test —
+        // never hardcoded release IDs, so future catalog releases stay green.
+        assertEquals(JSONObject(templates).getString("catalogReleaseId"), entry.catalogReleaseId)
+        assertEquals(JSONObject(templates).getString("dataVersion"), entry.catalogDataVersion)
         // The complete canonical evidence array survives: all three entries.
         assertEquals(3, entry.evidence.size)
         assertEquals(3, entry.evidenceCount)
@@ -62,9 +64,11 @@ class PublishedUserAgentTemplatesTest {
     }
 
     @Test fun versionMismatchIsRejected() {
-        val skewedVersion = JSONObject(slotContext).put("deviceCatalogVersion", "2026.11.24.1")
+        val realVersion = JSONObject(slotContext).getString("deviceCatalogVersion")
+        val skewedVersion = JSONObject(slotContext).put("deviceCatalogVersion", "$realVersion-skew")
         assertTrue(PublishedUserAgentTemplates.read(templates, skewedVersion.toString()).isEmpty())
-        val skewedRelease = JSONObject(slotContext).put("catalogReleaseId", "2026.11.28.1")
+        val realRelease = JSONObject(slotContext).getString("catalogReleaseId")
+        val skewedRelease = JSONObject(slotContext).put("catalogReleaseId", "$realRelease-skew")
         assertTrue(PublishedUserAgentTemplates.read(templates, skewedRelease.toString()).isEmpty())
     }
 
