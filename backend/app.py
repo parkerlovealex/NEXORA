@@ -800,15 +800,19 @@ def create_device(body: DeviceBody, db: Session = Depends(get_db), actor: str = 
 def update_device(device_id: str, body: DeviceBody, db: Session = Depends(get_db), actor: str = Depends(require_admin)):
     row = db.get(Device, device_id)
     if not row: raise HTTPException(status_code=404, detail="Device not found")
-    errors = validate_device(body.record)
-    source_url = body.record.get("source_url") or row.source_url
+    # B02: an edit merges over the stored record — fields the edit does not
+    # mention keep their stored values, including evidence and builds
+    # history, instead of being silently dropped by a full replace.
+    merged_record = {**(row.record or {}), **body.record}
+    errors = validate_device(merged_record)
+    source_url = merged_record.get("source_url") or row.source_url
     if source_url:
         try: validate_official_source_url(source_url)
         except ValueError as exc: errors.append(str(exc))
     if errors: raise HTTPException(status_code=422, detail={"message": "Device validation failed", "errors": errors})
-    new_id = body.record["id"]
+    new_id = merged_record["id"]
     if new_id != device_id and db.get(Device, new_id): raise HTTPException(status_code=409, detail="New device ID already exists")
-    record, complete = verified_device_record(body.record, body.platform, source_url, row)
+    record, complete = verified_device_record(merged_record, body.platform, source_url, row)
     row.id = new_id; row.platform = body.platform; row.brand = record["brand"]; row.model = record["model"]
     row.record = record; row.source_url = source_url; row.source_status = "admin_verified" if complete else "partial"
     row.updated_at = utcnow()
