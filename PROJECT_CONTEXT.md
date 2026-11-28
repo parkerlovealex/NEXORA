@@ -628,3 +628,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A37 restore retry no longer duplicates (2026-11-28, Muse takeover)
 
 **A37:** backup restore now derives remapped profile IDs deterministically from the original ID and skips profiles whose derived ID is already restored, so retrying a restore is idempotent. Proof: code trace; full-app compile verified at the Wave 6 build; double-restore check is on the Alpha30 device-test list. Python suite 123 passed / 0 failed.
+
+## Alpha30 Wave 5 — A39 proxy import accounts for every row (2026-11-28, Muse takeover)
+
+**A39:** proxy import results now count capacity and encryption skips alongside added and duplicates, and both import summaries show the skipped count. Proof: code trace; full-app compile verified at the Wave 6 build. Python suite 123 passed / 0 failed.
