@@ -354,7 +354,7 @@ function setupUaGenerator() {
   fillDesktopOs("uaWindowsOs", "windows"); fillDesktopOs("uaMacosOs", "macos");
   const country = $("uaCountry");
   if (country && !country.dataset.ready) {
-    country.innerHTML = UA_COUNTRIES.map(([code,name]) => `<option value="${esc(code)}">${esc(name)}</option>`).join("");
+    country.innerHTML = marketOptions().map(([code,name]) => `<option value="${esc(code)}">${esc(name)}</option>`).join("");
     country.dataset.ready = "1";
   }
   const chromeVersion = versions().chrome || "";
