@@ -426,6 +426,12 @@ body.is-admin .mobile-menu{display:grid}
 .version-chip{border:1px solid var(--nx-line);border-radius:999px;background:#0e1611;color:#c8d8cc;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .version-chip:hover{color:#e2f0e5;border-color:#46664d}
 .version-chip.active{background:#263b2b;border-color:#46664d;color:#e0f2e4}
+.analyser-card{max-width:860px}
+.analyser-actions{display:flex;gap:8px;margin:12px 0}
+.analyser-result{border-top:1px solid var(--nx-line);padding-top:10px}
+.analyser-row{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.analyser-row span{flex:0 0 150px;font-size:11px;font-weight:600;color:#95a69a}
+.analyser-row strong{font-size:12px;color:#e0f2e4;font-weight:600;word-break:break-word}
 .dual-platform-icons{display:flex;align-items:center}
 .dual-platform-icons img{width:15px;height:15px;object-fit:contain}
 .dual-platform-icons img+img{margin-left:-3px}

@@ -1023,6 +1023,97 @@ function renderUaResultsView() {
   $("exportActions").classList.remove("hidden");
   setText("uaDataVersion", meta().dataVersion || "Unversioned");
 }
+
+// Phase 5.3.1 — UA Analyser. A pure parser: it reports what a UA string
+// CLAIMS (browser, engine, OS, device, app markers). It never proves the
+// engine actually installed on a device.
+const UA_KNOWN_TOKENS = new Set(["Mozilla", "AppleWebKit", "Chrome", "Chromium", "Safari", "Version", "Firefox", "Edg", "EdgA", "EdgiOS", "OPR", "Opera", "SamsungBrowser", "CriOS", "FxiOS", "Mobile", "Gecko", "FB_IAB", "FBAV", "FBDV", "FBSV", "FBMD", "FBBV", "FBLC", "FBOP", "FBCR", "IABMV", "Instagram", "Line", "MicroMessenger", "QQBrowser", "UCBrowser", "YaBrowser", "DuckDuckGo", "Vivaldi", "Brave"]);
+function parseUserAgent(ua) {
+  const text = String(ua || "").trim();
+  const tokens = [];
+  const tokenRe = /([A-Za-z][A-Za-z0-9._-]*)\/([^\s;()[\]]+)/g;
+  let match;
+  while ((match = tokenRe.exec(text)) !== null) tokens.push({ name: match[1], version: match[2] });
+  const tok = (name) => tokens.find(t => t.name === name)?.version || null;
+  const comment = (text.match(/\(([^)]*)\)/)?.[1] || "");
+  const commentParts = comment.split(";").map(s => s.trim()).filter(Boolean);
+
+  let browser = null;
+  if (tok("Edg") || tok("EdgA") || tok("EdgiOS")) browser = { name: "Edge", version: tok("Edg") || tok("EdgA") || tok("EdgiOS") };
+  else if (tok("OPR") || tok("Opera")) browser = { name: "Opera", version: tok("OPR") || tok("Opera") };
+  else if (tok("SamsungBrowser")) browser = { name: "Samsung Internet", version: tok("SamsungBrowser") };
+  else if (tok("CriOS")) browser = { name: "Chrome (iOS)", version: tok("CriOS") };
+  else if (tok("FxiOS")) browser = { name: "Firefox (iOS)", version: tok("FxiOS") };
+  else if (tok("Firefox")) browser = { name: "Firefox", version: tok("Firefox") };
+  else if (tok("Chrome") || tok("Chromium")) browser = { name: "Chrome", version: tok("Chrome") || tok("Chromium") };
+  else if (tok("Safari")) browser = { name: "Safari", version: tok("Version") || null };
+
+  let engine = null;
+  if (browser && ["Chrome", "Edge", "Opera", "Samsung Internet", "Chrome (iOS)"].includes(browser.name)) {
+    engine = { name: "Blink", version: tok("Chrome") || tok("Chromium") || browser.version };
+    if (browser.name === "Chrome (iOS)") engine = { name: "WebKit", version: tok("AppleWebKit") };
+  } else if (browser && browser.name.startsWith("Firefox")) {
+    engine = { name: "Gecko", version: (comment.match(/rv:([^\s;)]+)/)?.[1] || browser.version) };
+  } else if (tok("AppleWebKit")) {
+    engine = { name: "WebKit", version: tok("AppleWebKit") };
+  }
+
+  let os = null;
+  const win = comment.match(/Windows NT ([\d.]+)/);
+  const android = comment.match(/Android ([\d.]+)/) || text.match(/Android ([\d.]+)/);
+  const iosMatch = comment.match(/(?:iPhone|iPad|iPod)[^)]*OS ([\d_]+)/) || comment.match(/OS ([\d_]+) like Mac OS X/);
+  const mac = comment.match(/Mac OS X ([\d_]+)/);
+  if (win) os = { name: win[1] === "10.0" ? "Windows (NT 10.0 — 10 or 11)" : `Windows NT ${win[1]}`, version: win[1] };
+  else if (android) os = { name: "Android", version: android[1] };
+  else if (iosMatch) os = { name: "iOS", version: iosMatch[1].replaceAll("_", ".") };
+  else if (mac) os = { name: "macOS", version: mac[1].replaceAll("_", ".") };
+  else if (/Linux/.test(comment)) os = { name: "Linux", version: null };
+
+  let model = null;
+  if (android) {
+    const idx = commentParts.findIndex(p => p.startsWith(`Android ${android[1]}`));
+    const seg = idx >= 0 ? commentParts[idx + 1] : null;
+    if (seg === "K") model = "K (redacted model)";
+    else if (seg && seg !== "wv") model = seg.replace(/\s+Build\/.*$/, "");
+  }
+
+  const isTablet = /iPad|Tablet/.test(text) || (os?.name === "Android" && !tok("Mobile"));
+  const isMobile = !isTablet && (/iPhone|iPod|Mobile/.test(text) || os?.name === "Android");
+  const device = { type: isTablet ? "tablet" : isMobile ? "mobile" : "desktop", model };
+
+  const apps = [];
+  const bracket = text.match(/\[([^\]]+)\]/)?.[1];
+  if (bracket) for (const entry of bracket.split(";")) {
+    const [key, ...rest] = entry.trim().split("/");
+    if (key) apps.push({ key: key.trim(), value: rest.join("/") || null });
+  }
+  const instagram = text.match(/Instagram\s+([\d.]+)/);
+  if (instagram && !apps.some(a => a.key === "Instagram")) apps.push({ key: "Instagram", value: instagram[1] });
+
+  const webview = /;\s*wv\)/.test(text) || /Version\/4\.0/.test(text) && Boolean(tok("Chrome")) && os?.name === "Android";
+  const unknownTokens = tokens.filter(t => !UA_KNOWN_TOKENS.has(t.name)).map(t => `${t.name}/${t.version}`);
+  return { browser, engine, os, device, apps, webview, tokens, unknownTokens };
+}
+
+function renderUaAnalysis() {
+  const input = $("uaAnalyseInput")?.value || "";
+  const host = $("uaAnalyseResult");
+  if (!host) return;
+  if (!input.trim()) { host.classList.remove("hidden"); host.innerHTML = '<p class="field-hint">Paste a User-Agent string first.</p>'; return; }
+  const r = parseUserAgent(input);
+  const row = (label, value) => `<div class="analyser-row"><span>${esc(label)}</span><strong>${esc(value || "Not identified")}</strong></div>`;
+  host.classList.remove("hidden");
+  host.innerHTML = [
+    row("Browser", r.browser ? `${r.browser.name}${r.browser.version ? " " + r.browser.version : ""}` : null),
+    row("Engine", r.engine ? `${r.engine.name}${r.engine.version ? " " + r.engine.version : ""}` : null),
+    row("Operating system", r.os ? `${r.os.name}${r.os.version && r.os.name !== "Windows (NT 10.0 — 10 or 11)" ? " " + r.os.version : ""}` : null),
+    row("Device", `${r.device.type}${r.device.model ? " · " + r.device.model : ""}`),
+    row("WebView", r.webview ? "Yes (in-app browser markers)" : "No"),
+    r.apps.length ? `<div class="analyser-row"><span>App identifiers</span><strong>${r.apps.map(a => esc(a.value ? `${a.key}/${a.value}` : a.key)).join(" · ")}</strong></div>` : "",
+    r.unknownTokens.length ? `<div class="analyser-row"><span>Unrecognized tokens</span><strong>${r.unknownTokens.map(esc).join(" · ")}</strong></div>` : "",
+    '<p class="field-hint">This breakdown describes the string only. A UA can be edited, so it never proves the real installed engine or device.</p>'
+  ].join("");
+}
 function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
 function exportDataset() {
   if (!state.dataset.length) return;
@@ -1300,6 +1391,12 @@ async function askAssistant(event) {
 
 function bindEvents() {
   document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => go(button.dataset.view)));
+  $("uaAnalyseButton")?.addEventListener("click", renderUaAnalysis);
+  $("uaAnalyseSample")?.addEventListener("click", () => {
+    const input = $("uaAnalyseInput");
+    if (input) input.value = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]";
+    renderUaAnalysis();
+  });
   document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => go(button.dataset.go)));
   document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
   $("mobileMenu")?.addEventListener("click", () => $("sidebar")?.classList.toggle("open"));

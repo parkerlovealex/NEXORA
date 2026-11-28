@@ -25,6 +25,7 @@
     <nav class="nav" aria-label="Main navigation">
       <div class="nav-label">GENERATION</div>
       <button class="nav-item active" data-view="generator"><span class="nav-icon">✳</span>User-Agent Studio</button>
+      <button class="nav-item" data-view="analyser"><span class="nav-icon">⌕</span>UA Analyser</button>
       <button class="nav-item admin-only hidden" data-view="devices"><span class="nav-icon">▯</span>Device Catalog</button>
       <button class="nav-item admin-only hidden" data-view="applications"><span class="nav-icon">▣</span>App Versions</button>
       <div class="nav-label admin-nav-label admin-only hidden">SYSTEM ADMIN</div>
@@ -469,6 +470,14 @@
         </div>
       </section>
 
+      <section class="view" id="view-analyser">
+        <div class="ua-card analyser-card">
+          <div class="ua-section-head"><div class="ua-section-title"><span class="ua-step">UA</span><div><h2>UA Analyser</h2><p>Paste any User-Agent string to see its parts. Parsing is descriptive: it reports what the string claims, not the engine actually installed.</p></div></div></div>
+          <div class="field"><label for="uaAnalyseInput">USER-AGENT STRING</label><textarea id="uaAnalyseInput" class="form-control" rows="4" placeholder="Mozilla/5.0 …"></textarea></div>
+          <div class="analyser-actions"><button class="button button-primary" id="uaAnalyseButton" type="button">Analyse</button><button class="button button-secondary" id="uaAnalyseSample" type="button">Try a sample</button></div>
+          <div id="uaAnalyseResult" class="analyser-result hidden"></div>
+        </div>
+      </section>
       <section class="view admin-only hidden" id="view-devices">
         <div class="page-intro intro-row"><div><div class="eyebrow">WORKSPACE / DEVICE LIBRARY</div><h1>Device records</h1><p>Browse the shared catalog. Full editing is available to authorized administrators.</p></div><div class="intro-actions"><button class="button button-secondary" id="exportDevices">Export catalog</button><button class="button button-primary admin-only hidden" id="addDevice">+ Add device</button></div></div>
         <div class="panel table-panel">
