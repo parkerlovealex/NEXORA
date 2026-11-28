@@ -743,12 +743,23 @@ def public_data(db: Session = Depends(get_db)):
     return result
 
 
+def app_version_verified(value):
+    # C18: an app version counts as verified only when its current
+    # release retains the provenance quote it was checked against
+    # (stored by the verified save / proposal-approval paths). A legacy
+    # or seeded entry with a version string but no retained evidence is
+    # present, not verified.
+    return (isinstance(value, dict)
+            and isinstance(value.get("sourceEvidence"), dict)
+            and bool(value["sourceEvidence"].get("quote")))
+
+
 @app.get("/api/v1/stats")
 def public_stats(db: Session = Depends(get_db)):
     rows = db.scalars(select(Device)).all()
     meta = get_meta(db)
     apps = meta.get("apps", {})
-    known = sum(1 for value in apps.values() if value)
+    known = sum(1 for value in apps.values() if app_version_verified(value))
     return {"devices": len(rows), "android": sum(1 for r in rows if r.platform == "android"), "ios": sum(1 for r in rows if r.platform == "ios_emulation"), "applications": len(apps), "verifiedAppVersions": known, "missingAppVersions": len(apps) - known, "dataVersion": meta.get("dataVersion"), "updatedAt": meta.get("updatedAt")}
 
 
@@ -954,7 +965,7 @@ def ai_assist(body: AssistantBody, db: Session = Depends(get_db), actor: str = D
         "missingBuildIds": [d.id for d in devices if not d.record.get("builds")],
         "missingSourceUrl": [d.id for d in devices if not d.source_url],
         "brands": sorted({d.brand for d in devices}),
-        "applicationVersionCoverage": {key: bool(value) for key, value in (meta.get("apps") or {}).items()},
+        "applicationVersionCoverage": {key: app_version_verified(value) for key, value in (meta.get("apps") or {}).items()},
     }
     context = {"dataVersion": meta.get("dataVersion"), "updatedAt": meta.get("updatedAt"), "versions": meta.get("versions"), "apps": meta.get("apps"), "quality": quality, "devices": records[:100]}
     system = (
