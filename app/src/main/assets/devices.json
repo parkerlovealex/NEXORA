@@ -2,18 +2,69 @@
   "android": [
     {
       "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "S921BXXSIEZJ1",
+        "16": "S921BXXSHDZI1"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 418,
         "w": 1080
       },
       "gpu": "Adreno (TM) 750",
       "id": "galaxy-s24",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy S24",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8,
@@ -25,22 +76,96 @@
         256,
         512
       ],
-      "uaModel": "SM-S921B"
+      "uaModel": "SM-S921B",
+      "codename": "e1s",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "S921BXXSIEZJ1"
+        },
+        {
+          "version": "17",
+          "build": "S921BXXUHEZIF"
+        },
+        {
+          "version": "17",
+          "build": "S921BXXSJEZK1"
+        },
+        {
+          "version": "16",
+          "build": "S921BXXSHDZI1"
+        },
+        {
+          "version": "17",
+          "build": "S921BXXUIEZJD"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "S928BXXS6EZJ1",
+        "16": "S928BXXS6DZI1"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.5,
         "h": 3120,
+        "ppi": 505,
         "w": 1440
       },
       "gpu": "Adreno (TM) 750",
       "id": "galaxy-s24-ultra",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy S24 Ultra",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         12
@@ -51,23 +176,98 @@
         512,
         1024
       ],
-      "uaModel": "SM-S928B"
+      "uaModel": "SM-S928B",
+      "codename": "e3q",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "S928BXXS6EZJ1"
+        },
+        {
+          "version": "17",
+          "build": "S928BXXU6EZIF"
+        },
+        {
+          "version": "17",
+          "build": "S928BXXS6EZK1"
+        },
+        {
+          "version": "16",
+          "build": "S928BXXS6DZI1"
+        },
+        {
+          "version": "17",
+          "build": "S928BXXU6EZJB"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "S911BXXUAGZIF",
+        "16": "S911BXXSAFZH3"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 425,
         "w": 1080
       },
       "gpu": "Adreno (TM) 740",
       "id": "galaxy-s23",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy S23",
       "osVersions": [
         "13",
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8
@@ -78,22 +278,96 @@
         256,
         512
       ],
-      "uaModel": "SM-S911B"
+      "uaModel": "SM-S911B",
+      "codename": "dm1q",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "S911BXXUAGZIF"
+        },
+        {
+          "version": "16",
+          "build": "S911BXXSAFZH3"
+        },
+        {
+          "version": "16",
+          "build": "S911BXXSAFZG1"
+        },
+        {
+          "version": "16",
+          "build": "S911BXXSAFZF5"
+        },
+        {
+          "version": "16",
+          "build": "S911BXXSAFZE1"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "A556BXXUIEZJ1",
+        "16": "A556BXXSIDZI3"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 390,
         "w": 1080
       },
       "gpu": "Mali-G68",
       "id": "galaxy-a55",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy A55",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8,
@@ -104,22 +378,96 @@
         128,
         256
       ],
-      "uaModel": "SM-A556B"
+      "uaModel": "SM-A556B",
+      "codename": "a55x",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A556BXXUIEZJ1"
+        },
+        {
+          "version": "16",
+          "build": "A556BXXSIDZI3"
+        },
+        {
+          "version": "16",
+          "build": "A556BXXSHDZH6"
+        },
+        {
+          "version": "16",
+          "build": "A556BXXSHDZG2"
+        },
+        {
+          "version": "16",
+          "build": "A556BXXSHDZF4"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "A356BXXUCEZJ2",
+        "16": "A356BXXSCDZH1"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 390,
         "w": 1080
       },
       "gpu": "Mali-G68",
       "id": "galaxy-a35",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy A35",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         6,
@@ -130,22 +478,75 @@
         128,
         256
       ],
-      "uaModel": "SM-A356B"
+      "uaModel": "SM-A356B",
+      "codename": "a35x",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A356BXXUCEZJ2"
+        },
+        {
+          "version": "16",
+          "build": "A356BXXSCDZH1"
+        },
+        {
+          "version": "16",
+          "build": "A356BXXSBDZG2"
+        },
+        {
+          "version": "16",
+          "build": "A356BXXUADZE8"
+        },
+        {
+          "version": "16",
+          "build": "A356BXXSACZD5"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "tokay",
       "cores": 8,
       "display": {
         "dpr": 2.625,
         "h": 2424,
+        "ppi": 422,
         "w": 1080
       },
       "gpu": "Mali-G715",
       "id": "pixel-9",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 9",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         12
@@ -155,22 +556,74 @@
         128,
         256
       ],
-      "uaModel": "Pixel 9"
+      "uaModel": "Pixel 9",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "caiman",
       "cores": 8,
       "display": {
         "dpr": 3.5,
         "h": 2856,
+        "ppi": 495,
         "w": 1280
       },
       "gpu": "Mali-G715",
       "id": "pixel-9-pro",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 9 Pro",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         16
@@ -182,22 +635,74 @@
         512,
         1024
       ],
-      "uaModel": "Pixel 9 Pro"
+      "uaModel": "Pixel 9 Pro",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "shiba",
       "cores": 9,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 428,
         "w": 1080
       },
       "gpu": "Mali-G715",
       "id": "pixel-8",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 8",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8
@@ -207,22 +712,74 @@
         128,
         256
       ],
-      "uaModel": "Pixel 8"
+      "uaModel": "Pixel 8",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "akita",
       "cores": 9,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 430,
         "w": 1080
       },
       "gpu": "Mali-G715",
       "id": "pixel-8a",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 8a",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8
@@ -232,23 +789,76 @@
         128,
         256
       ],
-      "uaModel": "Pixel 8a"
+      "uaModel": "Pixel 8a",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "panther",
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 416,
         "w": 1080
       },
       "gpu": "Mali-G710",
       "id": "pixel-7",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 7",
       "osVersions": [
         "13",
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         8
@@ -258,22 +868,77 @@
         128,
         256
       ],
-      "uaModel": "Pixel 7"
+      "uaModel": "Pixel 7",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.002.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260605.012"
+        }
+      ]
     },
     {
       "brand": "OnePlus",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CPH2573_17.0.0.100",
+        "16": "CPH2573_16.0.10.601"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.5,
         "h": 3168,
+        "ppi": 510,
         "w": 1440
       },
       "gpu": "Adreno (TM) 750",
       "id": "oneplus-12",
+      "markets": [
+        "US",
+        "CA",
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AE",
+        "SA",
+        "MY",
+        "SG",
+        "TH",
+        "VN",
+        "PH",
+        "ID"
+      ],
       "model": "OnePlus 12",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         12,
@@ -284,22 +949,76 @@
         256,
         512
       ],
-      "uaModel": "CPH2581"
+      "uaModel": "CPH2581",
+      "codename": "OP595DL1",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CPH2573_17.0.0.100"
+        },
+        {
+          "version": "16",
+          "build": "CPH2573_16.0.10.601"
+        },
+        {
+          "version": "16",
+          "build": "CPH2573_16.0.10.501"
+        },
+        {
+          "version": "16",
+          "build": "CPH2573_16.0.9.400"
+        },
+        {
+          "version": "16",
+          "build": "CPH2573_16.0.8.300"
+        }
+      ]
     },
     {
       "brand": "OnePlus",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "CPH2585_16.0.5.1301"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.5,
         "h": 2780,
+        "ppi": 450,
         "w": 1264
       },
       "gpu": "Adreno (TM) 740",
       "id": "oneplus-12r",
+      "markets": [
+        "US",
+        "CA",
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AE",
+        "SA",
+        "MY",
+        "SG",
+        "TH",
+        "VN",
+        "PH",
+        "ID"
+      ],
       "model": "OnePlus 12R",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16"
       ],
       "ramGb": [
         8,
@@ -310,22 +1029,77 @@
         128,
         256
       ],
-      "uaModel": "CPH2609"
+      "uaModel": "CPH2609",
+      "codename": "OP5D35L1",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "CPH2585_16.0.5.1301"
+        },
+        {
+          "version": "16",
+          "build": "CPH2585_16.0.5.1001"
+        },
+        {
+          "version": "16",
+          "build": "CPH2585_16.0.5.702"
+        },
+        {
+          "version": "16",
+          "build": "CPH2585_16.0.5.701"
+        }
+      ]
     },
     {
       "brand": "Xiaomi",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "OS3.0.307.0.WNCCNXM"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2670,
+        "ppi": 460,
         "w": 1200
       },
       "gpu": "Adreno (TM) 750",
       "id": "xiaomi-14",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "PL",
+        "GR",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "RU",
+        "CN"
+      ],
       "model": "Xiaomi 14",
       "osVersions": [
         "14",
-        "15"
+        "15",
+        "16"
       ],
       "ramGb": [
         8,
@@ -338,22 +1112,82 @@
         512,
         1024
       ],
-      "uaModel": "23127PN0CG"
+      "uaModel": "23127PN0CG",
+      "codename": "houji",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.307.0.WNCCNXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.306.0.WNCCNXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.305.0.WNCCNXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.303.0.WNCCNXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.302.0.WNCCNXM"
+        }
+      ]
     },
     {
       "brand": "Xiaomi",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "OS2.0.213.0.VNGMIXM"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 395,
         "w": 1080
       },
       "gpu": "Mali-G57",
       "id": "redmi-note-13",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "EG",
+        "NG",
+        "KE",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "IT",
+        "DE",
+        "FR",
+        "PL",
+        "TR",
+        "SA",
+        "AE",
+        "RU",
+        "UA",
+        "CN"
+      ],
       "model": "Redmi Note 13",
       "osVersions": [
         "13",
-        "14"
+        "14",
+        "15"
       ],
       "ramGb": [
         6,
@@ -366,22 +1200,79 @@
         256,
         512
       ],
-      "uaModel": "23129RA7EO"
+      "uaModel": "23129RAA4G",
+      "codename": "sapphire",
+      "buildsRecent": [
+        {
+          "version": "15",
+          "build": "OS2.0.213.0.VNGMIXM"
+        },
+        {
+          "version": "15",
+          "build": "OS2.0.212.0.VNGMIXM"
+        },
+        {
+          "version": "15",
+          "build": "OS2.0.211.0.VNGMIXM"
+        },
+        {
+          "version": "15",
+          "build": "OS2.0.210.0.VNGMIXM"
+        },
+        {
+          "version": "15",
+          "build": "OS2.0.209.0.VNGMIXM"
+        }
+      ]
     },
     {
       "brand": "Xiaomi",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "16": "OS3.0.304.0.WNRMIXM",
+        "15": "AP3A.240905.015.A2"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2712,
+        "ppi": 446,
         "w": 1220
       },
       "gpu": "Adreno (TM) 710",
       "id": "poco-x6",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "DE",
+        "FR",
+        "IT",
+        "PL",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "CN"
+      ],
       "model": "POCO X6",
       "osVersions": [
         "13",
-        "14"
+        "14",
+        "15",
+        "16"
       ],
       "ramGb": [
         8,
@@ -392,23 +1283,75 @@
         256,
         512
       ],
-      "uaModel": "23122PCD1G"
+      "uaModel": "23122PCD1G",
+      "codename": "garnet",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.304.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.302.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.301.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.5.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.4.0.WNRMIXM"
+        }
+      ]
     },
     {
       "brand": "Nothing",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "Pong-B4.1-261014-1615"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2412,
+        "ppi": 394,
         "w": 1080
       },
       "gpu": "Adreno (TM) 730",
       "id": "nothing-phone-2",
+      "markets": [
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "US",
+        "CA",
+        "AU",
+        "JP",
+        "SG",
+        "MY",
+        "AE"
+      ],
       "model": "Phone (2)",
       "osVersions": [
         "13",
         "14",
-        "15"
+        "15",
+        "16"
       ],
       "ramGb": [
         8,
@@ -420,22 +1363,68 @@
         256,
         512
       ],
-      "uaModel": "A065"
+      "uaModel": "A065",
+      "codename": "Pong",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "Pong-B4.1-261014-1615"
+        },
+        {
+          "version": "16",
+          "build": "Pong-B4.1-260818-1726"
+        },
+        {
+          "version": "16",
+          "build": "Pong-B4.1-260618-1026"
+        },
+        {
+          "version": "16",
+          "build": "Pong-B4.1-260414-1749"
+        },
+        {
+          "version": "16",
+          "build": "Pong-B4.0-260226-0955"
+        }
+      ]
     },
     {
       "brand": "Motorola",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "V1TLS35.73-60-3-6"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 402,
         "w": 1080
       },
       "gpu": "Mali-G77",
       "id": "motorola-edge-40",
+      "markets": [
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "PL",
+        "BR",
+        "MX",
+        "AR",
+        "AU",
+        "US",
+        "CA"
+      ],
       "model": "Moto Edge 40",
       "osVersions": [
         "13",
-        "14"
+        "14",
+        "15"
       ],
       "ramGb": [
         8
@@ -444,23 +1433,98 @@
       "storageGb": [
         256
       ],
-      "uaModel": "moto edge 40"
+      "uaModel": "moto edge 40",
+      "codename": "lyriq",
+      "buildsRecent": [
+        {
+          "version": "15",
+          "build": "V1TLS35.73-60-3-6"
+        },
+        {
+          "version": "15",
+          "build": "V1TLS35.73-60-3-2"
+        },
+        {
+          "version": "15",
+          "build": "V1TL35.73-60-3"
+        },
+        {
+          "version": "14",
+          "build": "U1TLS34.115-16-1-7-3"
+        },
+        {
+          "version": "13",
+          "build": "T2TLS33.3-62-3-8"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "12": "SP1A.210812.015",
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "16": "S901BXXSOGZH3",
+        "15": "AP3A.240905.015.A2"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 425,
         "w": 1080
       },
       "gpu": "Adreno (TM) 730",
       "id": "galaxy-s22",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy S22",
       "osVersions": [
         "12",
         "13",
-        "14"
+        "14",
+        "15",
+        "16"
       ],
       "ramGb": [
         8
@@ -470,24 +1534,79 @@
         128,
         256
       ],
-      "uaModel": "SM-S901B"
+      "uaModel": "SM-S901B",
+      "codename": "r0s",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "S901BXXSOGZH3"
+        },
+        {
+          "version": "16",
+          "build": "S901BXXSNGZD7"
+        },
+        {
+          "version": "16",
+          "build": "S901BXXSMGZB2"
+        },
+        {
+          "version": "16",
+          "build": "S901BXXSLGZA1"
+        },
+        {
+          "version": "16",
+          "build": "S901BXXSKGYL3"
+        }
+      ]
     },
     {
       "brand": "Google",
+      "builds": {
+        "12": "SP1A.210812.015",
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "bluejay",
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2400,
+        "ppi": 429,
         "w": 1080
       },
       "gpu": "Mali-G78",
       "id": "pixel-6a",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
       "model": "Pixel 6a",
       "osVersions": [
         "12",
         "13",
         "14",
-        "15"
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         6
@@ -496,21 +1615,95 @@
       "storageGb": [
         128
       ],
-      "uaModel": "Pixel 6a"
+      "uaModel": "Pixel 6a",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.002.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        }
+      ]
     },
     {
       "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "17": "A155FXXUCFZJ4",
+        "16": "A155FXXSCEZH3",
+        "15": "AP3A.240905.015.A2"
+      },
       "cores": 8,
       "display": {
         "dpr": 3.0,
         "h": 2340,
+        "ppi": 396,
         "w": 1080
       },
       "gpu": "Mali-G57",
       "id": "galaxy-a15",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
       "model": "Galaxy A15",
       "osVersions": [
-        "14"
+        "14",
+        "15",
+        "16",
+        "17"
       ],
       "ramGb": [
         4,
@@ -522,23 +1715,2198 @@
         128,
         256
       ],
-      "uaModel": "SM-A155F"
+      "uaModel": "SM-A155F",
+      "codename": "a15",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A155FXXUCFZJ4"
+        },
+        {
+          "version": "16",
+          "build": "A155FXXSCEZH3"
+        },
+        {
+          "version": "16",
+          "build": "A155FXXSBEZG1"
+        },
+        {
+          "version": "16",
+          "build": "A155FXXSAEZF2"
+        },
+        {
+          "version": "16",
+          "build": "A155FXXUAEZF1"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "S721BXXUFEZJ6",
+        "16": "S721BXXSEDZH9"
+      },
+      "cores": 10,
+      "display": {
+        "dpr": 3.0,
+        "h": 2340,
+        "ppi": 385,
+        "w": 1080
+      },
+      "gpu": "Xclipse 940",
+      "id": "galaxy-s24-fe",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
+      "model": "Galaxy S24 FE",
+      "osVersions": [
+        "14",
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Exynos 2400e",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "SM-S721B",
+      "codename": "r12s",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "S721BXXUFEZJ6"
+        },
+        {
+          "version": "17",
+          "build": "S721BXXSFEZJ1"
+        },
+        {
+          "version": "16",
+          "build": "S721BXXSEDZH9"
+        },
+        {
+          "version": "16",
+          "build": "S721BXXSEDZI1"
+        },
+        {
+          "version": "17",
+          "build": "S721BXXUEEZIF"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "F741BXXS2CYK6",
+        "17": "F741BXXS4EZK4"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2640,
+        "ppi": 426,
+        "w": 1080
+      },
+      "gpu": "Adreno (TM) 750",
+      "id": "galaxy-z-flip-6",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
+      "model": "Galaxy Z Flip 6",
+      "osVersions": [
+        "14",
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Snapdragon 8 Gen 3",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "SM-F741B",
+      "codename": "b6q",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "F741BXXS2CYK6"
+        },
+        {
+          "version": "17",
+          "build": "F741BXXS4EZK4"
+        },
+        {
+          "version": "17",
+          "build": "F741BXXU4EZIH"
+        },
+        {
+          "version": "17",
+          "build": "F741BXXU4EZJC"
+        },
+        {
+          "version": "17",
+          "build": "F741BXXS4EZJ1"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "A256BXXSEEZH9"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2340,
+        "ppi": 396,
+        "w": 1080
+      },
+      "gpu": "Mali-G68",
+      "id": "galaxy-a25",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "LK",
+        "NP",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "AU",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "HK",
+        "TW"
+      ],
+      "model": "Galaxy A25",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        6,
+        8
+      ],
+      "soc": "Exynos 1280",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "SM-A256B",
+      "codename": "a25x",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "A256BXXSEEZH9"
+        },
+        {
+          "version": "16",
+          "build": "A256BXXSDEZG2"
+        },
+        {
+          "version": "16",
+          "build": "A256BXXSCEZE6"
+        },
+        {
+          "version": "16",
+          "build": "A256BXXSCDZD8"
+        },
+        {
+          "version": "16",
+          "build": "A256BXXSBDZB2"
+        }
+      ]
+    },
+    {
+      "brand": "Google",
+      "builds": {
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "tegu",
+      "cores": 8,
+      "display": {
+        "dpr": 2.625,
+        "h": 2424,
+        "ppi": 422.2,
+        "w": 1080
+      },
+      "gpu": "Mali-G715 MC7",
+      "id": "pixel-9a",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
+      "model": "Pixel 9a",
+      "osVersions": [
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Google Tensor G4",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "Pixel 9a",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        }
+      ]
+    },
+    {
+      "brand": "Google",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "17": "CP4A.261105.040.A1",
+        "16": "BP2A.250605.031.A2"
+      },
+      "codename": "husky",
+      "cores": 9,
+      "display": {
+        "dpr": 3.0,
+        "h": 2992,
+        "ppi": 489,
+        "w": 1344
+      },
+      "gpu": "Immortalis-G715s MC10",
+      "id": "pixel-8-pro",
+      "markets": [
+        "US",
+        "CA",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AU",
+        "JP",
+        "IN",
+        "SG",
+        "TW"
+      ],
+      "model": "Pixel 8 Pro",
+      "osVersions": [
+        "14",
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Google Tensor G3",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "Pixel 8 Pro",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260705.006"
+        }
+      ]
+    },
+    {
+      "brand": "Xiaomi",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "16": "OS3.0.304.0.WNRMIXM",
+        "15": "AP3A.240905.015.A2"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2712,
+        "ppi": 446,
+        "w": 1220
+      },
+      "gpu": "Mali-G77 MC9",
+      "id": "redmi-note-13-pro",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "EG",
+        "NG",
+        "KE",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "IT",
+        "DE",
+        "FR",
+        "PL",
+        "TR",
+        "SA",
+        "AE",
+        "RU",
+        "UA",
+        "CN"
+      ],
+      "model": "Redmi Note 13 Pro",
+      "osVersions": [
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Helio G99 Ultra",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "2312DRA50G",
+      "codename": "garnet",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.304.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.302.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.301.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.5.0.WNRMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.4.0.WNRMIXM"
+        }
+      ]
+    },
+    {
+      "brand": "Xiaomi",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "16": "OS3.0.308.0.WNFMIXM",
+        "15": "AP3A.240905.015.A2"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2400,
+        "ppi": 394,
+        "w": 1080
+      },
+      "gpu": "Mali-G77 MC9",
+      "id": "poco-m6-pro",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "MM",
+        "ID",
+        "MY",
+        "PH",
+        "VN",
+        "TH",
+        "MX",
+        "BR",
+        "AR",
+        "ES",
+        "DE",
+        "FR",
+        "IT",
+        "PL",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "CN"
+      ],
+      "model": "POCO M6 Pro",
+      "osVersions": [
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Helio G99 Ultra",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "2312FPCA6G",
+      "codename": "emerald",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.308.0.WNFMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.307.0.WNFMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.305.0.WNFMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.304.0.WNFMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.302.0.WNFMIXM"
+        }
+      ]
+    },
+    {
+      "brand": "Xiaomi",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "OS3.0.305.0.WNEMIXM"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2712,
+        "ppi": 446,
+        "w": 1220
+      },
+      "gpu": "Mali-G615 MC6",
+      "id": "xiaomi-14t",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "PL",
+        "GR",
+        "TR",
+        "AE",
+        "SA",
+        "EG",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "RU",
+        "CN"
+      ],
+      "model": "Xiaomi 14T",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Dimensity 8300 Ultra",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "2407FPN8EG",
+      "codename": "rothko",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.305.0.WNEMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.303.0.WNEMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.302.0.WNEMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.301.0.WNEMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.4.0.WNEMIXM"
+        }
+      ]
+    },
+    {
+      "brand": "OnePlus",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "CPH2661_16.0.5.1001"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2772,
+        "ppi": 450,
+        "w": 1240
+      },
+      "gpu": "Adreno (TM) 732",
+      "id": "oneplus-nord-4",
+      "markets": [
+        "US",
+        "CA",
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "AE",
+        "SA",
+        "MY",
+        "SG",
+        "TH",
+        "VN",
+        "PH",
+        "ID"
+      ],
+      "model": "OnePlus Nord 4",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Snapdragon 7+ Gen 3",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "CPH2663",
+      "codename": "OP5E93L1",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "CPH2661_16.0.5.1001"
+        },
+        {
+          "version": "16",
+          "build": "CPH2661_16.0.5.702"
+        },
+        {
+          "version": "16",
+          "build": "CPH2661_16.0.5.701"
+        },
+        {
+          "version": "16",
+          "build": "CPH2661_16.0.5.700"
+        },
+        {
+          "version": "16",
+          "build": "CPH2661_16.0.2.401"
+        }
+      ]
+    },
+    {
+      "brand": "Motorola",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "V1TCS35H.88-16-1"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2400,
+        "ppi": 405,
+        "w": 1080
+      },
+      "gpu": "Adreno (TM) 619",
+      "id": "moto-g84",
+      "markets": [
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "NL",
+        "PL",
+        "BR",
+        "MX",
+        "AR",
+        "AU",
+        "US",
+        "CA"
+      ],
+      "model": "Moto G84",
+      "osVersions": [
+        "13",
+        "14",
+        "15"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Snapdragon 695",
+      "storageGb": [
+        256
+      ],
+      "uaModel": "moto g84 5G",
+      "codename": "bangkk",
+      "buildsRecent": [
+        {
+          "version": "15",
+          "build": "V1TCS35H.88-16-1"
+        },
+        {
+          "version": "15",
+          "build": "V1TC35H.88-16"
+        },
+        {
+          "version": "14",
+          "build": "U1TCS34.22-64-19-4-6"
+        },
+        {
+          "version": "13",
+          "build": "T3TCS33.18-48-6-4"
+        }
+      ]
+    },
+    {
+      "brand": "vivo",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "16.2.9.1.W30.V000L1"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2800,
+        "ppi": 452,
+        "w": 1260
+      },
+      "gpu": "Adreno (TM) 720",
+      "id": "vivo-v40",
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "EG",
+        "AE",
+        "SA",
+        "ZA",
+        "KE",
+        "NG",
+        "MX",
+        "BR",
+        "ES",
+        "IT",
+        "DE"
+      ],
+      "model": "V40",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Snapdragon 7 Gen 3",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "V2348",
+      "codename": "V2348",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "16.2.9.1.W30.V000L1"
+        },
+        {
+          "version": "16",
+          "build": "16.2.8.0.W30.V000L1"
+        },
+        {
+          "version": "16",
+          "build": "16.2.8.0.W20.V000L1"
+        },
+        {
+          "version": "16",
+          "build": "16.2.7.0.W30.V000L1"
+        }
+      ]
+    },
+    {
+      "brand": "Oppo",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "CPH2625_16.0.5.1200"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2412,
+        "ppi": 394,
+        "w": 1080
+      },
+      "gpu": "Mali-G610 MC6",
+      "id": "oppo-reno-12",
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "SG",
+        "AE",
+        "SA",
+        "EG",
+        "ZA",
+        "KE",
+        "NG",
+        "GB",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "NL",
+        "AU",
+        "MX",
+        "BR"
+      ],
+      "model": "Reno 12",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Dimensity 8250",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "CPH2625",
+      "codename": "OP5ADDL1",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "CPH2625_16.0.5.1200"
+        },
+        {
+          "version": "16",
+          "build": "CPH2625_16.0.5.701(EX01)"
+        },
+        {
+          "version": "16",
+          "build": "CPH2625_16.0.5.700(EX01)"
+        },
+        {
+          "version": "16",
+          "build": "CPH2625_16.0.2.400(EX01)"
+        },
+        {
+          "version": "15",
+          "build": "CPH2625_15.0.0.890(EX01)"
+        }
+      ]
+    },
+    {
+      "brand": "Realme",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "15": "AP3A.240905.015.A2",
+        "16": "RMX3840_16.0.5.701"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2412,
+        "ppi": 394,
+        "w": 1080
+      },
+      "gpu": "Adreno (TM) 710",
+      "id": "realme-12-pro-plus",
+      "markets": [
+        "IN",
+        "BD",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "ID",
+        "MY",
+        "TH",
+        "VN",
+        "PH",
+        "EG",
+        "AE",
+        "SA",
+        "NG",
+        "KE",
+        "ES",
+        "IT",
+        "PL",
+        "MX",
+        "BR",
+        "RU"
+      ],
+      "model": "12 Pro+",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Snapdragon 7s Gen 2",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "RMX3840",
+      "codename": "RE5C82L1",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "RMX3840_16.0.5.701(EX01)"
+        },
+        {
+          "version": "15",
+          "build": "RMX3840_15.0.0.1400(EX01)"
+        },
+        {
+          "version": "15",
+          "build": "RMX3840_15.0.0.1200(EX01)"
+        },
+        {
+          "version": "15",
+          "build": "RMX3840_15.0.0.1000(EX01)"
+        },
+        {
+          "version": "15",
+          "build": "RMX3840_15.0.0.700(EX01)"
+        }
+      ]
+    },
+    {
+      "brand": "Honor",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007",
+        "15": "9.0.0.142"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2652,
+        "ppi": 429,
+        "w": 1200
+      },
+      "gpu": "Adreno (TM) 710",
+      "id": "honor-x9b",
+      "markets": [
+        "BD",
+        "IN",
+        "PK",
+        "NP",
+        "LK",
+        "MM",
+        "IQ",
+        "MY",
+        "ID",
+        "TH",
+        "VN",
+        "PH",
+        "SG",
+        "SA",
+        "AE",
+        "EG",
+        "ZA",
+        "MX",
+        "BR"
+      ],
+      "model": "X9b",
+      "osVersions": [
+        "13",
+        "14",
+        "15"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Snapdragon 6 Gen 1",
+      "storageGb": [
+        256
+      ],
+      "uaModel": "ALI-NX1",
+      "codename": "HNALI-Q",
+      "buildsRecent": [
+        {
+          "version": "15",
+          "build": "9.0.0.142(C185E7R3P1)"
+        },
+        {
+          "version": "14",
+          "build": "8.0.0.258(C185E3R3P2)"
+        },
+        {
+          "version": "14",
+          "build": "8.0.0.248(C185E3R3P2)"
+        },
+        {
+          "version": "14",
+          "build": "8.0.0.238(C185E3R3P2)"
+        },
+        {
+          "version": "14",
+          "build": "8.0.0.227(C185E3R3P2)"
+        }
+      ]
+    },
+    {
+      "brand": "Tecno",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2460,
+        "ppi": 396,
+        "w": 1080
+      },
+      "gpu": "Mali-G77 MC9",
+      "id": "tecno-spark-20-pro",
+      "markets": [
+        "BD",
+        "PK",
+        "IN",
+        "NG",
+        "KE",
+        "ZA",
+        "EG",
+        "ID",
+        "PH",
+        "MY",
+        "IQ",
+        "MM",
+        "LK"
+      ],
+      "model": "Spark 20 Pro",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Helio G99",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "TECNO KJ6",
+      "codename": "TECNO-KJ6",
+      "buildsRecent": [
+        {
+          "version": "14",
+          "build": "KJ6-H897HK-T-TR-251212V1861"
+        },
+        {
+          "version": "14",
+          "build": "KJ6-H897IL-T-OPPJ-PJ-250915V264"
+        },
+        {
+          "version": "14",
+          "build": "KJ6-H897HK-T-RU-250908V1839"
+        },
+        {
+          "version": "14",
+          "build": "KJ6-H897GHIJKL-T-OP-250908V1836"
+        },
+        {
+          "version": "14",
+          "build": "KJ6-H897ILWX-T-EU-240819V1587"
+        }
+      ]
+    },
+    {
+      "brand": "Infinix",
+      "builds": {
+        "13": "TP1A.220624.014",
+        "14": "UP1A.231005.007"
+      },
+      "cores": 8,
+      "display": {
+        "dpr": 3.0,
+        "h": 2460,
+        "ppi": 396,
+        "w": 1080
+      },
+      "gpu": "Mali-G77 MC9",
+      "id": "infinix-hot-40-pro",
+      "markets": [
+        "BD",
+        "PK",
+        "IN",
+        "NG",
+        "KE",
+        "ZA",
+        "EG",
+        "ID",
+        "PH",
+        "MY",
+        "MM",
+        "IQ"
+      ],
+      "model": "Hot 40 Pro",
+      "osVersions": [
+        "13",
+        "14"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Helio G99",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "Infinix X6837",
+      "codename": "Infinix-X6837",
+      "buildsRecent": [
+        {
+          "version": "13",
+          "build": "X6837_MT6789_OP_V1367_240709"
+        },
+        {
+          "version": "13",
+          "build": "X6837_MT6789_OP_V1239_240510"
+        },
+        {
+          "version": "13",
+          "build": "X6837_MT6789_TR_V1110_240322"
+        },
+        {
+          "version": "13",
+          "build": "X6837_MT6789_OP_V1088_240313"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "15": "AP3A.240905.015.A2",
+        "17": "S938BXXSDDZJ1",
+        "16": "S938BXXSBCZG3"
+      },
+      "cores": 8,
+      "display": {
+        "h": 3120,
+        "ppi": 498,
+        "w": 1440,
+        "dpr": 2.8125
+      },
+      "gpu": "Adreno 830",
+      "id": "galaxy-s25-ultra",
+      "markets": [
+        "AE",
+        "AM",
+        "AR",
+        "AT",
+        "AU",
+        "AZ",
+        "BD",
+        "BE",
+        "BG",
+        "BO",
+        "BR",
+        "BY",
+        "CH",
+        "CL",
+        "CO",
+        "CR",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "DZ",
+        "EC",
+        "EE",
+        "EG",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "GT",
+        "HN",
+        "HR",
+        "HU",
+        "ID",
+        "IE",
+        "IL",
+        "IN",
+        "IQ",
+        "IR",
+        "IT",
+        "JO",
+        "KE",
+        "KG",
+        "KH",
+        "KW",
+        "KZ",
+        "LB",
+        "LK",
+        "LT",
+        "LV",
+        "MA",
+        "ML",
+        "MM",
+        "MN",
+        "MX",
+        "MY",
+        "NG",
+        "NI",
+        "NL",
+        "NO",
+        "NP",
+        "PA",
+        "PE",
+        "PH",
+        "PK",
+        "PL",
+        "PR",
+        "PT",
+        "PY",
+        "RO",
+        "RS",
+        "RU",
+        "SA",
+        "SE",
+        "SG",
+        "SI",
+        "SK",
+        "TH",
+        "TN",
+        "TR",
+        "TZ",
+        "UA",
+        "UG",
+        "UZ",
+        "VN",
+        "ZA"
+      ],
+      "model": "Galaxy S25 Ultra",
+      "osVersions": [
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        12,
+        16
+      ],
+      "soc": "Snapdragon 8 Elite for Galaxy",
+      "storageGb": [
+        256,
+        512,
+        1024
+      ],
+      "uaModel": "SM-S938B",
+      "codename": "pa3q",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "S938BXXSDDZJ1"
+        },
+        {
+          "version": "17",
+          "build": "S938BXXUDDZJB"
+        },
+        {
+          "version": "17",
+          "build": "S938BXXUCDZIF"
+        },
+        {
+          "version": "16",
+          "build": "S938BXXSBCZG3"
+        },
+        {
+          "version": "16",
+          "build": "S938BXXS9BZCK"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "15": "AP3A.240905.015.A2",
+        "16": "BP2A.250605.031.A2",
+        "17": "A566BXXSFDZK1"
+      },
+      "cores": 8,
+      "display": {
+        "h": 2340,
+        "ppi": 385,
+        "w": 1080,
+        "dpr": 2.8125
+      },
+      "gpu": "Xclipse 540",
+      "id": "galaxy-a56",
+      "markets": [
+        "AE",
+        "AT",
+        "AU",
+        "BE",
+        "BG",
+        "BH",
+        "BY",
+        "CH",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EG",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HR",
+        "HU",
+        "ID",
+        "IE",
+        "IN",
+        "IQ",
+        "IR",
+        "IT",
+        "KE",
+        "KW",
+        "LB",
+        "LT",
+        "LU",
+        "LV",
+        "MY",
+        "NL",
+        "NO",
+        "NZ",
+        "OM",
+        "PH",
+        "PK",
+        "PL",
+        "PT",
+        "QA",
+        "RO",
+        "RS",
+        "SA",
+        "SE",
+        "SG",
+        "SI",
+        "SK",
+        "UA",
+        "VN",
+        "ZA"
+      ],
+      "model": "Galaxy A56 5G",
+      "osVersions": [
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        8,
+        12
+      ],
+      "soc": "Exynos 1580",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "SM-A566B",
+      "codename": "a56x",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A566BXXSFDZK1"
+        },
+        {
+          "version": "17",
+          "build": "A566BXXUEDZJ1"
+        },
+        {
+          "version": "16",
+          "build": "A566BXXUECZI2"
+        },
+        {
+          "version": "16",
+          "build": "A566BXXSDCZHB"
+        },
+        {
+          "version": "16",
+          "build": "A566BXXSCCZG7"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "15": "AP3A.240905.015.A2",
+        "16": "BP2A.250605.031.A2",
+        "17": "A366BXXUCDZIF"
+      },
+      "cores": 8,
+      "display": {
+        "h": 2340,
+        "ppi": 385,
+        "w": 1080,
+        "dpr": 2.8125
+      },
+      "gpu": "Adreno 710",
+      "id": "galaxy-a36",
+      "markets": [
+        "AE",
+        "AM",
+        "AT",
+        "BE",
+        "BG",
+        "BH",
+        "BY",
+        "CH",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EG",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HR",
+        "HU",
+        "ID",
+        "IE",
+        "IQ",
+        "IR",
+        "IT",
+        "JO",
+        "KE",
+        "KH",
+        "KW",
+        "LB",
+        "LT",
+        "LU",
+        "LV",
+        "MY",
+        "NL",
+        "NO",
+        "OM",
+        "PH",
+        "PK",
+        "PL",
+        "PT",
+        "QA",
+        "RO",
+        "RS",
+        "SA",
+        "SE",
+        "SG",
+        "SI",
+        "SK",
+        "TH",
+        "UA"
+      ],
+      "model": "Galaxy A36 5G",
+      "osVersions": [
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        6,
+        8
+      ],
+      "soc": "Snapdragon 6 Gen 3",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "SM-A366B",
+      "codename": "a36xq",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A366BXXUCDZIF"
+        },
+        {
+          "version": "16",
+          "build": "A366BXXSCCZH1"
+        },
+        {
+          "version": "16",
+          "build": "A366BXXSBCZG1"
+        },
+        {
+          "version": "16",
+          "build": "A366BXXSACZF1"
+        },
+        {
+          "version": "16",
+          "build": "A366BXXSACZE3"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "15": "AP3A.240905.015.A2",
+        "17": "A176BXXU8DZJ5",
+        "16": "A176BXXS8CZI7"
+      },
+      "cores": 8,
+      "display": {
+        "h": 2340,
+        "ppi": 385,
+        "w": 1080,
+        "dpr": 2.8125
+      },
+      "gpu": "Mali-G68 MP2",
+      "id": "galaxy-a17-5g",
+      "markets": [
+        "AU",
+        "CA",
+        "GB",
+        "US"
+      ],
+      "model": "Galaxy A17 5G",
+      "osVersions": [
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        4,
+        6,
+        8
+      ],
+      "soc": "Exynos 1330",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "SM-A176B",
+      "codename": "a17x",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A176BXXU8DZJ5"
+        },
+        {
+          "version": "16",
+          "build": "A176BXXS8CZI7"
+        },
+        {
+          "version": "16",
+          "build": "A176BXXS7CZH2"
+        },
+        {
+          "version": "16",
+          "build": "A176BXXS6CZG7"
+        },
+        {
+          "version": "16",
+          "build": "A176BXXS5CZF2"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "17": "A166BXXUAEZJ5",
+        "16": "A166BXXSADZH1",
+        "15": "AP3A.240905.015.A2"
+      },
+      "cores": 8,
+      "display": {
+        "h": 2340,
+        "ppi": 387,
+        "w": 1080,
+        "dpr": 3.0
+      },
+      "gpu": "Mali-G68 MP2",
+      "id": "galaxy-a16-5g",
+      "markets": [
+        "AU",
+        "CA",
+        "GB",
+        "US"
+      ],
+      "model": "Galaxy A16 5G",
+      "osVersions": [
+        "14",
+        "15",
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        4,
+        8
+      ],
+      "soc": "Exynos 1330",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "SM-A166B",
+      "codename": "a16x",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "A166BXXUAEZJ5"
+        },
+        {
+          "version": "16",
+          "build": "A166BXXSADZH1"
+        },
+        {
+          "version": "16",
+          "build": "A166BXXS9DZG1"
+        },
+        {
+          "version": "16",
+          "build": "A166BXXU8DZE9"
+        },
+        {
+          "version": "16",
+          "build": "A166BXXS8CZDG"
+        }
+      ]
+    },
+    {
+      "brand": "Samsung",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "16": "A065FXXSGCZK3",
+        "15": "AP3A.240905.015.A2"
+      },
+      "cores": 8,
+      "display": {
+        "h": 1600,
+        "ppi": 262,
+        "w": 720,
+        "dpr": 1.875
+      },
+      "gpu": "Mali-G52 2EEMC2",
+      "id": "galaxy-a06-4g",
+      "markets": [
+        "EG",
+        "ID",
+        "IN",
+        "MA",
+        "MY",
+        "PK",
+        "SG",
+        "ZA"
+      ],
+      "model": "Galaxy A06",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        4,
+        6
+      ],
+      "soc": "Helio G85",
+      "storageGb": [
+        64,
+        128
+      ],
+      "uaModel": "SM-A065F",
+      "codename": "a06",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "A065FXXSGCZK3"
+        },
+        {
+          "version": "16",
+          "build": "A065FXXSFCZJ2"
+        },
+        {
+          "version": "16",
+          "build": "A065FXXUECZI1"
+        },
+        {
+          "version": "16",
+          "build": "A065FXXSDCZG2"
+        },
+        {
+          "version": "16",
+          "build": "A065FXXSBCZC9"
+        }
+      ]
+    },
+    {
+      "brand": "Google",
+      "builds": {
+        "16": "BP2A.250605.031.A2",
+        "17": "CP4A.261105.040.A1"
+      },
+      "cores": 8,
+      "display": {
+        "h": 2424,
+        "ppi": 421,
+        "w": 1080,
+        "dpr": 2.625
+      },
+      "gpu": "Mali-G715",
+      "id": "pixel-10a",
+      "markets": [
+        "AT",
+        "AU",
+        "BE",
+        "CA",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "IE",
+        "IN",
+        "IT",
+        "JP",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "SE",
+        "SG",
+        "TW",
+        "US"
+      ],
+      "model": "Pixel 10a",
+      "osVersions": [
+        "16",
+        "17"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Google Tensor G4",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "Pixel 10a",
+      "codename": "stallion",
+      "buildsRecent": [
+        {
+          "version": "17",
+          "build": "CP4A.261105.040.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.261005.005"
+        },
+        {
+          "version": "17",
+          "build": "CP3A.260905.009"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005.A1"
+        },
+        {
+          "version": "17",
+          "build": "CP2A.260805.005"
+        }
+      ]
+    },
+    {
+      "brand": "Xiaomi",
+      "builds": {
+        "14": "UP1A.231005.007",
+        "16": "OS3.0.307.0.WGTMIXM",
+        "15": "AP3A.240905.015.A2"
+      },
+      "cores": 8,
+      "display": {
+        "h": 1640,
+        "ppi": 260,
+        "w": 720,
+        "dpr": 2.25
+      },
+      "gpu": "Mali-G52",
+      "id": "redmi-14c",
+      "markets": [
+        "AE",
+        "BD",
+        "BE",
+        "BG",
+        "CL",
+        "CZ",
+        "DE",
+        "EG",
+        "ES",
+        "FR",
+        "GB",
+        "GR",
+        "HK",
+        "HR",
+        "HU",
+        "ID",
+        "IE",
+        "IT",
+        "KZ",
+        "LB",
+        "MY",
+        "NL",
+        "NP",
+        "PE",
+        "PH",
+        "PL",
+        "PT",
+        "PY",
+        "RO",
+        "SA",
+        "SE",
+        "SG",
+        "SI",
+        "SK",
+        "TH",
+        "TW",
+        "VN"
+      ],
+      "model": "Redmi 14C",
+      "osVersions": [
+        "14",
+        "15",
+        "16"
+      ],
+      "ramGb": [
+        4,
+        6,
+        8
+      ],
+      "soc": "Helio G81 Ultra",
+      "storageGb": [
+        128,
+        256
+      ],
+      "uaModel": "2409BRN2CL",
+      "codename": "pond",
+      "buildsRecent": [
+        {
+          "version": "16",
+          "build": "OS3.0.307.0.WGTMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.306.0.WGTMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.20.0.WGTMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.18.0.WGTMIXM"
+        },
+        {
+          "version": "16",
+          "build": "OS3.0.6.0.WGTMIXM"
+        }
+      ]
     }
   ],
   "ios_emulation": [
     {
       "brand": "Apple",
+      "builds": {
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 3.0,
         "h": 2868,
-        "w": 1320
+        "w": 1320,
+        "ppi": 460
       },
       "gpu": "Apple GPU",
       "id": "iphone-16-pro-max",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone 16 Pro Max",
       "osVersions": [
-        "18"
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         8
@@ -553,17 +3921,135 @@
     },
     {
       "brand": "Apple",
+      "builds": {
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 3.0,
         "h": 2556,
-        "w": 1179
+        "w": 1179,
+        "ppi": 460
       },
       "gpu": "Apple GPU",
       "id": "iphone-16",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone 16",
       "osVersions": [
-        "18"
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         8
@@ -578,18 +4064,167 @@
     },
     {
       "brand": "Apple",
+      "builds": {
+        "17.0.2": "21A350",
+        "17.0.3": "21A360",
+        "17.1": "21B80",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 3.0,
         "h": 2556,
-        "w": 1179
+        "w": 1179,
+        "ppi": 460
       },
       "gpu": "Apple GPU",
       "id": "iphone-15",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone 15",
       "osVersions": [
-        "17",
-        "18"
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         6
@@ -604,19 +4239,203 @@
     },
     {
       "brand": "Apple",
+      "builds": {
+        "16.0": "20A362",
+        "16.0.1": "20A371",
+        "16.0.2": "20A380",
+        "16.0.3": "20A392",
+        "16.1": "20B82",
+        "16.1.1": "20B101",
+        "16.1.2": "20B110",
+        "16.2": "20C65",
+        "16.3": "20D47",
+        "16.3.1": "20D67",
+        "16.4": "20E247",
+        "16.4.1": "20E252",
+        "16.5": "20F66",
+        "16.5.1": "20F75",
+        "16.6": "20G75",
+        "16.6.1": "20G81",
+        "17.0": "21A329",
+        "17.0.1": "21A340",
+        "17.0.2": "21A351",
+        "17.0.3": "21A360",
+        "17.1": "21B74",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 3.0,
         "h": 2532,
-        "w": 1170
+        "w": 1170,
+        "ppi": 460
       },
       "gpu": "Apple GPU",
       "id": "iphone-14",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone 14",
       "osVersions": [
-        "16",
-        "17",
-        "18"
+        "16.0",
+        "16.0.1",
+        "16.0.2",
+        "16.0.3",
+        "16.1",
+        "16.1.1",
+        "16.1.2",
+        "16.2",
+        "16.3",
+        "16.3.1",
+        "16.4",
+        "16.4.1",
+        "16.5",
+        "16.5.1",
+        "16.6",
+        "16.6.1",
+        "17.0",
+        "17.0.1",
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         6
@@ -631,20 +4450,229 @@
     },
     {
       "brand": "Apple",
+      "builds": {
+        "15.0": "19A346",
+        "15.0.1": "19A348",
+        "15.0.2": "19A404",
+        "15.1": "19B74",
+        "15.1.1": "19B81",
+        "15.2": "19C57",
+        "15.2.1": "19C63",
+        "15.3": "19D50",
+        "15.3.1": "19D52",
+        "15.4": "19E241",
+        "15.4.1": "19E258",
+        "15.5": "19F77",
+        "15.6": "19G71",
+        "15.6.1": "19G82",
+        "16.0": "20A362",
+        "16.0.2": "20A380",
+        "16.0.3": "20A392",
+        "16.1": "20B82",
+        "16.1.1": "20B101",
+        "16.1.2": "20B110",
+        "16.2": "20C65",
+        "16.3": "20D47",
+        "16.3.1": "20D67",
+        "16.4": "20E247",
+        "16.4.1": "20E252",
+        "16.5": "20F66",
+        "16.5.1": "20F75",
+        "16.6": "20G75",
+        "16.6.1": "20G81",
+        "17.0": "21A329",
+        "17.0.1": "21A340",
+        "17.0.2": "21A351",
+        "17.0.3": "21A360",
+        "17.1": "21B74",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 3.0,
         "h": 2532,
-        "w": 1170
+        "w": 1170,
+        "ppi": 460
       },
       "gpu": "Apple GPU",
       "id": "iphone-13",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone 13",
       "osVersions": [
-        "15",
-        "16",
-        "17",
-        "18"
+        "15.0",
+        "15.0.1",
+        "15.0.2",
+        "15.1",
+        "15.1.1",
+        "15.2",
+        "15.2.1",
+        "15.3",
+        "15.3.1",
+        "15.4",
+        "15.4.1",
+        "15.5",
+        "15.6",
+        "15.6.1",
+        "16.0",
+        "16.0.2",
+        "16.0.3",
+        "16.1",
+        "16.1.1",
+        "16.1.2",
+        "16.2",
+        "16.3",
+        "16.3.1",
+        "16.4",
+        "16.4.1",
+        "16.5",
+        "16.5.1",
+        "16.6",
+        "16.6.1",
+        "17.0",
+        "17.0.1",
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         4
@@ -659,20 +4687,211 @@
     },
     {
       "brand": "Apple",
+      "builds": {
+        "15.4": "19E241",
+        "15.4.1": "19E258",
+        "15.5": "19F77",
+        "15.6": "19G71",
+        "15.6.1": "19G82",
+        "16.0": "20A362",
+        "16.0.2": "20A380",
+        "16.0.3": "20A392",
+        "16.1": "20B82",
+        "16.1.1": "20B101",
+        "16.1.2": "20B110",
+        "16.2": "20C65",
+        "16.3": "20D47",
+        "16.3.1": "20D67",
+        "16.4": "20E247",
+        "16.4.1": "20E252",
+        "16.5": "20F66",
+        "16.5.1": "20F75",
+        "16.6": "20G75",
+        "16.6.1": "20G81",
+        "17.0": "21A329",
+        "17.0.1": "21A340",
+        "17.0.2": "21A351",
+        "17.0.3": "21A360",
+        "17.1": "21B74",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
       "cores": 6,
       "display": {
         "dpr": 2.0,
         "h": 1334,
-        "w": 750
+        "w": 750,
+        "ppi": 326
       },
       "gpu": "Apple GPU",
       "id": "iphone-se-2022",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
       "model": "iPhone SE (2022)",
       "osVersions": [
-        "15",
-        "16",
-        "17",
-        "18"
+        "15.4",
+        "15.4.1",
+        "15.5",
+        "15.6",
+        "15.6.1",
+        "16.0",
+        "16.0.2",
+        "16.0.3",
+        "16.1",
+        "16.1.1",
+        "16.1.2",
+        "16.2",
+        "16.3",
+        "16.3.1",
+        "16.4",
+        "16.4.1",
+        "16.5",
+        "16.5.1",
+        "16.6",
+        "16.6.1",
+        "17.0",
+        "17.0.1",
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
       ],
       "ramGb": [
         4
@@ -684,38 +4903,2177 @@
         256
       ],
       "uaModel": "iPhone14,6"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "14.1": "18A8395",
+        "14.2": "18B111",
+        "14.2.1": "18B121",
+        "14.3": "18C66",
+        "14.4": "18D52",
+        "14.4.1": "18D61",
+        "14.4.2": "18D70",
+        "14.5": "18E199",
+        "14.5.1": "18E212",
+        "14.6": "18F72",
+        "14.7": "18G69",
+        "14.7.1": "18G82",
+        "14.8": "18H17",
+        "15.0": "19A346",
+        "15.0.1": "19A348",
+        "15.0.2": "19A404",
+        "15.1": "19B74",
+        "15.1.1": "19B81",
+        "15.2": "19C56",
+        "15.2.1": "19C63",
+        "15.3": "19D50",
+        "15.3.1": "19D52",
+        "15.4": "19E241",
+        "15.4.1": "19E258",
+        "15.5": "19F77",
+        "15.6": "19G71",
+        "15.6.1": "19G82",
+        "16.0": "20A362",
+        "16.0.2": "20A380",
+        "16.0.3": "20A392",
+        "16.1": "20B82",
+        "16.1.1": "20B101",
+        "16.1.2": "20B110",
+        "16.2": "20C65",
+        "16.3": "20D47",
+        "16.3.1": "20D67",
+        "16.4": "20E247",
+        "16.4.1": "20E252",
+        "16.5": "20F66",
+        "16.5.1": "20F75",
+        "16.6": "20G75",
+        "16.6.1": "20G81",
+        "17.0": "21A329",
+        "17.0.1": "21A340",
+        "17.0.2": "21A351",
+        "17.0.3": "21A360",
+        "17.1": "21B74",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2532,
+        "w": 1170,
+        "ppi": 460
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-12",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
+      "model": "iPhone 12",
+      "osVersions": [
+        "14.1",
+        "14.2",
+        "14.2.1",
+        "14.3",
+        "14.4",
+        "14.4.1",
+        "14.4.2",
+        "14.5",
+        "14.5.1",
+        "14.6",
+        "14.7",
+        "14.7.1",
+        "14.8",
+        "15.0",
+        "15.0.1",
+        "15.0.2",
+        "15.1",
+        "15.1.1",
+        "15.2",
+        "15.2.1",
+        "15.3",
+        "15.3.1",
+        "15.4",
+        "15.4.1",
+        "15.5",
+        "15.6",
+        "15.6.1",
+        "16.0",
+        "16.0.2",
+        "16.0.3",
+        "16.1",
+        "16.1.1",
+        "16.1.2",
+        "16.2",
+        "16.3",
+        "16.3.1",
+        "16.4",
+        "16.4.1",
+        "16.5",
+        "16.5.1",
+        "16.6",
+        "16.6.1",
+        "17.0",
+        "17.0.1",
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        4
+      ],
+      "soc": "Apple A14 Bionic",
+      "storageGb": [
+        64,
+        128,
+        256
+      ],
+      "uaModel": "iPhone13,2"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "13.0": "17A577",
+        "13.1": "17A844",
+        "13.1.1": "17A854",
+        "13.1.2": "17A860",
+        "13.1.3": "17A878",
+        "13.2": "17B84",
+        "13.2.2": "17B102",
+        "13.2.3": "17B111",
+        "13.3": "17C54",
+        "13.3.1": "17D50",
+        "13.4": "17E255",
+        "13.4.1": "17E262",
+        "13.5": "17F75",
+        "13.5.1": "17F80",
+        "13.6": "17G68",
+        "13.6.1": "17G80",
+        "13.7": "17H35",
+        "14.0": "18A373",
+        "14.0.1": "18A393",
+        "14.1": "18A8395",
+        "14.2": "18B92",
+        "14.3": "18C66",
+        "14.4": "18D52",
+        "14.4.1": "18D61",
+        "14.4.2": "18D70",
+        "14.5": "18E199",
+        "14.5.1": "18E212",
+        "14.6": "18F72",
+        "14.7": "18G69",
+        "14.7.1": "18G82",
+        "14.8": "18H17",
+        "15.0": "19A346",
+        "15.0.1": "19A348",
+        "15.0.2": "19A404",
+        "15.1": "19B74",
+        "15.2": "19C56",
+        "15.2.1": "19C63",
+        "15.3": "19D50",
+        "15.3.1": "19D52",
+        "15.4": "19E241",
+        "15.4.1": "19E258",
+        "15.5": "19F77",
+        "15.6": "19G71",
+        "15.6.1": "19G82",
+        "16.0": "20A362",
+        "16.0.2": "20A380",
+        "16.0.3": "20A392",
+        "16.1": "20B82",
+        "16.1.1": "20B101",
+        "16.1.2": "20B110",
+        "16.2": "20C65",
+        "16.3": "20D47",
+        "16.3.1": "20D67",
+        "16.4": "20E247",
+        "16.4.1": "20E252",
+        "16.5": "20F66",
+        "16.5.1": "20F75",
+        "16.6": "20G75",
+        "16.6.1": "20G81",
+        "17.0": "21A329",
+        "17.0.1": "21A340",
+        "17.0.2": "21A351",
+        "17.0.3": "21A360",
+        "17.1": "21B74",
+        "17.1.1": "21B91",
+        "17.1.2": "21B101",
+        "17.2": "21C62",
+        "17.2.1": "21C66",
+        "17.3": "21D50",
+        "17.3.1": "21D61",
+        "17.4": "21E219",
+        "17.4.1": "21E237",
+        "17.5": "21F79",
+        "17.5.1": "21F90",
+        "17.6": "21G80",
+        "17.6.1": "21G101",
+        "17.7": "21H16",
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D64",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 2.0,
+        "h": 1792,
+        "w": 828,
+        "ppi": 326
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-11",
+      "markets": [
+        "US",
+        "GB",
+        "BD",
+        "IN",
+        "PK",
+        "CA",
+        "AU",
+        "DE",
+        "FR",
+        "ES",
+        "IT",
+        "PT",
+        "BR",
+        "MX",
+        "AR",
+        "RU",
+        "UA",
+        "TR",
+        "SA",
+        "AE",
+        "EG",
+        "NG",
+        "ZA",
+        "KE",
+        "ID",
+        "MY",
+        "SG",
+        "PH",
+        "VN",
+        "TH",
+        "JP",
+        "KR",
+        "CN",
+        "TW",
+        "HK",
+        "NL",
+        "SE",
+        "NO",
+        "DK",
+        "FI",
+        "PL",
+        "GR",
+        "IQ",
+        "LK",
+        "NP",
+        "MM"
+      ],
+      "model": "iPhone 11",
+      "osVersions": [
+        "13.0",
+        "13.1",
+        "13.1.1",
+        "13.1.2",
+        "13.1.3",
+        "13.2",
+        "13.2.2",
+        "13.2.3",
+        "13.3",
+        "13.3.1",
+        "13.4",
+        "13.4.1",
+        "13.5",
+        "13.5.1",
+        "13.6",
+        "13.6.1",
+        "13.7",
+        "14.0",
+        "14.0.1",
+        "14.1",
+        "14.2",
+        "14.3",
+        "14.4",
+        "14.4.1",
+        "14.4.2",
+        "14.5",
+        "14.5.1",
+        "14.6",
+        "14.7",
+        "14.7.1",
+        "14.8",
+        "15.0",
+        "15.0.1",
+        "15.0.2",
+        "15.1",
+        "15.2",
+        "15.2.1",
+        "15.3",
+        "15.3.1",
+        "15.4",
+        "15.4.1",
+        "15.5",
+        "15.6",
+        "15.6.1",
+        "16.0",
+        "16.0.2",
+        "16.0.3",
+        "16.1",
+        "16.1.1",
+        "16.1.2",
+        "16.2",
+        "16.3",
+        "16.3.1",
+        "16.4",
+        "16.4.1",
+        "16.5",
+        "16.5.1",
+        "16.6",
+        "16.6.1",
+        "17.0",
+        "17.0.1",
+        "17.0.2",
+        "17.0.3",
+        "17.1",
+        "17.1.1",
+        "17.1.2",
+        "17.2",
+        "17.2.1",
+        "17.3",
+        "17.3.1",
+        "17.4",
+        "17.4.1",
+        "17.5",
+        "17.5.1",
+        "17.6",
+        "17.6.1",
+        "17.7",
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        4
+      ],
+      "soc": "Apple A13 Bionic",
+      "storageGb": [
+        64,
+        128,
+        256
+      ],
+      "uaModel": "iPhone12,1"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2622,
+        "ppi": 458,
+        "w": 1206
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-16-pro",
+      "markets": [
+        "AE",
+        "AT",
+        "AU",
+        "BD",
+        "BE",
+        "BG",
+        "BH",
+        "BR",
+        "CA",
+        "CH",
+        "CN",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HK",
+        "HR",
+        "HU",
+        "ID",
+        "IE",
+        "IL",
+        "IN",
+        "IT",
+        "JP",
+        "KR",
+        "LU",
+        "MO",
+        "MX",
+        "MY",
+        "NL",
+        "NO",
+        "NZ",
+        "OM",
+        "PH",
+        "PL",
+        "PT",
+        "QA",
+        "RO",
+        "RS",
+        "SA",
+        "SE",
+        "SG",
+        "SK",
+        "TH",
+        "TR",
+        "TW",
+        "US",
+        "VN",
+        "ZA"
+      ],
+      "model": "iPhone 16 Pro",
+      "osVersions": [
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Apple A18 Pro",
+      "storageGb": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "uaModel": "iPhone17,1"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "18.0": "22A3354",
+        "18.0.1": "22A3370",
+        "18.1": "22B83",
+        "18.1.1": "22B91",
+        "18.2": "22C152",
+        "18.2.1": "22C161",
+        "18.3": "22D63",
+        "18.3.1": "22D72",
+        "18.3.2": "22D82",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2796,
+        "ppi": 460,
+        "w": 1290
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-16-plus",
+      "markets": [
+        "AE",
+        "AT",
+        "AU",
+        "BE",
+        "BH",
+        "BR",
+        "CA",
+        "CH",
+        "CN",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HK",
+        "HR",
+        "HU",
+        "IE",
+        "IL",
+        "IN",
+        "IT",
+        "JP",
+        "KR",
+        "LU",
+        "MO",
+        "MT",
+        "MX",
+        "MY",
+        "NL",
+        "NO",
+        "NZ",
+        "OM",
+        "PL",
+        "PT",
+        "QA",
+        "RO",
+        "RS",
+        "SA",
+        "SE",
+        "SG",
+        "SK",
+        "TH",
+        "TR",
+        "TW",
+        "US",
+        "VN",
+        "ZA"
+      ],
+      "model": "iPhone 16 Plus",
+      "osVersions": [
+        "18.0",
+        "18.0.1",
+        "18.1",
+        "18.1.1",
+        "18.2",
+        "18.2.1",
+        "18.3",
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Apple A18",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "iPhone17,4"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "18.3.1": "22D8075",
+        "18.3.2": "22D8082",
+        "18.4": "22E240",
+        "18.4.1": "22E252",
+        "18.5": "22F76",
+        "18.6": "22G86",
+        "18.6.1": "22G90",
+        "18.6.2": "22G100",
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2532,
+        "ppi": 457,
+        "w": 1170
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-16e",
+      "markets": [
+        "AE",
+        "AU",
+        "CA",
+        "CN",
+        "DE",
+        "FR",
+        "GB",
+        "IN",
+        "JP",
+        "KR",
+        "MX",
+        "MY",
+        "TR",
+        "US"
+      ],
+      "model": "iPhone 16e",
+      "osVersions": [
+        "18.3.1",
+        "18.3.2",
+        "18.4",
+        "18.4.1",
+        "18.5",
+        "18.6",
+        "18.6.1",
+        "18.6.2",
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Apple A18",
+      "storageGb": [
+        128,
+        256,
+        512
+      ],
+      "uaModel": "iPhone17,5"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "26.0": "23A341",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.1": "23F81",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2622,
+        "ppi": 458,
+        "w": 1206
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-17",
+      "markets": [
+        "AE",
+        "AU",
+        "CA",
+        "CN",
+        "CO",
+        "DE",
+        "FR",
+        "GB",
+        "IN",
+        "JP",
+        "KR",
+        "MX",
+        "MY",
+        "SG",
+        "TH",
+        "TR",
+        "US",
+        "VN"
+      ],
+      "model": "iPhone 17",
+      "osVersions": [
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.1",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        8
+      ],
+      "soc": "Apple A19",
+      "storageGb": [
+        256,
+        512
+      ],
+      "uaModel": "iPhone18,3"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "26.0": "23A345",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.1": "23F81",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2622,
+        "ppi": 458,
+        "w": 1206
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-17-pro",
+      "markets": [
+        "AE",
+        "AU",
+        "CA",
+        "CN",
+        "CO",
+        "DE",
+        "FR",
+        "GB",
+        "IN",
+        "JP",
+        "KR",
+        "MX",
+        "MY",
+        "SG",
+        "TH",
+        "TR",
+        "US",
+        "VN"
+      ],
+      "model": "iPhone 17 Pro",
+      "osVersions": [
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.1",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Apple A19 Pro",
+      "storageGb": [
+        256,
+        512,
+        1024
+      ],
+      "uaModel": "iPhone18,1"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "26.0": "23A345",
+        "26.0.1": "23A355",
+        "26.1": "23B85",
+        "26.2": "23C55",
+        "26.2.1": "23C71",
+        "26.3": "23D127",
+        "26.3.1": "23D8133",
+        "26.4": "23E246",
+        "26.4.1": "23E254",
+        "26.4.2": "23E261",
+        "26.5": "23F77",
+        "26.5.1": "23F81",
+        "26.5.2": "23F84",
+        "26.6": "23G71",
+        "26.6.1": "23G83",
+        "26.6.2": "23G90",
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2868,
+        "ppi": 458,
+        "w": 1320
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-17-pro-max",
+      "markets": [
+        "AE",
+        "AU",
+        "CA",
+        "CN",
+        "CO",
+        "DE",
+        "FR",
+        "GB",
+        "IN",
+        "JP",
+        "KR",
+        "MX",
+        "MY",
+        "SG",
+        "TH",
+        "TR",
+        "US",
+        "VN"
+      ],
+      "model": "iPhone 17 Pro Max",
+      "osVersions": [
+        "26.0",
+        "26.0.1",
+        "26.1",
+        "26.2",
+        "26.2.1",
+        "26.3",
+        "26.3.1",
+        "26.4",
+        "26.4.1",
+        "26.4.2",
+        "26.5",
+        "26.5.1",
+        "26.5.2",
+        "26.6",
+        "26.6.1",
+        "26.6.2",
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Apple A19 Pro",
+      "storageGb": [
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "uaModel": "iPhone18,2"
+    },
+    {
+      "brand": "Apple",
+      "builds": {
+        "27.0": "24A437",
+        "27.0.1": "24A446",
+        "27.2": "24B119",
+        "27.2.1": "24B156"
+      },
+      "cores": 6,
+      "display": {
+        "dpr": 3.0,
+        "h": 2868,
+        "ppi": 458,
+        "w": 1320
+      },
+      "gpu": "Apple GPU",
+      "id": "iphone-18-pro-max",
+      "markets": [
+        "AE",
+        "AU",
+        "BR",
+        "CA",
+        "CN",
+        "CO",
+        "DE",
+        "FR",
+        "GB",
+        "IN",
+        "JP",
+        "KR",
+        "MX",
+        "MY",
+        "SG",
+        "TR",
+        "US",
+        "VN"
+      ],
+      "model": "iPhone 18 Pro Max",
+      "osVersions": [
+        "27.0",
+        "27.0.1",
+        "27.2",
+        "27.2.1"
+      ],
+      "ramGb": [
+        12
+      ],
+      "soc": "Apple A20 Pro",
+      "storageGb": [
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "uaModel": "iPhone19,7"
     }
   ],
-  "note": "Real-device preset database (seed). Specs are the manufacturers' published values as commonly listed; gate G3.2 requires the builder to re-verify EVERY row against public device databases (GSMArena / DeviceAtlas / vendor pages) and correct or remove any row that does not check out. gpu = the WebGL renderer string class for that device's SoC. dpr = the density ratio the device's stock browser reports.",
   "meta": {
-    "schemaVersion": 2,
-    "dataVersion": "2026.11.24.1",
-    "updatedAt": "2026-11-24",
-    "source": "Migrated from the uploaded NEXORA v0.4.0-alpha1 catalog. Device specifications remain unverified until source evidence is added.",
-    "versions": {
-      "chrome": null,
-      "firefox": null
-    },
     "apps": {
+      "discord": {
+        "build": "355010",
+        "version": "355.10",
+        "versions": [
+          {
+            "version": "355.10",
+            "build": "355010"
+          },
+          {
+            "version": "354.12",
+            "build": "354012"
+          },
+          {
+            "version": "353.11",
+            "build": "353011"
+          },
+          {
+            "version": "352.17",
+            "build": "352017"
+          },
+          {
+            "version": "351.11",
+            "build": "351011"
+          },
+          {
+            "version": "350.8",
+            "build": "350008"
+          },
+          {
+            "version": "349.9",
+            "build": "349009"
+          },
+          {
+            "version": "348.10",
+            "build": "348010"
+          },
+          {
+            "version": "347.12",
+            "build": "347012"
+          },
+          {
+            "version": "346.13",
+            "build": "346013"
+          }
+        ]
+      },
+      "facebook": {
+        "build": "707615019",
+        "version": "588.0.0.42.55",
+        "versions": [
+          {
+            "version": "586.0.0.52.53",
+            "build": "476217012"
+          },
+          {
+            "version": "587.0.0.39.55",
+            "build": "707414400"
+          },
+          {
+            "version": "588.0.0.42.55",
+            "build": "707615019"
+          },
+          {
+            "version": "585.0.0.47.54",
+            "build": "476015655"
+          },
+          {
+            "version": "584.0.0.51.56",
+            "build": "476015532"
+          },
+          {
+            "version": "583.0.0.39.55",
+            "build": "475614341"
+          },
+          {
+            "version": "582.0.0.50.54",
+            "build": "475612742"
+          },
+          {
+            "version": "581.0.0.45.58",
+            "build": "475417008"
+          },
+          {
+            "version": "580.0.0.51.74",
+            "build": "475019271"
+          },
+          {
+            "version": "579.0.0.52.74",
+            "build": "474818410"
+          }
+        ]
+      },
+      "fb_lite": {
+        "build": "517502012",
+        "version": "539.0.0.7.106",
+        "versions": [
+          {
+            "version": "539.0.0.7.106",
+            "build": "517502012"
+          },
+          {
+            "version": "538.0.0.10.59",
+            "build": "517401406"
+          },
+          {
+            "version": "536.0.0.11.107",
+            "build": "517401394"
+          },
+          {
+            "version": "535.0.0.10.106",
+            "build": "517301006"
+          },
+          {
+            "version": "534.0.0.7.108",
+            "build": "517001866"
+          },
+          {
+            "version": "533.0.0.11.105",
+            "build": "516901966"
+          },
+          {
+            "version": "532.0.0.6.105",
+            "build": "516801785"
+          },
+          {
+            "version": "531.0.0.13.104",
+            "build": "516801764"
+          },
+          {
+            "version": "530.0.0.8.106",
+            "build": "516601835"
+          },
+          {
+            "version": "529.0.0.7.105",
+            "build": "516601814"
+          }
+        ]
+      },
+      "instagram": {
+        "build": "386314297",
+        "version": "457.0.0.55.73",
+        "versions": [
+          {
+            "version": "456.1.0.56.78",
+            "build": "386312443"
+          },
+          {
+            "version": "457.0.0.55.73",
+            "build": "386314297"
+          },
+          {
+            "version": "455.0.0.51.72",
+            "build": "386214473"
+          },
+          {
+            "version": "456.0.0.53.78",
+            "build": "386214521"
+          },
+          {
+            "version": "454.0.0.54.77",
+            "build": "386014747"
+          },
+          {
+            "version": "453.0.0.57.79",
+            "build": "386007259"
+          },
+          {
+            "version": "452.1.0.53.64",
+            "build": "385914182"
+          },
+          {
+            "version": "453.0.0.55.79",
+            "build": "385914272"
+          },
+          {
+            "version": "452.0.0.48.64",
+            "build": "385810232"
+          },
+          {
+            "version": "451.0.0.53.80",
+            "build": "385713073"
+          }
+        ]
+      },
+      "kik": {
+        "build": "80002025",
+        "version": "17.24.1.40019",
+        "versions": [
+          {
+            "version": "17.24.1.40019",
+            "build": "80002025"
+          },
+          {
+            "version": "17.24.0.38222",
+            "build": "80002024"
+          },
+          {
+            "version": "17.23.1.36904",
+            "build": "80002021"
+          },
+          {
+            "version": "17.21.0.35551",
+            "build": "80002014"
+          },
+          {
+            "version": "17.20.0.35416",
+            "build": "80002011"
+          },
+          {
+            "version": "17.19.1.35366",
+            "build": "80002008"
+          },
+          {
+            "version": "17.17.2.34913",
+            "build": "80000997"
+          },
+          {
+            "version": "17.17.1.34856",
+            "build": "80000996"
+          },
+          {
+            "version": "17.17.0.34821",
+            "build": "80000995"
+          },
+          {
+            "version": "17.13.0.34583",
+            "build": "80000983"
+          }
+        ]
+      },
+      "line": {
+        "build": "261900178",
+        "version": "26.19.0",
+        "versions": [
+          {
+            "version": "26.19.0",
+            "build": "261900178"
+          },
+          {
+            "version": "26.16.0",
+            "build": "261600106"
+          },
+          {
+            "version": "26.15.1",
+            "build": "261510192"
+          },
+          {
+            "version": "26.14.0",
+            "build": "261400121"
+          },
+          {
+            "version": "26.13.1",
+            "build": "261310101"
+          },
+          {
+            "version": "26.11.0",
+            "build": "261100124"
+          },
+          {
+            "version": "26.10.1",
+            "build": "261010136"
+          },
+          {
+            "version": "26.10.0",
+            "build": "261000129"
+          },
+          {
+            "version": "26.9.0",
+            "build": "260900118"
+          },
+          {
+            "version": "26.8.0",
+            "build": "260800151"
+          }
+        ]
+      },
+      "linkedin": {
+        "build": "218400",
+        "version": "4.1.1276",
+        "versions": [
+          {
+            "version": "4.1.1276",
+            "build": "218400"
+          },
+          {
+            "version": "4.1.1275",
+            "build": "218300"
+          },
+          {
+            "version": "4.1.1272",
+            "build": "218000"
+          },
+          {
+            "version": "4.1.1270",
+            "build": "217800"
+          },
+          {
+            "version": "4.1.1269",
+            "build": "217700"
+          },
+          {
+            "version": "4.1.1267",
+            "build": "217500"
+          },
+          {
+            "version": "4.1.1266",
+            "build": "217400"
+          },
+          {
+            "version": "4.1.1264",
+            "build": "217200"
+          },
+          {
+            "version": "4.1.1263",
+            "build": "217100"
+          },
+          {
+            "version": "4.1.1261",
+            "build": "216900"
+          }
+        ]
+      },
+      "messenger": {
+        "build": "347617572",
+        "version": "588.1.0.66.98",
+        "versions": [
+          {
+            "version": "587.0.0.54.96",
+            "build": "347617466"
+          },
+          {
+            "version": "588.1.0.66.98",
+            "build": "347617572"
+          },
+          {
+            "version": "586.0.0.55.92",
+            "build": "347406897"
+          },
+          {
+            "version": "585.0.0.53.94",
+            "build": "347215218"
+          },
+          {
+            "version": "584.1.0.61.98",
+            "build": "347014943"
+          },
+          {
+            "version": "583.0.0.29.95",
+            "build": "346816902"
+          },
+          {
+            "version": "584.0.0.49.98",
+            "build": "346814894"
+          },
+          {
+            "version": "582.0.0.61.92",
+            "build": "346415706"
+          },
+          {
+            "version": "581.0.0.49.91",
+            "build": "346415665"
+          },
+          {
+            "version": "580.0.0.49.91",
+            "build": "346213473"
+          }
+        ]
+      },
+      "pinterest": {
+        "build": "14458020",
+        "version": "14.45.0",
+        "versions": [
+          {
+            "version": "14.45.0",
+            "build": "14458020"
+          },
+          {
+            "version": "14.44.0",
+            "build": "14448030"
+          },
+          {
+            "version": "14.43.0",
+            "build": "14438020"
+          },
+          {
+            "version": "14.42.0",
+            "build": "14428030"
+          },
+          {
+            "version": "14.41.0",
+            "build": "14418020"
+          },
+          {
+            "version": "14.40.0",
+            "build": "14408010"
+          },
+          {
+            "version": "14.39.0",
+            "build": "14398020"
+          },
+          {
+            "version": "14.38.0",
+            "build": "14388010"
+          },
+          {
+            "version": "14.37.0",
+            "build": "14378020"
+          },
+          {
+            "version": "14.36.0",
+            "build": "14368020"
+          }
+        ]
+      },
+      "reddit": {
+        "build": "2647001",
+        "version": "2026.47.0",
+        "versions": [
+          {
+            "version": "2026.47.0",
+            "build": "2647001"
+          },
+          {
+            "version": "2026.46.0",
+            "build": "2646001"
+          },
+          {
+            "version": "2026.45.0",
+            "build": "2645001"
+          },
+          {
+            "version": "2026.44.0",
+            "build": "2644001"
+          },
+          {
+            "version": "2026.43.1",
+            "build": "2643050"
+          },
+          {
+            "version": "2026.43.0",
+            "build": "2643041"
+          },
+          {
+            "version": "2026.42.0",
+            "build": "2642001"
+          },
+          {
+            "version": "2026.41.0",
+            "build": "2641081"
+          },
+          {
+            "version": "2026.40.0",
+            "build": "2640091"
+          },
+          {
+            "version": "2026.39.1",
+            "build": "2639070"
+          }
+        ]
+      },
+      "snapchat": {
+        "build": "329222",
+        "version": "14.33.1.0",
+        "versions": [
+          {
+            "version": "14.33.1.0",
+            "build": "329222"
+          },
+          {
+            "version": "14.33.0.55",
+            "build": "329172"
+          },
+          {
+            "version": "14.32.0.54",
+            "build": "327472"
+          },
+          {
+            "version": "14.31.0.56",
+            "build": "325772"
+          },
+          {
+            "version": "14.30.0.54",
+            "build": "323972"
+          },
+          {
+            "version": "14.29.0.50",
+            "build": "322522"
+          },
+          {
+            "version": "14.28.0.54",
+            "build": "321072"
+          },
+          {
+            "version": "14.27.0.53",
+            "build": "319422"
+          },
+          {
+            "version": "14.26.1.0",
+            "build": "317772"
+          },
+          {
+            "version": "14.26.0.39",
+            "build": "317722"
+          }
+        ]
+      },
+      "telegram": {
+        "build": "73461",
+        "version": "13.3.1",
+        "versions": [
+          {
+            "version": "13.3.1",
+            "build": "73461"
+          },
+          {
+            "version": "13.3.0",
+            "build": "73411"
+          },
+          {
+            "version": "13.2.2",
+            "build": "73031"
+          },
+          {
+            "version": "13.2.1",
+            "build": "72911"
+          },
+          {
+            "version": "13.2.0",
+            "build": "72801"
+          },
+          {
+            "version": "13.1.1",
+            "build": "72371"
+          },
+          {
+            "version": "13.1.0",
+            "build": "72291"
+          },
+          {
+            "version": "13.0.3",
+            "build": "71831"
+          },
+          {
+            "version": "13.0.2",
+            "build": "71751"
+          },
+          {
+            "version": "13.0.1",
+            "build": "71671"
+          }
+        ]
+      },
+      "threads": {
+        "build": "512708498",
+        "version": "457.0.0.57.74",
+        "versions": [
+          {
+            "version": "457.0.0.57.74",
+            "build": "512708498"
+          },
+          {
+            "version": "456.0.0.57.80",
+            "build": "512608757"
+          },
+          {
+            "version": "455.0.0.55.72",
+            "build": "512508344"
+          },
+          {
+            "version": "454.0.0.54.79",
+            "build": "512408621"
+          },
+          {
+            "version": "453.0.0.56.79",
+            "build": "512308671"
+          },
+          {
+            "version": "452.0.0.50.64",
+            "build": "512304472"
+          },
+          {
+            "version": "451.0.0.51.80",
+            "build": "512206452"
+          },
+          {
+            "version": "450.0.0.51.78",
+            "build": "512008353"
+          },
+          {
+            "version": "449.0.0.54.82",
+            "build": "511908372"
+          },
+          {
+            "version": "448.0.0.54.85",
+            "build": "511808279"
+          }
+        ]
+      },
+      "tiktok": {
+        "build": "2024709030",
+        "version": "47.9.3",
+        "versions": [
+          {
+            "version": "47.8.3",
+            "build": "2024708030"
+          },
+          {
+            "version": "47.9.3",
+            "build": "2024709030"
+          },
+          {
+            "version": "47.9.2",
+            "build": "2024709020"
+          },
+          {
+            "version": "47.9.1",
+            "build": "2024709010"
+          },
+          {
+            "version": "47.7.3",
+            "build": "2024707030"
+          },
+          {
+            "version": "47.7.2",
+            "build": "2024707020"
+          },
+          {
+            "version": "47.7.1",
+            "build": "2024707010"
+          },
+          {
+            "version": "47.6.3",
+            "build": "2024706030"
+          },
+          {
+            "version": "47.5.3",
+            "build": "2024705030"
+          },
+          {
+            "version": "47.6.2",
+            "build": "2024706020"
+          }
+        ]
+      },
+      "viber": {
+        "build": "1290600",
+        "version": "29.6.0.0",
+        "versions": [
+          {
+            "version": "29.6.0.0",
+            "build": "1290600"
+          },
+          {
+            "version": "29.5.0.0",
+            "build": "1290500"
+          },
+          {
+            "version": "29.4.0.0",
+            "build": "1290400"
+          },
+          {
+            "version": "29.3.1.0",
+            "build": "1290301"
+          },
+          {
+            "version": "29.2.0.0",
+            "build": "1290200"
+          },
+          {
+            "version": "29.1.1.0",
+            "build": "1290101"
+          },
+          {
+            "version": "29.0.1.0",
+            "build": "1290001"
+          },
+          {
+            "version": "28.11.0.0",
+            "build": "1289200"
+          },
+          {
+            "version": "28.10.2.0",
+            "build": "1289102"
+          },
+          {
+            "version": "28.9.1.0",
+            "build": "1289001"
+          }
+        ]
+      },
+      "wechat": {
+        "build": "3200",
+        "version": "8.0.80",
+        "versions": [
+          {
+            "version": "8.0.80",
+            "build": "3200"
+          },
+          {
+            "version": "8.0.79",
+            "build": "3183"
+          },
+          {
+            "version": "8.0.77",
+            "build": "3141"
+          },
+          {
+            "version": "8.0.78",
+            "build": "3180"
+          },
+          {
+            "version": "8.0.72",
+            "build": "3085"
+          },
+          {
+            "version": "8.0.76",
+            "build": "3141"
+          },
+          {
+            "version": "8.0.74",
+            "build": "3120"
+          },
+          {
+            "version": "8.0.71",
+            "build": "3080"
+          },
+          {
+            "version": "8.0.69",
+            "build": "3022"
+          },
+          {
+            "version": "8.0.70",
+            "build": "3060"
+          }
+        ]
+      },
+      "weibo": {
+        "build": "8260",
+        "version": "16.11.1",
+        "versions": [
+          {
+            "version": "16.11.1",
+            "build": "8260"
+          },
+          {
+            "version": "16.11.0",
+            "build": "8245"
+          },
+          {
+            "version": "16.10.3",
+            "build": "8234"
+          },
+          {
+            "version": "16.10.2",
+            "build": "8220"
+          },
+          {
+            "version": "16.10.1",
+            "build": "8209"
+          },
+          {
+            "version": "16.10.0",
+            "build": "8197"
+          },
+          {
+            "version": "16.9.3",
+            "build": "8185"
+          },
+          {
+            "version": "16.9.2",
+            "build": "8173"
+          },
+          {
+            "version": "16.9.0",
+            "build": "8150"
+          },
+          {
+            "version": "16.8.3",
+            "build": "8137"
+          }
+        ]
+      },
+      "x": {
+        "build": "312461001",
+        "version": "12.46.1-prod.01",
+        "versions": [
+          {
+            "version": "12.46.1-prod.01",
+            "build": "312461001"
+          },
+          {
+            "version": "12.45.1-prod.01",
+            "build": "312451001"
+          },
+          {
+            "version": "12.44.0-prod.01",
+            "build": "312440001"
+          },
+          {
+            "version": "12.43.0-prod.01",
+            "build": "312430001"
+          },
+          {
+            "version": "12.42.0-prod.01",
+            "build": "312420001"
+          },
+          {
+            "version": "12.41.0-prod.01",
+            "build": "312410001"
+          },
+          {
+            "version": "12.40.1-prod.01",
+            "build": "312401001"
+          },
+          {
+            "version": "12.39.0-prod.01",
+            "build": "312390001"
+          },
+          {
+            "version": "12.38.1-prod.01",
+            "build": "312381001"
+          },
+          {
+            "version": "12.37.2-prod.01",
+            "build": "312372001"
+          }
+        ]
+      }
+    },
+    "dataVersion": "2026.11.25.7",
+    "schemaVersion": 2,
+    "source": "Bundled baseline migrated to schema v2. Weekly refresh updates versions and device rows.",
+    "updatedAt": "2026-11-25",
+    "versions": {
+      "chrome": "159.0.8154.33",
       "facebook": null,
-      "fblite": null,
-      "instagram": null,
-      "tiktok": null,
-      "x": null,
-      "threads": null,
-      "linkedin": null,
-      "pinterest": null,
-      "reddit": null,
-      "snapchat": null,
-      "weibo": null,
-      "telegram": null,
-      "messenger": null,
-      "wechat": null,
-      "line": null,
-      "kik": null,
-      "discord": null,
-      "viber": null,
-      "whatsapp": null
+      "instagram": null
+    },
+    "browserVersions": {
+      "chromeAndroid": [
+        "159.0.8154.33",
+        "158.0.8127.93",
+        "157.0.8103.80",
+        "156.0.8078.81",
+        "155.0.8059.88"
+      ],
+      "chromeIos": [
+        "158.0.8127.86",
+        "157.0.8103.37",
+        "156.0.8078.54",
+        "155.0.8059.37",
+        "154.0.8037.55"
+      ],
+      "firefoxAndroid": [
+        "161.0",
+        "160.0.1",
+        "159.0.1",
+        "158.0.1",
+        "157.0.1"
+      ],
+      "firefoxIos": [
+        "161.0",
+        "160.1",
+        "160.0",
+        "159.0",
+        "158.0"
+      ],
+      "edgeAndroid": [
+        "158.0.4370.33",
+        "157.0.4341.53",
+        "156.0.4314.56",
+        "155.0.4283.61",
+        "154.0.4258.38"
+      ],
+      "edgeIos": [
+        "158.0.4370.33",
+        "157.0.4341.42",
+        "156.0.4314.56",
+        "155.0.4283.61",
+        "154.0.4258.38"
+      ],
+      "operaAndroid": [
+        "104.1.5262.91393",
+        "104.1.5262.91343",
+        "104.0.5262.91259",
+        "104.0.5258.91004",
+        "103.3.5234.91185"
+      ],
+      "safariIos": [
+        "27.2",
+        "27.1",
+        "27.0",
+        "26.6",
+        "26.5"
+      ]
     }
   }
 }
