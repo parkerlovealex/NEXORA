@@ -309,7 +309,16 @@ function buildCandidateAppUa(appId, platform, device, osVersion) {
 function platformDevices(platform) {
   const expected = platform === "android" ? "android" : "ios_emulation";
   const country = $("uaCountry")?.value || "";
-  return allRecords().filter(d => d.platform === expected && (!country || !Array.isArray(d.markets) || d.markets.includes(country)));
+  return allRecords().filter(d => d.platform === expected && (!country || (Array.isArray(d.markets) && d.markets.includes(country))));
+}
+function marketOptions() {
+  // B06: the market selector offers every market the catalog actually
+  // uses, not only the built-in country list; a code with no known name
+  // is labelled with the code itself.
+  const known = new Set(UA_COUNTRIES.map(([code]) => code));
+  const extra = [...new Set(allRecords().flatMap(d => Array.isArray(d.markets) ? d.markets : []))]
+    .filter(code => code && !known.has(code)).sort();
+  return [...UA_COUNTRIES, ...extra.map(code => [code, code])];
 }
 function numericVersionSort(values) {
   return [...new Set(values)].sort((a,b) => {
@@ -630,6 +639,26 @@ function browserVersionInputId(platform, browser) {
   };
   return ids[platform]?.[browser] || "";
 }
+const MOBILE_VERSION_INPUT_IDS = new Set([
+  "uaChromeVersion", "uaChromiumEngineVersion", "uaSafariVersion", "uaChromeIosVersion",
+  "uaFirefoxAndroidVersion", "uaFirefoxIosVersion", "uaEdgeAndroidVersion", "uaEdgeIosVersion",
+  "uaOperaVersion"
+]);
+function mobileVersionSource(platform, browser) {
+  // B05: label a mobile browser version with its true source. A random
+  // pick comes from the catalog's recent-version list when one exists;
+  // otherwise the version is the field's catalog prefill unless the user
+  // edited that field (flagged via dataset.manual).
+  if ($("uaVersionMode")?.value === "random5") {
+    const key = {
+      android: { chrome: "chromeAndroid", firefox: "firefoxAndroid", edge: "edgeAndroid", opera: "operaAndroid" },
+      ios: { safari: "safariIos", chrome: "chromeIos", firefox: "firefoxIos", edge: "edgeIos" }
+    }[platform]?.[browser];
+    if (key && (meta().browserVersions || {})[key]?.length) return "database";
+  }
+  const id = browserVersionInputId(platform, browser);
+  return id && $(id)?.dataset.manual ? "manual" : "database";
+}
 function browserUsable(platform, browser) {
   if (browserVersion(platform, browser)) return true;
   if (platform === "android" && (browser === "chrome" || browser === "webview")) return Boolean(versions().chrome);
@@ -860,7 +889,7 @@ function generateUaBatch() {
         browser,
         browserVersion: browserVersionValue,
         browserVersionToken: isDesktop ? resolvedBrowserVersion : null,
-        browserVersionSource: appId ? (appSource === "script-candidate-app" ? "script-candidate" : "verified-template") : (isDesktop ? (desktopBrowser ? "desktop-catalog" : "manual") : (platform === "android" && ["chrome","webview"].includes(browser) && !$(versionInputId)?.dataset.manual ? "database" : "manual")),
+        browserVersionSource: appId ? (appSource === "script-candidate-app" ? "script-candidate" : "verified-template") : (isDesktop ? (desktopBrowser ? "desktop-catalog" : "manual") : mobileVersionSource(platform, browser)),
         appId, appVersion, appBuild, templateId, templateEvidence, userAgent: ua,
         country: locale.country, language: locale.language, acceptLanguage: locale.acceptLanguage,
         catalogDataVersion: meta().dataVersion || null,
@@ -915,7 +944,7 @@ function renderUaResultsView() {
     const versionLine = r.appId
       ? `App ${esc(r.appVersion || "—")}${r.appBuild ? ` · build ${esc(r.appBuild)}` : ""}`
       : `${esc(r.browserVersion || "Version not recorded")}${r.browserVersionToken && r.browserVersionToken !== r.browserVersion ? ` · UA token ${esc(r.browserVersionToken)}` : ""}`;
-    const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
+    const sourceLabel = r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "database" ? "Browser version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
     return `<article class="ua-result-item">
       <div class="ua-result-head">
         ${brandLogo(brandKey(r.brand), r.brand || title, "result-brand-logo")}
@@ -1245,7 +1274,7 @@ function bindEvents() {
       if (rangePlatform) { $(`ua${rangePlatform[0].toUpperCase()+rangePlatform.slice(1)}Qty`).value = t.value; syncPlatformModeFromQuantities(); updateUaTotals(); }
       if (t.id === "uaDeviceSearch") renderUaDevicePicker();
       if (t.id === "uaAppSearch") renderUaApps();
-      if (t.id === "uaChromeVersion" || t.id === "uaChromiumEngineVersion") t.dataset.manual = "1";
+      if (MOBILE_VERSION_INPUT_IDS.has(t.id)) t.dataset.manual = "1";
       if (t.hasAttribute("data-custom-qty")) state.customQuantities[t.dataset.customQty] = Math.max(0, Math.min(500, Number(t.value) || 0));
     });
     uaRoot.addEventListener("change", event => {
