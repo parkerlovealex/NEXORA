@@ -245,6 +245,10 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             if not has_version_pair:
                 errors.append(f"{prefix} verified status requires a matching app_version/app_build pair")
 
+    devices_version = devices.get("meta", {}).get("dataVersion")
+    if data.get("deviceCatalogVersion") is not None and data.get("deviceCatalogVersion") != devices_version:
+        errors.append(f"deviceCatalogVersion {data.get('deviceCatalogVersion')!r} does not match the devices catalog version {devices_version!r}")
+
     # Coverage is a separate inventory; it never makes an app selectable.
     coverage = data.get("coverage", [])
     if not isinstance(coverage, list):
@@ -262,6 +266,33 @@ def validate(data: Any, devices: dict[str, Any]) -> tuple[list[str], list[str], 
             for state in item["platforms"].values():
                 if state not in {*STATUSES, "not-collected"}:
                     errors.append(f"coverage for {item.get('app')} has invalid state {state!r}")
+        if len(coverage_apps) != len(set(coverage_apps)):
+            errors.append("coverage contains duplicate app rows")
+        # A29: a coverage cell is a claim about the records, so derive the
+        # expected state from the records and compare — a status word in
+        # the coverage table is never accepted on its own.
+        precedence = ["verified", "candidate", "pending", "outdated", "rejected"]
+        derived: dict[tuple[str, str], str] = {}
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            key = (record.get("app"), record.get("platform"))
+            status = record.get("status")
+            if key[0] is None or key[1] is None or status not in STATUSES:
+                continue
+            current = derived.get(key)
+            if current is None or precedence.index(status) < precedence.index(current):
+                derived[key] = status
+        for item in coverage:
+            if not isinstance(item, dict) or not isinstance(item.get("platforms"), dict):
+                continue
+            for platform in PLATFORMS:
+                if platform not in item["platforms"]:
+                    continue
+                expected = derived.get((item.get("app"), platform), "not-collected")
+                actual = item["platforms"][platform]
+                if actual != expected:
+                    errors.append(f"coverage for {item.get('app')}/{platform} says {actual!r} but the records derive {expected!r}")
     return errors, warnings, counts
 
 
