@@ -813,7 +813,9 @@ class BulkCreateActivity : AppCompatActivity() {
                         draft.globalProxyId = proxyEntries.firstOrNull { it.isSupportedByProxyRelay }?.id.orEmpty()
                     }
                     val unsupported = proxyEntries.count { !it.isSupportedByProxyRelay }
-                    toast("Imported ${result.first} proxies · ${result.second} exact duplicates · ${unsupported} saved entries not usable by this WebView")
+                    val skipped = result.skippedCapacity + result.skippedEncryption
+                    val skippedText = if (skipped > 0) " · $skipped skipped (library full or encryption failed)" else ""
+                    toast("Imported ${result.added} proxies · ${result.duplicates} exact duplicates$skippedText · ${unsupported} saved entries not usable by this WebView")
                     renderStep()
                 }
             }
