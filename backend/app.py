@@ -284,6 +284,9 @@ def validate_device(record: dict) -> list[str]:
     if not isinstance(record.get("cores"), int) or record.get("cores", 0) < 1:
         errors.append("cores must be a positive integer")
     display = record.get("display") or {}
+    if not isinstance(display, dict):
+        errors.append("display must be an object")
+        display = {}
     for field in ("w", "h", "dpr"):
         if not isinstance(display.get(field), (int, float)) or display[field] <= 0:
             errors.append(f"display.{field} must be greater than zero")
