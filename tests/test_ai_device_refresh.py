@@ -40,9 +40,14 @@ def test_normal_refresh_keeps_quotes_with_the_proposed_row(tmp_path, monkeypatch
     source.write_text(json.dumps({"meta": {"dataVersion": "2026.11.25.1", "versions": {"chrome": "1.0.0.0"}},
                                   "android": [], "ios_emulation": []}))
     (tmp_path / "web").mkdir()
+    # C03: the refresh loads the website catalog as canonical; the bundled
+    # path is the synced copy it writes back.
+    web_source = tmp_path / "web" / "devices.json"
+    web_source.write_text(source.read_text())
     capture = tmp_path / "capture.json"
     capture.write_text(json.dumps({"source_url": URL, "text": TEXT}))
     monkeypatch.setattr(refresh, "DEVICES", str(source))
+    monkeypatch.setattr(refresh, "WEB_DEVICES", str(web_source))
     monkeypatch.setattr(refresh, "fetch_json", lambda _: {"versions": [{"version": "1.0.0.0"}]})
     monkeypatch.setattr(sys, "argv", ["refresh_devices.py", "--ai-input", str(capture)])
     transport = local_provider(monkeypatch, ROW, QUOTES)
