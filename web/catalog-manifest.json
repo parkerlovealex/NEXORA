@@ -4,26 +4,26 @@
       "dataVersion": "2026.11.28.1",
       "file": "desktop-catalog.json",
       "schemaVersion": 1,
-      "sha256": "9811abe0a4a46328f76e2600f33e57ac088cb19fcaf7dd3a210ff796c0510eca",
+      "sha256": "8e1dbd3d8a72e7a30d575859cb98d6b543b9dde205d59d237d351da477dcdd03",
       "sizeBytes": 28450
     },
     "devices": {
       "dataVersion": "2026.11.25.7",
       "file": "devices.json",
       "schemaVersion": 2,
-      "sha256": "380f4bef38b6152d6a60d6809cf4d9f313f1ddf5a07bb768d9ad634d7e0641b8",
+      "sha256": "6581b55387927ab89a7bc03ad95f1d6085d7c6ee4943193f02942cb0f41886d7",
       "sizeBytes": 133681
     },
     "uaTemplates": {
-      "dataVersion": "2026.11.25.6",
+      "dataVersion": "2026.11.28.1",
       "file": "ua_templates.json",
       "schemaVersion": 1,
-      "sha256": "27a48b3c2c746a7c916d7062b4ccb1339e6bc11be34ce5b29879cc231a735cd2",
-      "sizeBytes": 24955
+      "sha256": "498f417c769a5817de04b797fff2af1d3e72ac6b5b1ece3df5ff3b644a3d9a67",
+      "sizeBytes": 24956
     }
   },
-  "catalogReleaseId": "2026.11.28.1",
-  "releaseSequence": 1,
+  "catalogReleaseId": "2026.11.28.2",
+  "releaseSequence": 2,
   "schemaVersion": 1,
   "signing": {
     "algorithm": null,

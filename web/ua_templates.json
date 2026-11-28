@@ -1,9 +1,9 @@
 {
  "uaTemplatesSchema": 1,
- "dataVersion": "2026.11.25.6",
- "updatedAt": "2026-11-26",
+ "dataVersion": "2026.11.28.1",
+ "updatedAt": "2026-11-28",
  "deviceCatalogVersion": "2026.11.25.7",
- "catalogReleaseId": "2026.11.28.1",
+ "catalogReleaseId": "2026.11.28.2",
  "sourcePolicy": "Observed strings and candidate source formats remain distinct; collector never promotes status.",
  "coverage": [
   {
@@ -16,7 +16,7 @@
   {
    "app": "facebook",
    "platforms": {
-    "android": "pending",
+    "android": "verified",
     "ios": "candidate"
    }
   },
