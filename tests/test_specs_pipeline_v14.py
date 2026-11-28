@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -155,6 +156,27 @@ class SpecsEvidenceValidationTests(unittest.TestCase):
 
 
 class ShippedProposalTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # C14: the proposal and evidence files are generated artifacts,
+        # absent from a clean checkout. Generate them with the same tool
+        # the specs-refresh workflow uses, from the committed findings
+        # and evidence, so the suite is self-contained.
+        out_dir = ROOT / "output"
+        proposal = out_dir / "devices.proposed.json"
+        evidence = out_dir / "specs-evidence.json"
+        if proposal.exists() and evidence.exists():
+            return
+        out_dir.mkdir(exist_ok=True)
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "apply_official_findings.py"),
+             "--input", str(ROOT / "web" / "devices.json"),
+             "--findings", str(ROOT / "data" / "official-specs-findings.json"),
+             "--existing-evidence", str(ROOT / "data" / "evidence" / "specs" / "latest.json"),
+             "--out", str(proposal), "--evidence", str(evidence),
+             "--report", str(out_dir / "REPORT-specs.md")],
+            check=True, capture_output=True, text=True)
+
     def test_official_proposal_coverage_and_honor_resolution(self):
         catalog = json.loads((ROOT / "output/devices.proposed.json").read_text())
         evidence = json.loads((ROOT / "output/specs-evidence.json").read_text())
