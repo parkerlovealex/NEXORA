@@ -1,6 +1,6 @@
 {
-  "catalogReleaseId": "2026.11.28.2",
-  "deviceCatalogVersion": "2026.11.25.7",
+  "catalogReleaseId": "2026.11.28.3",
+  "deviceCatalogVersion": "2026.11.28.1",
   "apps": {
     "discord": {
       "version": "355.10",
