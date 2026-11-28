@@ -1156,6 +1156,151 @@ function renderUaAnalysis() {
     '<p class="field-hint">This breakdown describes the string only. A UA can be edited, so it never proves the real installed engine or device.</p>'
   ].join("");
 }
+
+// Phase 5.3.3 — UA Track. A history manager over the EXISTING saved-batch
+// store (localStorage key nexora_ua_batches, same {id, name, records,
+// savedAt} shape). No second storage model, no migration, no auto-history:
+// batches enter only through the existing Save action in the generator.
+function trackBatches() {
+  try { const parsed = JSON.parse(localStorage.getItem("nexora_ua_batches") || "[]"); return Array.isArray(parsed) ? parsed : []; }
+  catch { return []; }
+}
+function batchCategory(records) {
+  if (records.some(r => r.appId)) return "Social";
+  if (records.some(r => r.platform === "Windows" || r.platform === "macOS")) return "Desktop";
+  return "Mobile";
+}
+function recordSourceLabel(r) {
+  return r.sourceType === "script-candidate-app" ? "Script candidate · unverified" : r.sourceType === "verified-app-template" ? "Verified template" : r.browserVersionSource === "desktop-catalog" ? "Desktop version catalog" : r.browserVersionSource === "manual" ? "Manual browser version" : "Browser template";
+}
+function batchFacts(batch) {
+  const records = Array.isArray(batch.records) ? batch.records : [];
+  const first = records[0] || {};
+  const browsers = [...new Set(records.map(r => r.browser).filter(Boolean))];
+  const versions = [...new Set(records.map(r => r.appVersion || r.browserVersion).filter(Boolean))];
+  return {
+    records,
+    category: batchCategory(records),
+    browserLabel: browsers.slice(0, 2).join(", ") || "—",
+    versionLabel: versions.slice(0, 2).join(", ") || "—",
+    country: first.country ? (countryEntry(first.country)[1] || first.country) : null,
+    locale: first.language || null,
+    provenance: first.catalogDataVersion || null,
+    savedLabel: batch.savedAt ? new Date(batch.savedAt).toLocaleString() : "Unknown date"
+  };
+}
+let trackOpenId = null;
+let trackConfirmDeleteId = null;
+function renderTrack() {
+  const batches = trackBatches();
+  const stats = $("trackStats");
+  const list = $("trackList");
+  const detail = $("trackDetail");
+  if (!stats || !list || !detail) return;
+  const totalUas = batches.reduce((sum, b) => sum + (Array.isArray(b.records) ? b.records.length : 0), 0);
+  const counts = { Desktop: 0, Mobile: 0, Social: 0 };
+  for (const b of batches) counts[batchCategory(Array.isArray(b.records) ? b.records : [])] += 1;
+  stats.innerHTML = [
+    ["Tracked batches", batches.length], ["Saved User-Agents", totalUas],
+    ["Desktop batches", counts.Desktop], ["Mobile batches", counts.Mobile], ["Social batches", counts.Social]
+  ].map(([label, value]) => `<div class="track-stat"><strong>${value}</strong><span>${label}</span></div>`).join("");
+  const query = ($("trackSearch")?.value || "").trim().toLowerCase();
+  const matches = (batch) => {
+    if (!query) return true;
+    const facts = batchFacts(batch);
+    const hay = [batch.name, facts.category, facts.browserLabel, facts.country || "", facts.locale || "",
+      ...facts.records.flatMap(r => [r.userAgent, r.deviceModel, r.brand, r.platform, r.browser])].join(" ").toLowerCase();
+    return hay.includes(query);
+  };
+  const visible = batches.filter(matches);
+  if (trackOpenId && batches.some(b => b.id === trackOpenId)) {
+    list.classList.add("hidden");
+    detail.classList.remove("hidden");
+    renderTrackDetail(batches.find(b => b.id === trackOpenId));
+  } else {
+    trackOpenId = null;
+    detail.classList.add("hidden");
+    list.classList.remove("hidden");
+    list.innerHTML = visible.length ? visible.map(batch => {
+      const facts = batchFacts(batch);
+      const confirming = trackConfirmDeleteId === batch.id;
+      return `<article class="track-batch">
+        <div class="track-batch-main">
+          <strong>${esc(batch.name || "Untitled set")}</strong>
+          <span>${esc(facts.savedLabel)} · ${esc(facts.category)} · ${facts.records.length} User-Agents</span>
+          <span>${esc(facts.browserLabel)} ${esc(facts.versionLabel)}${facts.country ? ` · ${esc(facts.country)} · ${esc(facts.locale || "")}` : ""}${facts.provenance ? ` · Catalog ${esc(facts.provenance)}` : ""}</span>
+        </div>
+        <div class="track-batch-actions">
+          <button class="button button-secondary" type="button" data-track-action="open" data-track-id="${esc(batch.id)}">Open</button>
+          <button class="button button-secondary" type="button" data-track-action="copy" data-track-id="${esc(batch.id)}">Copy batch</button>
+          <button class="button button-secondary" type="button" data-track-action="export" data-track-id="${esc(batch.id)}">Export</button>
+          ${confirming
+            ? `<button class="button button-primary" type="button" data-track-action="delete-confirm" data-track-id="${esc(batch.id)}">Confirm delete</button><button class="button button-secondary" type="button" data-track-action="delete-cancel">Cancel</button>`
+            : `<button class="button button-secondary" type="button" data-track-action="delete" data-track-id="${esc(batch.id)}">Delete</button>`}
+        </div>
+      </article>`;
+    }).join("") : '<div class="device-list-empty">No saved batches match. Generate User-Agents and use “Save this set” in the generator to add history.</div>';
+  }
+}
+function renderTrackDetail(batch) {
+  const detail = $("trackDetail");
+  const facts = batchFacts(batch);
+  detail.innerHTML = `
+    <div class="track-detail-head">
+      <div><strong>${esc(batch.name || "Untitled set")}</strong><span>${esc(facts.savedLabel)} · ${esc(facts.category)} · ${facts.records.length} User-Agents${facts.country ? ` · ${esc(facts.country)} · ${esc(facts.locale || "")}` : ""}${facts.provenance ? ` · Catalog ${esc(facts.provenance)}` : ""}</span></div>
+      <button class="button button-secondary" type="button" data-track-action="close">← All batches</button>
+    </div>
+    <div class="field"><label for="trackDetailSearch">SEARCH WITHIN THIS BATCH</label><input id="trackDetailSearch" class="form-control" type="text" placeholder="Filter by UA text or device…" autocomplete="off"></div>
+    <div class="track-ua-list" id="trackUaRows"></div>`;
+  $("trackDetailSearch")?.addEventListener("input", () => renderTrackRows(batch));
+  renderTrackRows(batch);
+}
+function renderTrackRows(batch) {
+  const host = $("trackUaRows");
+  if (!host) return;
+  const query = ($("trackDetailSearch")?.value || "").trim().toLowerCase();
+  const rows = (Array.isArray(batch.records) ? batch.records : []).map((r, i) => ({ r, i })).filter(({ r }) => !query || r.userAgent.toLowerCase().includes(query) || (r.deviceModel || "").toLowerCase().includes(query));
+  host.innerHTML = rows.map(({ r, i }) => `
+      <article class="track-ua">
+        <pre class="ua-result-string">${esc(r.userAgent)}</pre>
+        <div class="track-ua-foot"><span>${esc(r.deviceModel || r.platform || "")} · ${esc(recordSourceLabel(r))}</span><span class="track-ua-actions"><button class="button button-secondary" type="button" data-track-action="copy-one" data-track-id="${esc(batch.id)}" data-track-index="${i}">Copy</button><button class="button button-secondary" type="button" data-track-action="analyse" data-track-id="${esc(batch.id)}" data-track-index="${i}">Analyse</button></span></div>
+      </article>`).join("") || '<div class="device-list-empty">No User-Agents in this batch match the filter.</div>';
+}
+function handleTrackAction(event) {
+  const button = event.target.closest("[data-track-action]");
+  if (!button) return;
+  const action = button.dataset.trackAction;
+  const batches = trackBatches();
+  const batch = batches.find(b => b.id === button.dataset.trackId);
+  if (action === "open" && batch) { trackOpenId = batch.id; trackConfirmDeleteId = null; renderTrack(); }
+  else if (action === "close") { trackOpenId = null; renderTrack(); }
+  else if (action === "copy" && batch) copyText((batch.records || []).map(r => r.userAgent).join("\n"), "Batch copied.");
+  else if (action === "export" && batch) downloadText("nexora-user-agents.json", JSON.stringify({ meta: { dataVersion: batch.records?.[0]?.catalogDataVersion || null, exportedAt: new Date().toISOString(), count: (batch.records || []).length, batch: batch.name }, records: batch.records || [] }, null, 2), "application/json");
+  else if (action === "delete" && batch) { trackConfirmDeleteId = batch.id; renderTrack(); }
+  else if (action === "delete-cancel") { trackConfirmDeleteId = null; renderTrack(); }
+  else if (action === "delete-confirm" && batch) {
+    const remaining = batches.filter(b => b.id !== batch.id);
+    localStorage.setItem("nexora_ua_batches", JSON.stringify(remaining));
+    trackConfirmDeleteId = null;
+    if (trackOpenId === batch.id) trackOpenId = null;
+    renderSavedBatches();
+    renderTrack();
+    showToast("Saved batch deleted.");
+  }
+  else if (action === "copy-one" && batch) {
+    const record = (batch.records || [])[Number(button.dataset.trackIndex)];
+    if (record) copyText(record.userAgent, "User-Agent copied.");
+  }
+  else if (action === "analyse" && batch) {
+    const record = (batch.records || [])[Number(button.dataset.trackIndex)];
+    if (record) {
+      const input = $("uaAnalyseInput");
+      if (input) input.value = record.userAgent;
+      renderUaAnalysis();
+      go("analyser");
+    }
+  }
+}
 function csvValue(value) { return `"${String(value ?? "").replaceAll('"','""')}"`; }
 function exportDataset() {
   if (!state.dataset.length) return;
@@ -1223,6 +1368,7 @@ function go(view) {
   $("breadcrumbCurrent").textContent = active ? active.textContent.trim().replace(/\s+\d+$/, "") : view[0].toUpperCase() + view.slice(1);
   $("sidebar").classList.remove("open");
   if (view === "automation" && state.isAdmin) loadAutomation();
+  if (view === "track") renderTrack();
   if (view === "review" && state.isAdmin) loadReview();
   if (view === "audit" && state.isAdmin) loadAudit();
   if (view === "overview" && state.isAdmin) refreshAdminViews();
@@ -1434,6 +1580,8 @@ async function askAssistant(event) {
 function bindEvents() {
   document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => go(button.dataset.view)));
   $("uaAnalyseButton")?.addEventListener("click", renderUaAnalysis);
+  $("view-track")?.addEventListener("click", handleTrackAction);
+  $("trackSearch")?.addEventListener("input", () => { trackOpenId = null; renderTrack(); });
   $("uaAnalyseSample")?.addEventListener("click", () => {
     const input = $("uaAnalyseInput");
     if (input) input.value = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/158.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/588.0.0.42.55;IABMV/1;]";

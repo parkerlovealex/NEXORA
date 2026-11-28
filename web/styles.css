@@ -426,7 +426,7 @@ body.is-admin .mobile-menu{display:grid}
 .version-chip{border:1px solid var(--nx-line);border-radius:999px;background:#0e1611;color:#c8d8cc;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
 .version-chip:hover{color:#e2f0e5;border-color:#46664d}
 .version-chip.active{background:#263b2b;border-color:#46664d;color:#e0f2e4}
-.analyser-link-row{display:flex;justify-content:flex-end;margin:2px 0 10px}
+.analyser-link-row{display:flex;justify-content:flex-end;gap:16px;margin:2px 0 10px}
 .country-picker{position:relative}
 .country-picker-button{display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer}
 .country-picker-button .country-locale{margin-left:auto}
@@ -439,6 +439,23 @@ body.is-admin .mobile-menu{display:grid}
 .country-name{flex:1}
 .country-locale{font-size:10px;color:#95a69a}
 .country-check{color:#8fd0a2;font-weight:700}
+.track-card{max-width:960px}
+.track-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+.track-stat{background:#141d17;border:1px solid var(--nx-line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.track-stat strong{font-size:18px;color:#e0f2e4}
+.track-stat span{font-size:10px;color:#95a69a}
+.track-batch{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#141d17;border:1px solid var(--nx-line);border-radius:10px;padding:12px;margin-bottom:8px;flex-wrap:wrap}
+.track-batch-main{display:flex;flex-direction:column;gap:3px;min-width:260px}
+.track-batch-main strong{font-size:13px;color:#e0f2e4}
+.track-batch-main span{font-size:11px;color:#95a69a}
+.track-batch-actions{display:flex;gap:6px;flex-wrap:wrap}
+.track-detail-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.track-detail-head strong{display:block;font-size:14px;color:#e0f2e4}
+.track-detail-head span{font-size:11px;color:#95a69a}
+.track-ua{border:1px solid var(--nx-line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#10160f}
+.track-ua-foot{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap}
+.track-ua-foot span{font-size:11px;color:#95a69a}
+.track-ua-actions{display:flex;gap:6px}
 .analyser-card{max-width:860px}
 .analyser-actions{display:flex;gap:8px;margin:12px 0}
 .analyser-result{border-top:1px solid var(--nx-line);padding-top:10px}
