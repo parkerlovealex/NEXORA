@@ -74,6 +74,7 @@ import com.nexora.browser.util.BrowserNotifications
 import com.nexora.browser.util.ProxyRelayConfig
 import com.nexora.browser.util.ProxyRelayServer
 import com.nexora.browser.util.ProxySessionCoordinator
+import com.nexora.browser.util.ProxyOverrideClear
 import com.nexora.browser.util.ProxyTester
 import com.nexora.browser.util.ProfileDownloadClient
 import com.nexora.browser.util.ProfileIsolationGuard
@@ -123,6 +124,7 @@ class BrowserActivity : AppCompatActivity() {
     private var proxyRelay: ProxyRelayServer? = null
     private var proxyLease: ProxySessionCoordinator.Lease? = null
     private var networkReleaseRequested = false
+    private var routeChangePending = false
     private var isClosing = false
     private var clearSessionOnExit = false
     private var activityResumed = false
@@ -282,7 +284,7 @@ class BrowserActivity : AppCompatActivity() {
             toast("NEXORA supports up to $MAX_LIVE_TABS open tabs in one profile")
             return
         }
-        if (!proxyReady && profile.proxyType != "NONE") return
+        if (!proxyReady) return
         val webView = WebView(this)
         try {
             androidx.webkit.ProfileStore.getInstance()
@@ -852,8 +854,21 @@ class BrowserActivity : AppCompatActivity() {
         } else profile
 
         if (effectiveProfile.proxyType == "NONE") {
-            proxyRoutingActive = false
-            clearProxy(onReady)
+            routeChangePending = true
+            clearProxy { result ->
+                routeChangePending = false
+                if (networkReleaseRequested) {
+                    finishRouteRelease(lease, result)
+                } else if (!isFinishing && !isDestroyed) {
+                    result.fold(
+                        onSuccess = { proxyRoutingActive = false; onReady() },
+                        onFailure = {
+                            toast("Could not clear the previous proxy. Direct browsing stopped.")
+                            finish()
+                        }
+                    )
+                }
+            }
             return
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
@@ -911,7 +926,7 @@ class BrowserActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (isFinishing || isDestroyed) {
                         relay.close()
-                        clearProxy { releaseProxyLease(lease) }
+                        releaseNetworkSession()
                         return@runOnUiThread
                     }
                     proxyRelay = relay
@@ -921,14 +936,16 @@ class BrowserActivity : AppCompatActivity() {
                         val localConfig = ProxyConfig.Builder()
                             .addProxyRule("http://127.0.0.1:$localPort")
                             .build()
+                        routeChangePending = true
                         ProxyController.getInstance().setProxyOverride(
                             localConfig,
                             ContextCompat.getMainExecutor(this),
                             Runnable {
-                                if (isFinishing || isDestroyed) {
-                                    // onDestroy may have raced with setProxyOverride;
-                                    // clear again after the asynchronous apply completes.
-                                    clearProxy { releaseProxyLease(lease) }
+                                routeChangePending = false
+                                if (networkReleaseRequested) {
+                                    clearReleasedRoute(lease)
+                                } else if (isFinishing || isDestroyed) {
+                                    releaseNetworkSession()
                                 } else {
                                     proxyRoutingActive = true
                                     val exitIp = verifiedResult
@@ -940,6 +957,7 @@ class BrowserActivity : AppCompatActivity() {
                             }
                         )
                     } catch (error: Exception) {
+                        routeChangePending = false
                         toast("Could not apply the local proxy route: ${error.message ?: "unknown error"}. Browsing stopped.")
                         finish()
                     }
@@ -968,26 +986,29 @@ class BrowserActivity : AppCompatActivity() {
         proxyRelay = null
         proxyRoutingActive = false
         val lease = proxyLease
-        if (lease != null) {
-            clearProxy { releaseProxyLease(lease) }
-        }
+        if (lease != null && !routeChangePending) clearReleasedRoute(lease)
     }
 
-    private fun clearProxy(onCleared: (() -> Unit)? = null) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-            !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
-        ) {
-            onCleared?.invoke()
-            return
-        }
-        try {
-            ProxyController.getInstance().clearProxyOverride(
-                ContextCompat.getMainExecutor(this),
-                Runnable { onCleared?.invoke() }
-            )
-        } catch (_: Exception) {
-            onCleared?.invoke()
-        }
+    private fun clearReleasedRoute(lease: ProxySessionCoordinator.Lease) {
+        if (proxyLease?.token != lease.token) return
+        clearProxy { result -> finishRouteRelease(lease, result) }
+    }
+
+    private fun finishRouteRelease(lease: ProxySessionCoordinator.Lease, result: Result<Unit>) {
+        if (result.isFailure) android.util.Log.w("NEXORA", "WebView did not confirm proxy clearance during teardown.")
+        releaseProxyLease(lease)
+    }
+
+    private fun clearProxy(onResult: (Result<Unit>) -> Unit) {
+        ProxyOverrideClear.request({ acknowledged ->
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
+            ) {
+                acknowledged.run()
+            } else {
+                ProxyController.getInstance().clearProxyOverride(ContextCompat.getMainExecutor(this), acknowledged)
+            }
+        }, onResult)
     }
 
     // ---------------------------------------------------------------------

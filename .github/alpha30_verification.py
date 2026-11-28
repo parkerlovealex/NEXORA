@@ -67,6 +67,23 @@ for path in manifest.get("tests", []):
     dest = before / path
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(repo / path, dest)
+if manifest["finding"] == "A36":
+    # Run the actual previous supported-provider try/catch as plain Kotlin.
+    # Replace only the Android API invocation, preserving both callback paths.
+    activity = before / "app/src/main/java/com/nexora/browser/ui/BrowserActivity.kt"
+    source = activity.read_text()
+    method = re.search(r"    private fun clearProxy\(onCleared:[\s\S]*?\n    }", source).group(0)
+    branch = method[method.index("        try {"):method.rindex("\n    }")]
+    dispatch = "ProxyController.getInstance().clearProxyOverride(\n                ContextCompat.getMainExecutor(this),"
+    assert branch.count(dispatch) == 1 and branch.count("onCleared?.invoke()") == 2
+    adapter = before / "app/src/test/java/com/nexora/browser/util/ProxyOverrideClear.kt"
+    adapter.write_text("package com.nexora.browser.util\n\ninternal object ProxyOverrideClear {\n"
+                       "    fun request(submit: (Runnable) -> Unit, complete: (Result<Unit>) -> Unit) {\n"
+                       "        val onCleared: (() -> Unit)? = { complete(Result.success(Unit)) }\n"
+                       + branch.replace(dispatch, "submit(") + "\n    }\n}\n")
+    (logs / "parent-clearProxy-source.txt").write_text(method + "\n")
+    print("Parent JVM regression uses BrowserActivity.clearProxy's supported-provider branch with an injected WebView call.", flush=True)
+
 focus = manifest.get("focus")
 if focus:
     if focus["kind"] == "jvm":
