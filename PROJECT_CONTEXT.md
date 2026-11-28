@@ -484,3 +484,43 @@ Codex's credit ended after Wave 2; the campaign continues under Muse (handover c
 ## Alpha30 Wave 3 — bundled catalog sync (2026-11-28, Muse takeover)
 
 Second Wave 3 fix (register C02, High): `app/src/main/assets/devices.json` synced to the published revision — byte-identical to `web/devices.json` (59 devices, dataVersion 2026.11.25.7; was 26 devices, 2026.11.24.1). Validator proof: `validate_devices` on the asset reports 0 errors / 0 warnings in normal and strict modes (was 7/46, 53 strict errors); specs results on the asset now equal web in both modes (0/110, 110/110 — the 110 warnings are the published catalog's own evidence gaps). Python suite unchanged (79 passed / C14 failing). JVM/APK not re-run for this data-only change in the takeover environment. Note for the Wave 6 merge: main has since published newer catalog releases from the UserAgent line (2026.11.28.x); preserve them when this branch merges. Remaining Wave 3: A23, A31, A33, A35, A40+A43, A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A23 CORS PATCH (2026-11-28, Muse takeover)
+
+Third Wave 3 fix: `PATCH` added to the backend CORS `allow_methods` (the admin sources route uses PATCH; a cross-origin admin client could not preflight it). Proof: `tests/test_cors.py` fails pre-fix, passes post-fix; Python suite 80 passed / 1 failed (C14). Remaining Wave 3: A31, A33, A35, A40+A43, A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A31 malformed nested data (2026-11-28, Muse takeover)
+
+Fourth Wave 3 fix: `validate_device` type-checks `display` before reading it, so a malformed admin edit returns field feedback instead of an HTTP 500. Proof: `tests/test_validate_device.py` (4 of 5 fail pre-fix, all pass post-fix); Python suite 85 passed / 1 failed (C14). Remaining Wave 3: A33, A35, A40+A43, A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A33 rate-limit eviction (2026-11-28, Muse takeover)
+
+Fifth Wave 3 fix: the backend rate-limit dictionaries now evict fully-expired client keys once they grow past 1024 entries, bounding worker memory; eviction cannot change a rate-limit decision. Proof: `tests/test_rate_limit_eviction.py` fails pre-fix, passes post-fix; Python suite 86 passed / 1 failed (C14). Remaining Wave 3: A35, A40+A43, A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A35 failed-fetch retry (2026-11-28, Muse takeover)
+
+Sixth Wave 3 fix (Android): `DeviceDataUpdater.checkNow` records the last-check timestamp only after a completed check, so a failed fetch no longer delays the next automatic retry by 24 hours; the fetch/activation body is unchanged, moved into `performCheck`. Verified by code inspection in the takeover environment; JVM and on-device verification remain owed at the Wave 6 gate. Remaining Wave 3: A40+A43, A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A40+A43 version bumps (2026-11-28, Muse takeover)
+
+Seventh Wave 3 fix (paired): every successful catalog mutation now advances `dataVersion`. The app-version collector bumps it on merge (same rule as the backend), and approving a device proposal bumps it like direct creation does. Proof: `tests/test_version_bumps.py` — both bump tests fail pre-fix, all pass post-fix; Python suite 89 passed / 1 failed (C14). Remaining Wave 3: A29+C09, validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — A29+C09 coverage truth (2026-11-28, Muse takeover)
+
+Eighth Wave 3 fix (paired): the UA-template validator now derives every coverage cell from the records and compares, rejects duplicate coverage rows, and checks a declared `deviceCatalogVersion` against the devices catalog. The published Facebook Android coverage cell now says "verified" (it said "pending" beside the verified record); the proposal file's stale cell was corrected to match its own records. Both catalogs validate 0/0. Proof: `tests/test_ua_template_coverage.py` (3 of 4 fail pre-fix); Python suite 93 passed / 1 failed (C14). Remaining Wave 3: validator crashes, C14, B02, B04.
+
+## Alpha30 Wave 3 — C08 validator crash (2026-11-28, Muse takeover)
+
+Ninth Wave 3 fix: `validate_ua_templates.py` no longer crashes with AttributeError on catalogs whose app entries are null (the old Android baseline stored null for apps without version data); null entries are treated as empty, so a data problem is a validation result, not a crash. Proof: `tests/test_ua_template_null_safety.py` (both fail pre-fix); Python suite 95 passed / 1 failed (C14). Remaining Wave 3: C14, B02, B04.
+
+## Alpha30 Wave 3 — C14 self-contained suite (2026-11-28, Muse takeover)
+
+Tenth Wave 3 fix: the specs pipeline test now generates its proposal/evidence fixtures in setup (same tool and inputs as the specs-refresh workflow) instead of expecting generated files that a clean checkout does not have. **The full Python suite passes 96 / 0 — green for the first time in the campaign.** Remaining Wave 3: B02, B04.
+
+## Alpha30 Wave 3 — B02 edit merge (2026-11-28, Muse takeover)
+
+Eleventh Wave 3 fix: admin device edits merge over the stored record instead of replacing it, so unmentioned fields (markets, builds history, evidence-backed extras) survive an edit. Proof: `tests/test_device_edit_merge.py` fails pre-fix, passes post-fix; Python suite 97 passed / 0 failed. Remaining Wave 3: B04.
+
+## Alpha30 Wave 3 — B04 admin entry, WAVE 3 COMPLETE (2026-11-28, Muse takeover)
+
+Twelfth and final Wave 3 fix: the one-process FastAPI deployment now serves the admin entry at /admin (and /admin/), which is the path that reveals the frontend's sign-in chip. Proof: `tests/test_admin_entry.py` fails with 404 pre-fix, passes post-fix. **Wave 3 is complete**: C01, C02, C08, C14, A23, A31, A33, A34, A35, A40, A43, A29+C09, B02, B04 all FIXED under the takeover. Final Wave 3 Python suite: **99 passed / 0 failed** (campaign baseline: 76 passed / 1 failed). All device/UA validators 0/0; specs match web in both modes (110 evidence warnings are the published catalog's own). JVM suite, desktop smoke and APK assembly were not run in the takeover environment and remain owed at the Wave 6 gate; A35's on-device behaviour is UNVERIFIED. Next: Wave 4 (B05, B06, then B01 owner decision).
