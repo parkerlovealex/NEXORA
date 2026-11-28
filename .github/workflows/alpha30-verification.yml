@@ -36,10 +36,17 @@ jobs:
               assert summary["finding"] == "A16"
               assert summary["parent"] == "1f6ab8a8921eb6fdfa3eb8988d3eab54192200fe"
               print("ARCHIVED_SUMMARY_B64 " + base64.b64encode(raw).decode("ascii"))
+              for filename in ("before.txt", "android.txt"):
+                  print("GRADLE_LOG_BEGIN " + filename)
+                  print("\n".join(z.read(filename).decode("utf-8", errors="replace").splitlines()[-210:]))
+                  print("GRADLE_LOG_END " + filename)
               method = "explicitOsVersionConstrainsRandomBalancedSelectedAndCustomPools"
               results = {}
               for where in ("parent-junit", "candidate-junit"):
                   filename = where + "/TEST-com.nexora.browser.util.UserAgentGenerationEngineTest.xml"
+                  if filename not in z.namelist():
+                      results[where] = "no JUnit XML"
+                      continue
                   cases = [c for c in ET.fromstring(z.read(filename)).findall("testcase") if c.get("name") == method]
                   assert len(cases) == 1, (filename, len(cases))
                   state = next((t for t in ("error", "failure", "skipped") if cases[0].find(t) is not None), "passed")
