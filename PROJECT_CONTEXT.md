@@ -564,3 +564,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — C10 research snapshot restored (2026-11-28, Muse takeover)
 
 **C10:** `data/devices-2026.11.25.7.json` — the Workstream A snapshot the Workstream B research references — is restored at its exact path from the live catalog, after verifying identity against the research file's own recorded values (dataVersion, Chrome version, and the Facebook version/build pair all match). The version is also archived in `data/history/` via the refresh tool's own archive step, with index and website mirror updated. Proof: `tests/test_research_snapshot.py` fails pre-fix, passes post-fix; Python suite 109 passed / 0 failed.
+
+## Alpha30 Wave 5 — A44 specs validator URL scheme (2026-11-28, Muse takeover)
+
+**A44:** the specs evidence validator now requires HTTPS evidence URLs, matching the merger's policy; published-catalog validation counts are unchanged. Proof: `tests/test_specs_url_scheme.py` fails pre-fix, passes post-fix; Python suite 111 passed / 0 failed.
