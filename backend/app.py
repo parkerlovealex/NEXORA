@@ -679,7 +679,7 @@ async def lifespan(application):
 
 app = FastAPI(title="NEXORA Next API", version="1.0.0", description="Public device compatibility data and private AI-assisted control plane", lifespan=lifespan)
 origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "*").split(",") if x.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=False, allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
 
 _login_attempts: dict[str, list[float]] = {}
 _api_windows: dict[str, list[float]] = {}
