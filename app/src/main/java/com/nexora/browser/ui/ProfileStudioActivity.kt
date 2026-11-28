@@ -28,12 +28,15 @@ import com.nexora.browser.util.UiFeedback
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DeviceDb
 import com.nexora.browser.data.DevicePreset
+import com.nexora.browser.data.EngineDescriptor
 import com.nexora.browser.data.GeneratedUserAgent
 import com.nexora.browser.data.ProfileStore
 import com.nexora.browser.data.ProxyEntry
 import com.nexora.browser.data.ProxyLibraryStore
 import com.nexora.browser.data.UserAgentBatch
 import com.nexora.browser.data.UserAgentBatchStore
+import com.nexora.browser.util.EngineCompatibility
+import com.nexora.browser.util.TemplateApplication
 import com.nexora.browser.util.UserAgentGenerationEngine
 import com.nexora.browser.util.UserAgentGenerationRequest
 import java.util.Locale
@@ -287,7 +290,15 @@ class ProfileStudioActivity : AppCompatActivity() {
         addButton(ua, "Open User-Agent Generator") {
             startActivity(Intent(this, UserAgentGeneratorActivity::class.java))
         }
-        addNote(ua, "In-app browser templates", if (inAppTemplates.isEmpty()) "None are currently published with source evidence. No in-app UA is included by default." else "${inAppTemplates.size} verified templates available. They are opt-in in the standalone generator.")
+        addNote(ua, "In-app browser templates", if (inAppTemplates.isEmpty()) "None are currently published with source evidence. No in-app UA is included by default." else {
+            val descriptor = EngineDescriptor.detect(this)
+            val engineLine = if (descriptor.major != null) "Installed WebView engine: Chromium ${descriptor.major}." else "Installed WebView engine: not established on this device."
+            "${inAppTemplates.size} verified templates available. They are opt-in in the standalone generator. $engineLine " +
+                inAppTemplates.distinctBy { it.appId }.joinToString(" ") { template ->
+                    val state = EngineCompatibility.evaluate(template, descriptor)
+                    "${template.displayName}: ${EngineCompatibility.label(state)} — ${EngineCompatibility.detail(state)}"
+                }
+        })
         addNote(ua, "Runtime limitation", "Android profiles run Android System WebView. iOS entries are UA compatibility templates only; they do not create an iOS engine or change device hardware.")
     }
 
@@ -413,6 +424,33 @@ class ProfileStudioActivity : AppCompatActivity() {
         }
         if (records.size != androidCount + iosCount) { toast("The selected UA batch did not provide enough records. No profiles were created."); return }
 
+        // Engine-compatibility gate (Phase 4.3b): a catalog template UA may be
+        // applied to live profiles silently only when it is COMPATIBLE with the
+        // installed WebView. UNKNOWN / DIFFERS need an explicit laboratory
+        // override; UNSUPPORTED is blocked from live profiles entirely.
+        val descriptor = EngineDescriptor.detect(this)
+        val gatedStates = records.mapNotNull { record ->
+            inAppTemplates.firstOrNull { it.appId == record.inAppBrowserId && it.targetOs == record.targetOs }
+        }.distinct().map { it to EngineCompatibility.evaluate(it, descriptor) }
+        if (gatedStates.any { EngineCompatibility.application(it.second) == TemplateApplication.BLOCKED }) {
+            AlertDialog.Builder(this).setTitle("Unsupported template engine")
+                .setMessage("A selected in-app template targets a different engine family than the installed WebView. It can be generated and exported in the User-Agent Generator for laboratory use, but it cannot be applied to live profiles. No profiles were created.")
+                .setPositiveButton("OK", null).show()
+            return
+        }
+        if (gatedStates.any { EngineCompatibility.application(it.second) == TemplateApplication.REQUIRES_OVERRIDE }) {
+            val summary = gatedStates.filter { EngineCompatibility.application(it.second) == TemplateApplication.REQUIRES_OVERRIDE }
+                .joinToString("\n") { (template, state) -> "${template.displayName}: ${EngineCompatibility.label(state)} — ${EngineCompatibility.detail(state)}" }
+            AlertDialog.Builder(this).setTitle("Laboratory override required")
+                .setMessage("These in-app templates are not confirmed compatible with the installed WebView:\n\n$summary\n\nCreate the profiles anyway? The template User-Agent will be applied exactly as published.")
+                .setPositiveButton("Create anyway") { _, _ -> finishCreateProfiles(records) }
+                .setNegativeButton("Cancel", null).show()
+            return
+        }
+        finishCreateProfiles(records)
+    }
+
+    private fun finishCreateProfiles(records: List<GeneratedUserAgent>) {
         val existing = profileStore.loadAll()
         val now = System.currentTimeMillis()
         val usableProxies = if (assignProxies) proxies.filter { it.isSupportedByProxyRelay } else emptyList()
