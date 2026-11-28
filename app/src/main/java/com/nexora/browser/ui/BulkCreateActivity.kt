@@ -956,15 +956,19 @@ class BulkCreateActivity : AppCompatActivity() {
             toast("Could not prepare profiles: ${e.message ?: "unknown error"}")
             return
         }
+        // A13: persist the records FIRST, then provision WebView
+        // stores; a provisioning failure rolls the records back (see
+        // ProfileStudioActivity for the same ordering).
+        if (!store.replaceIfUnchanged(existing, existing + newProfiles)) {
+            toast("Could not save profiles. No success was reported; check device storage and retry.")
+            return
+        }
         try {
             val webProfileStore = androidx.webkit.ProfileStore.getInstance()
             newProfiles.forEach { webProfileStore.getOrCreateProfile(it.webViewProfileKey) }
         } catch (e: Exception) {
+            store.replaceIfUnchanged(existing + newProfiles, existing)
             toast("Could not provision isolated WebView storage: ${e.message ?: "unknown error"}. No profiles were saved.")
-            return
-        }
-        if (!store.replaceIfUnchanged(existing, existing + newProfiles)) {
-            toast("Could not save profiles. No success was reported; check device storage and retry.")
             return
         }
         Toast.makeText(this, "Created ${newProfiles.size} profiles", Toast.LENGTH_LONG).show()
