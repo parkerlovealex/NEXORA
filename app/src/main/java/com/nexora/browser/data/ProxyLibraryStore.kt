@@ -56,12 +56,29 @@ class ProxyLibraryStore(context: Context) {
         }
     }
 
-    fun import(rows: List<ParsedProxy>): Pair<Int, Int> = withLock {
+    /**
+     * A39: every submitted valid row is accounted for — added,
+     * duplicate, or skipped with its reason — so an import summary can
+     * reconcile against the number of rows the user submitted.
+     */
+    data class ImportResult(
+        val added: Int,
+        val duplicates: Int,
+        val skippedCapacity: Int,
+        val skippedEncryption: Int
+    )
+
+    fun import(rows: List<ParsedProxy>): ImportResult = withLock {
         val entries = loadAll().toMutableList()
         var added = 0
         var duplicates = 0
+        var skippedCapacity = 0
+        var skippedEncryption = 0
         rows.filter { it.valid }.forEach { row ->
-            if (entries.size >= MAX_ENTRIES) return@forEach
+            if (entries.size >= MAX_ENTRIES) {
+                skippedCapacity++
+                return@forEach
+            }
             val duplicate = entries.any { existing ->
                 if (!ProxyImportIdentity.sameEndpoint(
                         existing.type, existing.host, existing.port,
@@ -88,6 +105,7 @@ class ProxyLibraryStore(context: Context) {
                     try {
                         vault.encrypt(JSONObject().put("username", row.username).put("password", row.password).toString())
                     } catch (_: Exception) {
+                        skippedEncryption++
                         return@forEach
                     }
                 } else ""
@@ -113,8 +131,8 @@ class ProxyLibraryStore(context: Context) {
                 added++
             }
         }
-        if (!save(entries)) return@withLock 0 to duplicates
-        added to duplicates
+        if (!save(entries)) return@withLock ImportResult(0, duplicates, skippedCapacity, skippedEncryption)
+        ImportResult(added, duplicates, skippedCapacity, skippedEncryption)
     }
 
     fun credentials(entry: ProxyEntry): Pair<String, String> {
