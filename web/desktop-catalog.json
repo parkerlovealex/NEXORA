@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "collectedAt": "2026-11-25",
-  "dataVersion": "2026.11.28.1",
-  "catalogReleaseId": "2026.11.28.2",
+  "dataVersion": "2026.11.28.2",
+  "catalogReleaseId": "2026.11.28.3",
   "purpose": "Desktop OS release selectors and last five stable browser release trains for the NEXORA User-Agent generator.",
   "scope": {
     "windows": "Latest five Windows 11 release trains plus latest three Windows 10 feature releases.",
@@ -139,6 +139,13 @@
               "uaVersion": "158.0.0.0",
               "releaseVersion": "158.0.8127.88/.89",
               "engineVersion": "158.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  158
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": "2026-11-23",
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable"
@@ -147,6 +154,13 @@
               "uaVersion": "157.0.0.0",
               "releaseVersion": "157.0.8103.78/.79",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": "2026-11-11",
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable"
@@ -155,6 +169,13 @@
               "uaVersion": "156.0.0.0",
               "releaseVersion": "156.0.8078.114",
               "engineVersion": "156.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  156
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Extended Stable"
@@ -163,6 +184,13 @@
               "uaVersion": "155.0.0.0",
               "releaseVersion": "155",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable release train"
@@ -171,6 +199,13 @@
               "uaVersion": "154.0.0.0",
               "releaseVersion": "154",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable release train"
@@ -184,6 +219,13 @@
               "uaVersion": "161.0",
               "releaseVersion": "161.0",
               "engineVersion": "161.0",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  161
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-24",
               "note": null
             },
@@ -191,6 +233,13 @@
               "uaVersion": "160.0.1",
               "releaseVersion": "160.0.1",
               "engineVersion": "160.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  160
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-17",
               "note": null
             },
@@ -198,6 +247,13 @@
               "uaVersion": "159.0.1",
               "releaseVersion": "159.0.1",
               "engineVersion": "159.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  159
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-03",
               "note": null
             },
@@ -205,6 +261,13 @@
               "uaVersion": "158.0.1",
               "releaseVersion": "158.0.1",
               "engineVersion": "158.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  158
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-20",
               "note": null
             },
@@ -212,6 +275,13 @@
               "uaVersion": "157.0.1",
               "releaseVersion": "157.0.1",
               "engineVersion": "157.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  157
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-06",
               "note": null
             }
@@ -224,6 +294,13 @@
               "uaVersion": "158.0.0.0",
               "releaseVersion": "158.0.4370.33",
               "engineVersion": "158.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  158
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-19",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -232,6 +309,13 @@
               "uaVersion": "157.0.0.0",
               "releaseVersion": "157.0.4341.60",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-13",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -240,6 +324,13 @@
               "uaVersion": "156.0.0.0",
               "releaseVersion": "156.0.4314.84",
               "engineVersion": "156.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  156
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-12",
               "note": "Latest managed Extended Stable servicing build; reduced UA token remains major.0.0.0.",
               "channel": "Extended Stable"
@@ -248,6 +339,13 @@
               "uaVersion": "155.0.0.0",
               "releaseVersion": "155.0.4283.45",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-08",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -256,6 +354,13 @@
               "uaVersion": "154.0.0.0",
               "releaseVersion": "154.0.4258.37",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-09-24",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -269,6 +374,13 @@
               "uaVersion": "140.0.0.0",
               "releaseVersion": "140.0.6074.36",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-18",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 157."
             },
@@ -276,6 +388,13 @@
               "uaVersion": "139.0.0.0",
               "releaseVersion": "139.0.6053.38",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-04",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 155."
             },
@@ -283,6 +402,13 @@
               "uaVersion": "138.0.0.0",
               "releaseVersion": "138",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-20",
               "note": "Opera 138 Stable; full desktop build not asserted here. UA token is OPR/138.0.0.0; Chromium engine token is 154.0.0.0."
             },
@@ -290,6 +416,13 @@
               "uaVersion": "137.0.0.0",
               "releaseVersion": "137.0.6036.63",
               "engineVersion": "153.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  153
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-14",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 153."
             },
@@ -297,6 +430,13 @@
               "uaVersion": "136.0.0.0",
               "releaseVersion": "136.0.6008.80",
               "engineVersion": "152.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  152
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-09-30",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 152."
             }
@@ -386,6 +526,13 @@
               "uaVersion": "158.0.0.0",
               "releaseVersion": "158.0.8127.88/.89",
               "engineVersion": "158.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  158
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": "2026-11-23",
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable"
@@ -394,6 +541,13 @@
               "uaVersion": "157.0.0.0",
               "releaseVersion": "157.0.8103.78/.79",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": "2026-11-11",
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable"
@@ -402,6 +556,13 @@
               "uaVersion": "156.0.0.0",
               "releaseVersion": "156.0.8078.114",
               "engineVersion": "156.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  156
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Extended Stable"
@@ -410,6 +571,13 @@
               "uaVersion": "155.0.0.0",
               "releaseVersion": "155",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable release train"
@@ -418,6 +586,13 @@
               "uaVersion": "154.0.0.0",
               "releaseVersion": "154",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "ua-major-equals-engine-major"
+              },
               "releaseDate": null,
               "note": "Chrome UA reduction emits major.0.0.0; this entry records the stable release train/build where sourced.",
               "channel": "Stable release train"
@@ -431,6 +606,13 @@
               "uaVersion": "161.0",
               "releaseVersion": "161.0",
               "engineVersion": "161.0",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  161
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-24",
               "note": null
             },
@@ -438,6 +620,13 @@
               "uaVersion": "160.0.1",
               "releaseVersion": "160.0.1",
               "engineVersion": "160.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  160
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-17",
               "note": null
             },
@@ -445,6 +634,13 @@
               "uaVersion": "159.0.1",
               "releaseVersion": "159.0.1",
               "engineVersion": "159.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  159
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-11-03",
               "note": null
             },
@@ -452,6 +648,13 @@
               "uaVersion": "158.0.1",
               "releaseVersion": "158.0.1",
               "engineVersion": "158.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  158
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-20",
               "note": null
             },
@@ -459,6 +662,13 @@
               "uaVersion": "157.0.1",
               "releaseVersion": "157.0.1",
               "engineVersion": "157.0.1",
+              "engineCompatibility": {
+                "family": "gecko",
+                "majors": [
+                  157
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-06",
               "note": null
             }
@@ -471,6 +681,13 @@
               "uaVersion": "158.0.0.0",
               "releaseVersion": "158.0.4370.33",
               "engineVersion": "158.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  158
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-19",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -479,6 +696,13 @@
               "uaVersion": "157.0.0.0",
               "releaseVersion": "157.0.4341.60",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-13",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -487,6 +711,13 @@
               "uaVersion": "156.0.0.0",
               "releaseVersion": "156.0.4314.84",
               "engineVersion": "156.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  156
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-12",
               "note": "Latest managed Extended Stable servicing build; reduced UA token remains major.0.0.0.",
               "channel": "Extended Stable"
@@ -495,6 +726,13 @@
               "uaVersion": "155.0.0.0",
               "releaseVersion": "155.0.4283.45",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-08",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -503,6 +741,13 @@
               "uaVersion": "154.0.0.0",
               "releaseVersion": "154.0.4258.37",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-09-24",
               "note": "Stable-channel release build; reduced UA token remains major.0.0.0.",
               "channel": "Stable"
@@ -516,6 +761,13 @@
               "uaVersion": "140.0.0.0",
               "releaseVersion": "140.0.6074.36",
               "engineVersion": "157.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  157
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-18",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 157."
             },
@@ -523,6 +775,13 @@
               "uaVersion": "139.0.0.0",
               "releaseVersion": "139.0.6053.38",
               "engineVersion": "155.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  155
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-11-04",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 155."
             },
@@ -530,6 +789,13 @@
               "uaVersion": "138.0.0.0",
               "releaseVersion": "138",
               "engineVersion": "154.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  154
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-20",
               "note": "Opera 138 Stable; full desktop build not asserted here. UA token is OPR/138.0.0.0; Chromium engine token is 154.0.0.0."
             },
@@ -537,6 +803,13 @@
               "uaVersion": "137.0.0.0",
               "releaseVersion": "137.0.6036.63",
               "engineVersion": "153.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  153
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-10-14",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 153."
             },
@@ -544,6 +817,13 @@
               "uaVersion": "136.0.0.0",
               "releaseVersion": "136.0.6008.80",
               "engineVersion": "152.0.0.0",
+              "engineCompatibility": {
+                "family": "chromium",
+                "majors": [
+                  152
+                ],
+                "basis": "catalog-engine-mapping"
+              },
               "releaseDate": "2026-09-30",
               "note": "OPR token uses major-only UA value; Chromium engine token maps to 152."
             }
@@ -556,6 +836,13 @@
               "uaVersion": "27.2",
               "releaseVersion": "27.2",
               "engineVersion": "27.2",
+              "engineCompatibility": {
+                "family": "webkit",
+                "majors": [
+                  27
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-26",
               "note": null
             },
@@ -563,6 +850,13 @@
               "uaVersion": "27.1",
               "releaseVersion": "27.1",
               "engineVersion": "27.1",
+              "engineCompatibility": {
+                "family": "webkit",
+                "majors": [
+                  27
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-10-23",
               "note": null
             },
@@ -570,6 +864,13 @@
               "uaVersion": "27.0",
               "releaseVersion": "27.0",
               "engineVersion": "27.0",
+              "engineCompatibility": {
+                "family": "webkit",
+                "majors": [
+                  27
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-09-14",
               "note": null
             },
@@ -577,6 +878,13 @@
               "uaVersion": "26.6",
               "releaseVersion": "26.6",
               "engineVersion": "26.6",
+              "engineCompatibility": {
+                "family": "webkit",
+                "majors": [
+                  26
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-07-27",
               "note": null
             },
@@ -584,6 +892,13 @@
               "uaVersion": "26.5",
               "releaseVersion": "26.5",
               "engineVersion": "26.5",
+              "engineCompatibility": {
+                "family": "webkit",
+                "majors": [
+                  26
+                ],
+                "basis": "browser-is-engine"
+              },
               "releaseDate": "2026-05-11",
               "note": null
             }

@@ -7008,8 +7008,8 @@
         ]
       }
     },
-    "catalogReleaseId": "2026.11.28.2",
-    "dataVersion": "2026.11.25.7",
+    "catalogReleaseId": "2026.11.28.3",
+    "dataVersion": "2026.11.28.1",
     "schemaVersion": 2,
     "source": "Bundled baseline migrated to schema v2. Weekly refresh updates versions and device rows.",
     "updatedAt": "2026-11-25",
@@ -7075,6 +7075,244 @@
         "26.6",
         "26.5"
       ]
+    },
+    "browserVersionCompatibility": {
+      "chromeAndroid": {
+        "159.0.8154.33": {
+          "family": "chromium",
+          "majors": [
+            159
+          ],
+          "basis": "ua-major-equals-engine-major"
+        },
+        "158.0.8127.93": {
+          "family": "chromium",
+          "majors": [
+            158
+          ],
+          "basis": "ua-major-equals-engine-major"
+        },
+        "157.0.8103.80": {
+          "family": "chromium",
+          "majors": [
+            157
+          ],
+          "basis": "ua-major-equals-engine-major"
+        },
+        "156.0.8078.81": {
+          "family": "chromium",
+          "majors": [
+            156
+          ],
+          "basis": "ua-major-equals-engine-major"
+        },
+        "155.0.8059.88": {
+          "family": "chromium",
+          "majors": [
+            155
+          ],
+          "basis": "ua-major-equals-engine-major"
+        }
+      },
+      "chromeIos": {
+        "158.0.8127.86": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "157.0.8103.37": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "156.0.8078.54": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "155.0.8059.37": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "154.0.8037.55": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        }
+      },
+      "firefoxAndroid": {
+        "161.0": {
+          "family": "gecko",
+          "majors": [
+            161
+          ],
+          "basis": "browser-is-engine"
+        },
+        "160.0.1": {
+          "family": "gecko",
+          "majors": [
+            160
+          ],
+          "basis": "browser-is-engine"
+        },
+        "159.0.1": {
+          "family": "gecko",
+          "majors": [
+            159
+          ],
+          "basis": "browser-is-engine"
+        },
+        "158.0.1": {
+          "family": "gecko",
+          "majors": [
+            158
+          ],
+          "basis": "browser-is-engine"
+        },
+        "157.0.1": {
+          "family": "gecko",
+          "majors": [
+            157
+          ],
+          "basis": "browser-is-engine"
+        }
+      },
+      "firefoxIos": {
+        "161.0": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "160.1": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "160.0": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "159.0": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "158.0": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        }
+      },
+      "edgeAndroid": {
+        "158.0.4370.33": {
+          "status": "unknown",
+          "reason": "No Edge-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "157.0.4341.53": {
+          "status": "unknown",
+          "reason": "No Edge-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "156.0.4314.56": {
+          "status": "unknown",
+          "reason": "No Edge-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "155.0.4283.61": {
+          "status": "unknown",
+          "reason": "No Edge-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "154.0.4258.38": {
+          "status": "unknown",
+          "reason": "No Edge-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        }
+      },
+      "edgeIos": {
+        "158.0.4370.33": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "157.0.4341.42": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "156.0.4314.56": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "155.0.4283.61": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        },
+        "154.0.4258.38": {
+          "family": "webkit",
+          "majors": null,
+          "basis": "platform-engine-webkit"
+        }
+      },
+      "operaAndroid": {
+        "104.1.5262.91393": {
+          "status": "unknown",
+          "reason": "No Opera-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "104.1.5262.91343": {
+          "status": "unknown",
+          "reason": "No Opera-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "104.0.5262.91259": {
+          "status": "unknown",
+          "reason": "No Opera-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "104.0.5258.91004": {
+          "status": "unknown",
+          "reason": "No Opera-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        },
+        "103.3.5234.91185": {
+          "status": "unknown",
+          "reason": "No Opera-to-Chromium engine mapping is recorded in the catalog for Android; the application version must not be assumed to equal the engine version."
+        }
+      },
+      "safariIos": {
+        "27.2": {
+          "family": "webkit",
+          "majors": [
+            27
+          ],
+          "basis": "browser-is-engine"
+        },
+        "27.1": {
+          "family": "webkit",
+          "majors": [
+            27
+          ],
+          "basis": "browser-is-engine"
+        },
+        "27.0": {
+          "family": "webkit",
+          "majors": [
+            27
+          ],
+          "basis": "browser-is-engine"
+        },
+        "26.6": {
+          "family": "webkit",
+          "majors": [
+            26
+          ],
+          "basis": "browser-is-engine"
+        },
+        "26.5": {
+          "family": "webkit",
+          "majors": [
+            26
+          ],
+          "basis": "browser-is-engine"
+        }
+      }
     }
   }
 }
