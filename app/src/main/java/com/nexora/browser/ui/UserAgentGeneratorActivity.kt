@@ -56,6 +56,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     private lateinit var iosDeviceModeSpinner: Spinner
     private lateinit var androidVersionSpinner: Spinner
     private lateinit var iosVersionSpinner: Spinner
+    private var manualSafariField: EditText? = null
     private lateinit var resultPanel: LinearLayout
     private lateinit var savedBatchesPanel: LinearLayout
     private lateinit var resultSummary: TextView
@@ -74,6 +75,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         inAppTemplates = DeviceDb.loadVerifiedUserAgentTemplates(this)
         batchStore = UserAgentBatchStore(this)
         buildUi()
+        manualSafariField?.setText(savedInstanceState?.getString("manualSafariVersion").orEmpty())
         savedInstanceState?.getString(STATE_BATCH_ID)?.let { id ->
             lastBatch = readLocalStore { batchStore.find(id) }.getOrElse { return }
             lastBatch?.let { renderResults(it.records, it.name) }
@@ -86,6 +88,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("manualSafariVersion", manualSafariField?.text?.toString())
         outState.putString(STATE_BATCH_ID, lastBatch?.id.orEmpty())
         super.onSaveInstanceState(outState)
     }
@@ -159,6 +162,9 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         browser.addView(chrome)
         val safari = CheckBox(this).apply { text = "Safari · iOS compatibility template"; isChecked = true; setTextColor(color(R.color.nexora_text)); setOnCheckedChangeListener { _, checked -> iosSafariChecked = checked } }
         browser.addView(safari)
+        if (presets.any { it.isIos && it.safariVersion.isBlank() }) {
+            manualSafariField = field(browser, "Safari version (manual)", "Enter the Safari version", "", InputType.TYPE_CLASS_TEXT)
+        }
         addNote(browser, "Not yet available", "Firefox, Edge and Opera require verified browser-specific UA templates in the GitHub catalog. NEXORA will not invent browser versions or strings.")
 
         val embedded = section("04  /  In-app browsers", "Optional. Nothing is included unless you explicitly select an evidence-backed template.")
@@ -220,6 +226,7 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
             customDeviceCounts = customDeviceCounts.toMap(),
             androidOsVersion = versionValue(androidVersionSpinner),
             iosOsVersion = versionValue(iosVersionSpinner),
+            manualSafariVersion = manualSafariField?.text?.toString().orEmpty(),
             androidBrowserFamilies = if (androidChromeChecked) setOf("Chrome") else emptySet(),
             iosBrowserFamilies = if (iosSafariChecked) setOf("Safari") else emptySet(),
             inAppBrowserIds = selectedInAppIds.toSet(),
@@ -260,7 +267,8 @@ class UserAgentGeneratorActivity : AppCompatActivity() {
         if (resultPanel.childCount > 3) resultPanel.removeViews(3, resultPanel.childCount - 3)
         resultSummary.text = "$batchName\n${records.size} records · ${records.count { it.targetOs == "ANDROID" }} Android · ${records.count { it.targetOs == "IOS" }} iOS · database ${records.firstOrNull()?.databaseVersion ?: "unknown"}"
         val output = records.take(12).mapIndexed { index, row ->
-            "${index + 1}. ${row.targetOs} · ${row.deviceName} · ${row.osVersion} · ${row.browserFamily}\n${row.userAgent}"
+            val manual = row.manualSafariVersion.takeIf { it.isNotEmpty() }?.let { " · Safari $it (manual)" }.orEmpty()
+            "${index + 1}. ${row.targetOs} · ${row.deviceName} · ${row.osVersion} · ${row.browserFamily}$manual\n${row.userAgent}"
         }.joinToString("\n\n")
         val preview = TextView(this).apply {
             text = output + if (records.size > 12) "\n\n… ${records.size - 12} more records. Use Copy all to view the complete batch." else ""

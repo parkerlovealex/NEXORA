@@ -58,7 +58,7 @@ class UaBuilderTest {
 
     @Test
     fun recognizesLabeledIosEmulationUa() {
-        val ios = androidPreset.copy(isIos = true)
+        val ios = androidPreset.copy(isIos = true, safariVersion = "16.6")
         val ua = UaBuilder.build(ios, "17.5", "ignored native UA")
         assertTrue(UaBuilder.isGeneratedFor(ios, "17.5", ua))
     }

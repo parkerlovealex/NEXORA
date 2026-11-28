@@ -17,7 +17,9 @@ data class DevicePreset(
     val cores: Int,
     val gpu: String,
     val osVersions: List<String>,
-    val isIos: Boolean
+    val isIos: Boolean,
+    val safariVersion: String = "",
+    val osBuilds: Map<String, String> = emptyMap()
 ) {
     /** "Samsung Galaxy S24" */
     val displayName: String get() = "$brand $model"

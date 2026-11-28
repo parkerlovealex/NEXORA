@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.webkit.WebViewFeature
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DeviceDb
@@ -193,6 +194,7 @@ class EditProfileActivity : AppCompatActivity() {
         }
         binding.spRam.onItemSelectedListener = hardwareSelectionListener
         binding.spStorage.onItemSelectedListener = hardwareSelectionListener
+        binding.etSafariManual.doAfterTextChanged { if (ready && !uaEdited) regenerateUa() }
         binding.etUa.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {
@@ -230,17 +232,17 @@ class EditProfileActivity : AppCompatActivity() {
         }
         binding.spOs.setSelection(osIndex)
 
-        binding.spRam.adapter = spinnerAdapter(preset.ramOptions.map { "$it GB" })
-        val ramIndex = if (selRam != null) {
-            preset.ramOptions.indexOf(selRam).coerceAtLeast(0)
-        } else 0
-        binding.spRam.setSelection(ramIndex)
-
-        binding.spStorage.adapter = spinnerAdapter(preset.storageOptions.map { "$it GB" })
-        val storageIndex = if (selStorage != null) {
-            preset.storageOptions.indexOf(selStorage).coerceAtLeast(0)
-        } else 0
-        binding.spStorage.setSelection(storageIndex)
+        fun options(values: List<Int>, saved: Int?): List<String> {
+            val labels = values.map { "$it GB" }
+            return if (labels.isEmpty() || saved == 0) listOf("Unknown") + labels else labels
+        }
+        val ram = options(preset.ramOptions, selRam)
+        binding.spRam.adapter = spinnerAdapter(ram)
+        binding.spRam.setSelection(ram.indexOf("$selRam GB").coerceAtLeast(0))
+        val storage = options(preset.storageOptions, selStorage)
+        binding.spStorage.adapter = spinnerAdapter(storage)
+        binding.spStorage.setSelection(storage.indexOf("$selStorage GB").coerceAtLeast(0))
+        updateUaInputState()
         refreshDevicePreview()
     }
 
@@ -265,6 +267,7 @@ class EditProfileActivity : AppCompatActivity() {
         val preset = presets[deviceIndex]
         populateDeviceFields(preset, p.osVersion, p.ramGb, p.storageGb)
 
+        binding.etSafariManual.setText(p.manualSafariVersion)
         setUaText(p.userAgent)
         // Recognize older auto-generated UAs even when their Chromium version is stale.
         // Preserve genuinely custom strings rather than silently replacing them.
@@ -417,12 +420,16 @@ class EditProfileActivity : AppCompatActivity() {
 
     private fun regenerateUa() {
         val preset = selectedPreset() ?: return
-        val os = binding.spOs.selectedItem?.toString() ?: preset.osVersions.lastOrNull() ?: return
+        val os = binding.spOs.selectedItem?.toString().orEmpty()
         setUaText(buildAutoUa(preset, os))
         updateUaInputState()
     }
 
     private fun updateUaInputState() {
+        val preset = selectedPreset()
+        val showManual = !uaEdited && preset?.isIos == true && preset.safariVersion.isBlank()
+        binding.tvSafariManual.visibility = if (showManual) View.VISIBLE else View.GONE
+        binding.etSafariManual.visibility = binding.tvSafariManual.visibility
         binding.etUa.isEnabled = uaEdited
         binding.etUa.alpha = if (uaEdited) 1f else 0.72f
     }
@@ -504,6 +511,7 @@ class EditProfileActivity : AppCompatActivity() {
             ramGb = parseGb(binding.spRam.selectedItem?.toString()),
             storageGb = parseGb(binding.spStorage.selectedItem?.toString()),
             userAgent = binding.etUa.text.toString().trim(),
+            manualSafariVersion = if (!uaEdited && preset?.isIos == true && preset.safariVersion.isBlank()) binding.etSafariManual.text.toString().trim() else "",
             proxyType = proxyType,
             proxyHost = proxyHost,
             proxyPort = proxyPort,
@@ -544,7 +552,7 @@ class EditProfileActivity : AppCompatActivity() {
 
     private fun buildAutoUa(preset: DevicePreset, osVersion: String): String {
         val native = WebSettings.getDefaultUserAgent(this)
-        return runCatching { UaBuilder.build(preset, osVersion, native) }.getOrDefault(native)
+        return runCatching { UaBuilder.build(preset, osVersion, native, binding.etSafariManual.text.toString()) }.getOrDefault("")
     }
 
     private fun parseGb(label: String?): Int =

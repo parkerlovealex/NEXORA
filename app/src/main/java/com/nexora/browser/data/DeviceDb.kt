@@ -1,6 +1,7 @@
 package com.nexora.browser.data
 
 import android.content.Context
+import com.nexora.browser.util.UaBuilder
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -61,19 +62,21 @@ object DeviceDb {
         }
     }
 
-    private fun parseCatalog(text: String): List<DevicePreset>? {
+    internal fun parseCatalog(text: String): List<DevicePreset>? {
         return try {
             val root = JSONObject(text)
             val result = mutableListOf<DevicePreset>()
             parseArray(root.optJSONArray("android"), isIos = false, out = result)
-            parseArray(root.optJSONArray("ios_emulation"), isIos = true, out = result)
+            val versions = root.optJSONObject("meta")?.optJSONObject("browserVersions")?.optJSONArray("safariIos")
+            val safari = stringList(versions).firstOrNull(UaBuilder::isVersion).orEmpty()
+            parseArray(root.optJSONArray("ios_emulation"), isIos = true, out = result, safariVersion = safari)
             result.takeIf { it.isNotEmpty() }
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun parseArray(array: JSONArray?, isIos: Boolean, out: MutableList<DevicePreset>) {
+    private fun parseArray(array: JSONArray?, isIos: Boolean, out: MutableList<DevicePreset>, safariVersion: String = "") {
         if (array == null) return
         for (i in 0 until array.length()) {
             val o = array.optJSONObject(i) ?: continue
@@ -84,9 +87,9 @@ object DeviceDb {
             val uaModel = o.optString("uaModel")
             val width = display.optInt("w")
             val height = display.optInt("h")
-            val dpr = display.optDouble("dpr", 1.0)
+            val dpr = display.optDouble("dpr", Double.NaN)
             if (id.isBlank() || brand.isBlank() || model.isBlank() || uaModel.isBlank() ||
-                width <= 0 || height <= 0 || dpr <= 0.0
+                width <= 0 || height <= 0 || !dpr.isFinite() || dpr <= 0.0
             ) continue
             out.add(
                 DevicePreset(
@@ -99,10 +102,14 @@ object DeviceDb {
                     dpr = dpr,
                     ramOptions = intList(o.optJSONArray("ramGb")),
                     storageOptions = intList(o.optJSONArray("storageGb")),
-                    cores = o.optInt("cores", 8),
+                    cores = o.optInt("cores").coerceAtLeast(0),
                     gpu = o.optString("gpu"),
                     osVersions = stringList(o.optJSONArray("osVersions")),
-                    isIos = isIos
+                    isIos = isIos,
+                    safariVersion = safariVersion,
+                    osBuilds = o.optJSONObject("builds")?.let { builds ->
+                        builds.keys().asSequence().associateWith { builds.optString(it) }
+                    }.orEmpty()
                 )
             )
         }
@@ -122,7 +129,7 @@ object DeviceDb {
         if (array == null) return emptyList()
         val list = mutableListOf<String>()
         for (i in 0 until array.length()) {
-            val value = array.optString(i).trim()
+            val value = (array.opt(i) as? String)?.trim().orEmpty()
             if (value.isNotEmpty()) list.add(value)
         }
         return list

@@ -19,7 +19,6 @@ object FingerprintScript {
         val seed = effectiveSeed(profile)
         val cssW = preset.cssWidth
         val cssH = preset.cssHeight
-        val deviceMemory = deviceMemoryBucket(profile.ramGb)
         val platform = if (preset.isIos) "iPhone" else "Linux armv8l"
         val language = profile.language.ifEmpty { "en-US" }
         val vendor = webglVendor(preset)
@@ -66,12 +65,13 @@ object FingerprintScript {
             ).append("\n")
         }
 
+        if (preset.cores > 0) sb.append("__nxDef(navigator, 'hardwareConcurrency', ${preset.cores});\n")
+        if (profile.ramGb > 0) sb.append("__nxDef(navigator, 'deviceMemory', ${deviceMemoryBucket(profile.ramGb)});\n")
+
         // Core identity values. Descriptor enumerability is preserved where possible.
         sb.append(
             """
             try {
-              __nxDef(navigator, 'hardwareConcurrency', ${preset.cores});
-              __nxDef(navigator, 'deviceMemory', $deviceMemory);
               __nxDef(navigator, 'platform', ${q(platform)});
               __nxDef(navigator, 'language', ${q(language)});
               __nxDef(navigator, 'languages', [${q(language)}, ${q(language.substringBefore('-'))}]);
@@ -416,8 +416,8 @@ object FingerprintScript {
             .put("expectedUserAgent", userAgent)
             .put("expectedPlatform", if (preset.isIos) "iPhone" else "Linux armv8l")
             .put("expectedLanguage", profile.language.ifEmpty { "en-US" })
-            .put("expectedCores", preset.cores)
-            .put("expectedMemory", deviceMemoryBucket(profile.ramGb))
+            .putOpt("expectedCores", preset.cores.takeIf { it > 0 })
+            .putOpt("expectedMemory", profile.ramGb.takeIf { it > 0 }?.let(::deviceMemoryBucket))
             .put("expectedScreenWidth", preset.cssWidth)
             .put("expectedScreenHeight", preset.cssHeight)
             .put("expectedDpr", preset.dpr)

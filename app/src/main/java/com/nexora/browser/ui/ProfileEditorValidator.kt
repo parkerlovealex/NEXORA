@@ -3,6 +3,7 @@ package com.nexora.browser.ui
 import com.nexora.browser.data.BrowserProfile
 import com.nexora.browser.data.DevicePreset
 import com.nexora.browser.data.ProxyEntry
+import com.nexora.browser.util.UaBuilder
 import java.net.URI
 import java.util.TimeZone
 
@@ -42,8 +43,9 @@ object ProfileEditorValidator {
             if (profile.targetOs == "ANDROID" && preset.isIos) errors += "Choose an Android device preset."
             if (profile.targetOs == "IOS" && !preset.isIos) errors += "Choose an iOS emulation preset."
             if (profile.osVersion !in preset.osVersions) errors += "Choose a valid OS version for this device."
-            if (profile.ramGb !in preset.ramOptions) errors += "Choose a supported RAM option for this device."
-            if (profile.storageGb !in preset.storageOptions) errors += "Choose a supported storage option for this device."
+            if (preset.isIos && profile.userAgentMode == "AUTO" && UaBuilder.safariVersion(preset, profile.manualSafariVersion) == null) errors += "Enter a manual Safari version or choose a custom User-Agent."
+            if (profile.ramGb != 0 && profile.ramGb !in preset.ramOptions) errors += "Choose a supported RAM option for this device."
+            if (profile.storageGb != 0 && profile.storageGb !in preset.storageOptions) errors += "Choose a supported storage option for this device."
         }
 
         if (profile.userAgentMode !in setOf("AUTO", "CUSTOM")) {
