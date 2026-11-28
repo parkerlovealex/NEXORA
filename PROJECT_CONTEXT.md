@@ -572,3 +572,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A27 Chrome refresh honesty (2026-11-28, Muse takeover)
 
 **A27:** the weekly refresh now fails its run when the Chrome version fetch fails, and fills a missing current Chrome version instead of reporting it as already current. Proof: `tests/test_refresh_chrome_honesty.py` fails pre-fix, passes post-fix; Python suite 114 passed / 0 failed.
+
+## Alpha30 Wave 5 — A30 template revision stability (2026-11-28, Muse takeover)
+
+**A30:** re-running the UA template collector with identical inputs no longer mints a new dataVersion or stacks duplicate downgrade notes; real changes still bump. Proof: `tests/test_template_revision_stability.py` fails pre-fix, passes post-fix; Python suite 117 passed / 0 failed.
