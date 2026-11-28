@@ -592,3 +592,7 @@ The owner decided B01 on 2026-11-28: **verified-only — script candidates canno
 ## Alpha30 Wave 5 — A21 one-to-one proxy assignment (2026-11-28, Muse takeover)
 
 **A21:** the one-to-one proxy assignment planner now excludes proxies already assigned to any profile, so re-running it cannot double-assign. Proof: new JVM unit test fails pre-fix, passes post-fix (WorkflowPlannerTest, 4 tests, compiled and run directly in the takeover environment); Python suite 123 passed / 0 failed. Full-app compile re-verified at the Wave 6 build.
+
+## Alpha30 Wave 5 — A41 proxy URI credential decoding (2026-11-28, Muse takeover)
+
+**A41:** proxy URI import no longer form-decodes credentials — a literal '+' survives as a plus; %XX escapes still decode. Proof: new JVM unit tests fail pre-fix / pass post-fix (BulkInputParsersTest, 5 tests, run directly in the takeover environment); Python suite 123 passed / 0 failed. Full-app compile re-verified at the Wave 6 build.
