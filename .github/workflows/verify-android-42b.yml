@@ -21,10 +21,24 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
-      - name: Unit tests
-        run: gradle testDebugUnitTest --no-daemon
+      - name: Verify JSON dependency scope
+        run: |
+          gradle :app:dependencies --configuration debugUnitTestRuntimeClasspath --no-daemon > /tmp/test-deps.txt
+          grep -q "android-json" /tmp/test-deps.txt && echo "android-json present on unit-test classpath"
+          gradle :app:dependencies --configuration debugRuntimeClasspath --no-daemon > /tmp/runtime-deps.txt
+          if grep -q "android-json" /tmp/runtime-deps.txt; then echo "ERROR: android-json leaked into the production runtime classpath"; exit 1; fi
+          echo "android-json absent from production runtime classpath"
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon
+      - name: Upload debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-debug-apk-42b
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: ignore
+      - name: Unit tests
+        run: gradle testDebugUnitTest --no-daemon
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -33,11 +47,4 @@ jobs:
           path: |
             app/build/test-results/testDebugUnitTest
             app/build/reports/tests/testDebugUnitTest
-          if-no-files-found: ignore
-      - name: Upload debug APK
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nexora-debug-apk-42b
-          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: ignore
