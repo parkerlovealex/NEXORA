@@ -1,32 +1,16 @@
 {
-  "finding": "A18",
-  "parent": "60123738025a212f4ec90a963f281f553969e766",
+  "finding": "A20",
+  "parent": "30c5bbb24a505f3dab9f270e79fc60d3cafe5298",
   "files": {
-    "app/src/main/java/com/nexora/browser/bulk/BulkProfileDraft.kt": "4179551752c11994e7d61316795f2d3dae7fe44f",
-    "app/src/main/java/com/nexora/browser/bulk/BulkProfileValidator.kt": "e19692d8db73c260dc8ab48259ad52a77f9f590e",
-    "app/src/main/java/com/nexora/browser/data/BrowserProfile.kt": "4d264e65d5edb5fdfa7f41de14d3379f6bf2a2f4",
-    "app/src/main/java/com/nexora/browser/data/DeviceDb.kt": "8cdd308c660069c9e7d2e3a537ef8deb5dc2e112",
-    "app/src/main/java/com/nexora/browser/data/DevicePreset.kt": "1e00369af6c5e477122f24c4c5da6e00ffc8d3b4",
-    "app/src/main/java/com/nexora/browser/data/UserAgentBatch.kt": "f539db2b829b6244b5f84f6c41214fe41c426489",
-    "app/src/main/java/com/nexora/browser/fp/FingerprintScript.kt": "da7557a367645ffbaa45de4d4981aa6d892ac64c",
-    "app/src/main/java/com/nexora/browser/ui/BrowserActivity.kt": "97486f0c54ee3d9ad7116dd9111b9a90489f28c2",
-    "app/src/main/java/com/nexora/browser/ui/BulkCreateActivity.kt": "20a12cfc8b0c641956f38c27fd4b7289164ad7f9",
-    "app/src/main/java/com/nexora/browser/ui/EditProfileActivity.kt": "fd992538e52f4f9dc74d902fa00ac08054bb9581",
-    "app/src/main/java/com/nexora/browser/ui/ProfileEditorValidator.kt": "763e11fa1b2af10eb5b9afe356656aae81792bf5",
-    "app/src/main/java/com/nexora/browser/ui/ProfileStudioActivity.kt": "606330e9ad4d72469b91780a025c0406f93470ca",
-    "app/src/main/java/com/nexora/browser/ui/UserAgentGeneratorActivity.kt": "fb47c3ca5576cac3c0649adcb96ba16b07c2abcf",
-    "app/src/main/java/com/nexora/browser/util/UaBuilder.kt": "1d67aa7a54da5c7e21187c15188a39257a2ec12c",
-    "app/src/main/java/com/nexora/browser/util/UserAgentGenerationEngine.kt": "cf5d81ffb63f0719d780d0562900b56ab3683c65",
-    "app/src/main/res/layout/activity_edit_profile.xml": "47a6dc906995a7e0d6296a0b07190233dc135786",
-    "app/src/test/java/com/nexora/browser/util/MissingCatalogValuesTest.kt": "64768dd3729f451c9a1c00ebd46de39a903baa70",
-    "app/src/test/java/com/nexora/browser/util/UaBuilderTest.kt": "f6ecf435c1d797d49615ae4fc1560377bca17625",
-    "app/src/test/java/com/nexora/browser/util/UserAgentGenerationEngineTest.kt": "557491632232fcf18210753eb68765ac8e6a320c"
+    "app/src/main/java/com/nexora/browser/util/ProxyRelayServer.kt": "55d55d82a4adf4f1b0edd9dbfc05bc82d6cdb55b",
+    "app/src/test/java/com/nexora/browser/util/ProxyRelaySchedulingTest.kt": "2c11741a963088ce7dbf2b191d074fe2b119c3f8",
+    "app/src/test/java/com/nexora/browser/util/RelayTunnelLifetimeTest.kt": "4813c39dc9fb5b4b87ceb8c9e520e4483758f59f"
   },
   "tests": [
-    "app/src/test/java/com/nexora/browser/util/MissingCatalogValuesTest.kt"
+    "app/src/test/java/com/nexora/browser/util/ProxyRelaySchedulingTest.kt"
   ],
   "focus": {
     "kind": "jvm",
-    "selector": "com.nexora.browser.util.MissingCatalogValuesTest.missingCatalogSafariRequiresManualEntry"
+    "selector": "com.nexora.browser.util.ProxyRelaySchedulingTest.independentWorkStartsWhileTwoWorkersAreOccupied"
   }
 }
